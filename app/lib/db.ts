@@ -2,6 +2,9 @@ import { Pool } from 'pg'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
+// Fix SSL issues with Supabase
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
 })
