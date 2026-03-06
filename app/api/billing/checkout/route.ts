@@ -16,7 +16,7 @@ export async function POST() {
       return NextResponse.json({ url: null })
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-11-20.acacia' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' })
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
