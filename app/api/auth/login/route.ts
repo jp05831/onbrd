@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
-    // Verify password
-    if (!database.verifyPassword(password, user.password_hash)) {
+    // Verify password (OAuth users have no password)
+    if (!user.password_hash || !database.verifyPassword(password, user.password_hash)) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
