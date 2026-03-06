@@ -182,7 +182,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
                       <div className="flex gap-2 mt-3">
                         {step.file_id ? (
                           <a
-                            href={`/api/files/${step.file_id}`}
+                            href={step.file_id.startsWith('http') ? step.file_id : `/api/files/${step.file_id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"

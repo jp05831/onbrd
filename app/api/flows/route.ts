@@ -42,13 +42,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { client_name, client_email, welcome_message } = body
+    const { client_name, client_email, welcome_message, is_template } = body
 
     if (!client_name) {
       return NextResponse.json({ error: 'Client name is required' }, { status: 400 })
     }
 
-    const { id, slug } = await database.createFlow(session.user.id, client_name, client_email, welcome_message)
+    const { id, slug } = await database.createFlow(session.user.id, client_name, client_email, welcome_message, is_template)
 
     return NextResponse.json({ id, slug })
   } catch (error) {

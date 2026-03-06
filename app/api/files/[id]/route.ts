@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import path from 'path'
-import database from '../../../lib/db'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+)
 
 export async function GET(
   request: NextRequest,
@@ -9,24 +12,34 @@ export async function GET(
 ) {
   const { id } = await params
 
-  const file = await database.getFileById(id)
-  if (!file) {
-    return NextResponse.json({ error: 'File not found' }, { status: 404 })
-  }
-
-  try {
-    const filePath = path.join(process.cwd(), 'uploads', file.stored_name)
-    const fileBuffer = await readFile(filePath)
-
-    return new NextResponse(fileBuffer, {
-      headers: {
-        'Content-Type': file.mime_type,
-        'Content-Disposition': `inline; filename="${file.original_name}"`,
-        'Content-Length': file.size.toString(),
-      },
+  // The id is the filename stored in Supabase
+  // We need to find the file - for now, redirect to the Supabase public URL
+  // This assumes files are stored as: uploads/{userId}/{id}
+  
+  // Since we don't know the userId here, we'll search for the file
+  const { data: files, error } = await supabase.storage
+    .from('files')
+    .list('uploads', {
+      search: id,
     })
-  } catch (error) {
-    console.error('File read error:', error)
+
+  if (error || !files || files.length === 0) {
+    // Try getting direct URL if file exists
+    const { data: urlData } = supabase.storage
+      .from('files')
+      .getPublicUrl(`uploads/${id}`)
+    
+    if (urlData?.publicUrl) {
+      return NextResponse.redirect(urlData.publicUrl)
+    }
+    
     return NextResponse.json({ error: 'File not found' }, { status: 404 })
   }
+
+  // Redirect to the public URL
+  const { data: urlData } = supabase.storage
+    .from('files')
+    .getPublicUrl(`uploads/${files[0].name}`)
+
+  return NextResponse.redirect(urlData.publicUrl)
 }

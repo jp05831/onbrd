@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { createClient } from '@supabase/supabase-js'
+import { getSession } from '../../../lib/auth'
 import crypto from 'crypto'
-import database from '../../../lib/db'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+)
 
 export async function POST(request: NextRequest) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('session')?.value
+  const session = await getSession()
   
-  if (!token) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const session = await database.getSession(token)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -36,32 +33,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 })
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'uploads')
-    await mkdir(uploadsDir, { recursive: true })
-
     // Generate unique filename
-    const ext = path.extname(file.name)
-    const storedName = `${crypto.randomBytes(16).toString('hex')}${ext}`
-    const filePath = path.join(uploadsDir, storedName)
+    const ext = file.name.split('.').pop() || 'pdf'
+    const storedName = `${crypto.randomBytes(16).toString('hex')}.${ext}`
+    const filePath = `uploads/${session.user.id}/${storedName}`
 
-    // Write file
+    // Upload to Supabase Storage
     const bytes = await file.arrayBuffer()
-    await writeFile(filePath, Buffer.from(bytes))
+    const { data, error } = await supabase.storage
+      .from('files')
+      .upload(filePath, Buffer.from(bytes), {
+        contentType: file.type,
+        upsert: false
+      })
 
-    // Save to database
-    const fileId = await database.createFile(
-      session.id,
-      file.name,
-      storedName,
-      file.type,
-      file.size
-    )
+    if (error) {
+      console.error('Supabase upload error:', error)
+      return NextResponse.json({ error: 'Upload failed: ' + error.message }, { status: 500 })
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('files')
+      .getPublicUrl(filePath)
 
     return NextResponse.json({ 
-      id: fileId, 
+      id: storedName,
       name: file.name,
-      size: file.size 
+      size: file.size,
+      url: urlData.publicUrl
     })
   } catch (error) {
     console.error('Upload error:', error)

@@ -41,6 +41,7 @@ async function initDb() {
         welcome_message TEXT,
         slug TEXT UNIQUE NOT NULL,
         status TEXT DEFAULT 'draft',
+        is_template BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         completed_at TIMESTAMP
       );
@@ -118,6 +119,7 @@ export interface Flow {
   welcome_message: string | null
   slug: string
   status: 'draft' | 'published' | 'completed'
+  is_template: boolean
   created_at: string
   completed_at: string | null
 }
@@ -248,14 +250,14 @@ export const database = {
   },
 
   // Flows
-  createFlow: async (userId: string, clientName: string, clientEmail?: string, welcomeMessage?: string) => {
+  createFlow: async (userId: string, clientName: string, clientEmail?: string, welcomeMessage?: string, isTemplate?: boolean) => {
     await initDb()
     const id = uuid()
     const slug = generateSlug()
     
     await pool.query(
-      'INSERT INTO flows (id, user_id, client_name, client_email, welcome_message, slug) VALUES ($1, $2, $3, $4, $5, $6)',
-      [id, userId, clientName, clientEmail || null, welcomeMessage || null, slug]
+      'INSERT INTO flows (id, user_id, client_name, client_email, welcome_message, slug, is_template) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [id, userId, clientName, clientEmail || null, welcomeMessage || null, slug, isTemplate || false]
     )
     
     return { id, slug }
@@ -265,11 +267,12 @@ export const database = {
     await initDb()
     const result = await pool.query(`
       SELECT f.*, 
+        COALESCE(f.is_template, false) as is_template,
         (SELECT COUNT(*) FROM steps WHERE flow_id = f.id) as total_steps,
         (SELECT COUNT(*) FROM steps WHERE flow_id = f.id AND completed = true) as completed_steps
       FROM flows f
       WHERE f.user_id = $1
-      ORDER BY f.created_at DESC
+      ORDER BY f.is_template DESC, f.created_at DESC
     `, [userId])
     return result.rows as (Flow & { total_steps: number; completed_steps: number })[]
   },

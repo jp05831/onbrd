@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText } from 'lucide-react'
+import { Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText, Users, MoreHorizontal, Repeat } from 'lucide-react'
 
 interface Flow {
   id: string
   client_name: string
   slug: string
   status: 'draft' | 'published' | 'completed'
+  is_template: boolean
   total_steps: number
   completed_steps: number
   created_at: string
@@ -25,7 +26,7 @@ export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan: 'free', activeFlows: 0, maxFlows: 3 })
   const [loading, setLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
-  const [newFlow, setNewFlow] = useState({ client_name: '', client_email: '', welcome_message: '' })
+  const [newFlow, setNewFlow] = useState({ client_name: '', client_email: '', welcome_message: '', is_template: false })
   const [creating, setCreating] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -60,7 +61,7 @@ export default function DashboardPage() {
       if (res.ok) {
         const data = await res.json()
         setShowNewModal(false)
-        setNewFlow({ client_name: '', client_email: '', welcome_message: '' })
+        setNewFlow({ client_name: '', client_email: '', welcome_message: '', is_template: false })
         window.location.href = `/dashboard/flows/${data.id}`
       }
     } catch (error) {
@@ -88,185 +89,309 @@ export default function DashboardPage() {
 
   const canCreateFlow = userPlan.plan === 'pro' || userPlan.activeFlows < userPlan.maxFlows
 
+  const templates = flows.filter(f => f.is_template)
+  const regularFlows = flows.filter(f => !f.is_template)
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Flows</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Your Flows</h1>
           <p className="text-sm text-gray-500 mt-1">
             {userPlan.plan === 'free' 
-              ? `${userPlan.activeFlows}/${userPlan.maxFlows} flows`
+              ? `${userPlan.activeFlows} of ${userPlan.maxFlows} flows used`
               : 'Unlimited flows'}
           </p>
         </div>
         <button
           onClick={() => canCreateFlow ? setShowNewModal(true) : window.location.href = '/dashboard/billing'}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          New flow
+          New Flow
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-gray-400">Loading...</div>
+        </div>
       ) : flows.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 border-dashed rounded-lg p-12 text-center">
-          <p className="text-gray-500 mb-4">No flows yet</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No flows yet</h3>
+          <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+            Create your first onboarding flow to start guiding clients through your process.
+          </p>
           <button
             onClick={() => setShowNewModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
             Create your first flow
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
-          {flows.map((flow) => (
-            <div key={flow.id} className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <span className="font-semibold text-gray-600">
-                      {flow.client_name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <Link 
-                      href={`/dashboard/flows/${flow.id}`}
-                      className="font-medium text-gray-900 hover:text-blue-600"
-                    >
-                      {flow.client_name}
-                    </Link>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {flow.status === 'published' ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-blue-600">
-                          <Globe className="w-3 h-3" /> Live
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                          <FileText className="w-3 h-3" /> Draft
-                        </span>
-                      )}
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-400">{flow.total_steps} steps</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-1">
-                  {flow.status === 'published' && (
-                    <>
-                      <button
-                        onClick={() => copyLink(flow.slug, flow.id)}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md"
-                        title="Copy link"
-                      >
-                        {copiedId === flow.id ? <Check className="w-4 h-4 text-blue-600" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                      <a
-                        href={`/onboard/${flow.slug}`}
-                        target="_blank"
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md"
-                        title="Preview"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </>
-                  )}
-                  <Link
-                    href={`/dashboard/flows/${flow.id}`}
-                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => deleteFlow(flow.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+        <div className="space-y-8">
+          {/* Templates Section */}
+          {templates.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Repeat className="w-4 h-4 text-gray-400" />
+                <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Templates</h2>
               </div>
-              
-              {flow.status === 'published' && flow.total_steps > 0 && (
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                  <div className="flex items-center justify-between text-xs mb-1.5">
-                    <span className="text-gray-500">Progress</span>
-                    <span className="text-gray-600">{flow.completed_steps}/{flow.total_steps}</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full">
-                    <div
-                      className="h-full bg-blue-600 rounded-full"
-                      style={{ width: `${(flow.completed_steps / flow.total_steps) * 100}%` }}
-                    />
-                  </div>
+              <div className="grid gap-4">
+                {templates.map((flow) => (
+                  <FlowCard 
+                    key={flow.id} 
+                    flow={flow} 
+                    copiedId={copiedId}
+                    onCopy={copyLink}
+                    onDelete={deleteFlow}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Regular Flows */}
+          {regularFlows.length > 0 && (
+            <div>
+              {templates.length > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="w-4 h-4 text-gray-400" />
+                  <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Client Flows</h2>
                 </div>
               )}
+              <div className="grid gap-4">
+                {regularFlows.map((flow) => (
+                  <FlowCard 
+                    key={flow.id} 
+                    flow={flow} 
+                    copiedId={copiedId}
+                    onCopy={copyLink}
+                    onDelete={deleteFlow}
+                  />
+                ))}
+              </div>
             </div>
-          ))}
+          )}
         </div>
       )}
 
       {/* Modal */}
       {showNewModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-xl">
             <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">New flow</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Create New Flow</h2>
+              <p className="text-sm text-gray-500 mt-1">Set up onboarding for a client or create a reusable template.</p>
             </div>
             
             <div className="p-6 space-y-4">
+              {/* Flow Type Toggle */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Client name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Flow Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewFlow({ ...newFlow, is_template: false })}
+                    className={`p-3 border rounded-lg text-left transition-colors ${
+                      !newFlow.is_template 
+                        ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      <span className="font-medium text-sm">Single Client</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">One-time use for a specific client</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewFlow({ ...newFlow, is_template: true })}
+                    className={`p-3 border rounded-lg text-left transition-colors ${
+                      newFlow.is_template 
+                        ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Repeat className="w-4 h-4" />
+                      <span className="font-medium text-sm">Template</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Reusable for multiple clients</p>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {newFlow.is_template ? 'Template Name' : 'Client Name'} *
+                </label>
                 <input
                   type="text"
                   value={newFlow.client_name}
                   onChange={(e) => setNewFlow({ ...newFlow, client_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Acme Corp"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={newFlow.is_template ? "e.g., Standard Onboarding" : "e.g., Acme Corp"}
                   autoFocus
                 />
               </div>
+
+              {!newFlow.is_template && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Client Email</label>
+                  <input
+                    type="email"
+                    value={newFlow.client_email}
+                    onChange={(e) => setNewFlow({ ...newFlow, client_email: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="client@company.com"
+                  />
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Client email</label>
-                <input
-                  type="email"
-                  value={newFlow.client_email}
-                  onChange={(e) => setNewFlow({ ...newFlow, client_email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="client@company.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Welcome message</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message</label>
                 <textarea
                   value={newFlow.welcome_message}
                   onChange={(e) => setNewFlow({ ...newFlow, welcome_message: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={2}
                   placeholder="Welcome! Complete the steps below..."
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50">
+            <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl">
               <button
                 onClick={() => setShowNewModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-100"
+                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 onClick={createFlow}
                 disabled={!newFlow.client_name.trim() || creating}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {creating ? 'Creating...' : 'Create'}
+                {creating ? 'Creating...' : 'Create Flow'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FlowCard({ flow, copiedId, onCopy, onDelete }: {
+  flow: Flow
+  copiedId: string | null
+  onCopy: (slug: string, id: string) => void
+  onDelete: (id: string) => void
+}) {
+  const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-4">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+            flow.is_template ? 'bg-purple-100' : 'bg-blue-100'
+          }`}>
+            {flow.is_template ? (
+              <Repeat className="w-6 h-6 text-purple-600" />
+            ) : (
+              <span className="text-lg font-semibold text-blue-600">
+                {flow.client_name.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div>
+            <Link 
+              href={`/dashboard/flows/${flow.id}`}
+              className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+            >
+              {flow.client_name}
+            </Link>
+            <div className="flex items-center gap-3 mt-1.5">
+              {flow.status === 'published' ? (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
+                  <Globe className="w-3 h-3" /> Live
+                </span>
+              ) : flow.status === 'completed' ? (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600">
+                  <Check className="w-3 h-3" /> Completed
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
+                  <FileText className="w-3 h-3" /> Draft
+                </span>
+              )}
+              {flow.is_template && (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-purple-600">
+                  <Repeat className="w-3 h-3" /> Template
+                </span>
+              )}
+              <span className="text-xs text-gray-400">{flow.total_steps} steps</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-1">
+          {flow.status === 'published' && (
+            <>
+              <button
+                onClick={() => onCopy(flow.slug, flow.id)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Copy link"
+              >
+                {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              </button>
+              <a
+                href={`/onboard/${flow.slug}`}
+                target="_blank"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Preview"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </>
+          )}
+          <Link
+            href={`/dashboard/flows/${flow.id}`}
+            className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Edit
+          </Link>
+          <button
+            onClick={() => onDelete(flow.id)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      
+      {/* Progress bar for published flows */}
+      {flow.status === 'published' && flow.total_steps > 0 && !flow.is_template && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="text-gray-500">Client Progress</span>
+            <span className="font-medium text-gray-700">{flow.completed_steps}/{flow.total_steps} complete</span>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-600 rounded-full transition-all"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
       )}

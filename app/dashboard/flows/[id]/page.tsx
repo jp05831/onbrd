@@ -329,7 +329,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       if (res.ok) {
         const data = await res.json()
         updateStep(stepId, { 
-          file_id: data.id, 
+          file_id: data.url || data.id, 
           file_name: data.name,
           url: null 
         })
