@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = database.getUserByEmail(email)
+    const user = await database.getUserByEmail(email)
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session
-    const token = database.createSession(user.id)
+    const token = await database.createSession(user.id)
 
     // Set cookie
     const cookieStore = await cookies()

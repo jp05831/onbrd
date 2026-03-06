@@ -13,7 +13,7 @@ export async function POST(
     }
 
     const { id: flowId } = await params
-    const flow = database.getFlowById(flowId)
+    const flow = await database.getFlowById(flowId)
 
     if (!flow || flow.user_id !== session.user.id) {
       return NextResponse.json({ error: 'Flow not found' }, { status: 404 })
@@ -22,11 +22,7 @@ export async function POST(
     const body = await request.json()
     const { stepIds } = body
 
-    if (!Array.isArray(stepIds)) {
-      return NextResponse.json({ error: 'Invalid step IDs' }, { status: 400 })
-    }
-
-    database.reorderSteps(flowId, stepIds)
+    await database.reorderSteps(flowId, stepIds)
 
     return NextResponse.json({ success: true })
   } catch (error) {

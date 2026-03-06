@@ -19,7 +19,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
-        const user = database.getUserByEmail(credentials.email as string)
+        const user = await database.getUserByEmail(credentials.email as string)
         if (!user || !user.password_hash) return null
 
         const valid = database.verifyPassword(credentials.password as string, user.password_hash)
@@ -36,31 +36,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === 'google') {
-        // Check if user exists
-        let dbUser = database.getUserByEmail(user.email!)
+        let dbUser = await database.getUserByEmail(user.email!)
         
         if (!dbUser) {
-          // Create new user from Google
-          const id = database.createUserFromOAuth(
+          const id = await database.createUserFromOAuth(
             user.email!,
             user.name || 'User',
             'google',
             account.providerAccountId
           )
-          dbUser = database.getUserById(id)
-        } else if (!dbUser.oauth_provider) {
-          // Link existing email account to Google
-          database.updateUser(dbUser.id, {
-            oauth_provider: 'google',
-            oauth_id: account.providerAccountId,
-          } as any)
+          dbUser = await database.getUserById(id)
         }
       }
       return true
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
-        const dbUser = database.getUserByEmail(user.email!)
+        const dbUser = await database.getUserByEmail(user.email!)
         if (dbUser) {
           token.userId = dbUser.id
           token.plan = dbUser.plan

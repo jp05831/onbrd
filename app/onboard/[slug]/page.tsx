@@ -5,14 +5,14 @@ import ClientPortal from './ClientPortal'
 export default async function OnboardPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   
-  const flow = database.getFlowBySlug(slug)
+  const flow = await database.getFlowBySlug(slug)
   
   if (!flow || flow.status === 'draft') {
     notFound()
   }
 
-  const steps = database.getStepsByFlowId(flow.id)
-  const user = database.getUserById(flow.user_id)
+  const steps = await database.getStepsByFlowId(flow.id)
+  const user = await database.getUserById(flow.user_id)
 
   return (
     <ClientPortal

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import database from '../../../lib/db'
 
 export async function POST(request: NextRequest) {
@@ -15,26 +14,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists
-    const existing = database.getUserByEmail(email)
+    const existing = await database.getUserByEmail(email)
     if (existing) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
     }
 
     // Create user
-    const userId = database.createUser(email, password, name)
-
-    // Create session
-    const token = database.createSession(userId)
-
-    // Set cookie
-    const cookieStore = await cookies()
-    cookieStore.set('session_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 1 week
-      path: '/',
-    })
+    await database.createUser(email, password, name)
 
     return NextResponse.json({ success: true })
   } catch (error) {

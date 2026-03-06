@@ -9,16 +9,17 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const flows = database.getFlowsByUserId(session.user.id)
-    const activeFlows = database.getActiveFlowCount(session.user.id)
-    
+    const flows = await database.getFlowsByUserId(session.user.id)
+    const user = await database.getUserById(session.user.id)
+    const activeFlows = await database.getActiveFlowCount(session.user.id)
+
     return NextResponse.json({
       flows,
       userPlan: {
-        plan: session.user.plan,
+        plan: user?.plan || 'free',
         activeFlows,
-        maxFlows: session.user.plan === 'pro' ? Infinity : 3,
-      }
+        maxFlows: user?.plan === 'pro' ? Infinity : 3,
+      },
     })
   } catch (error) {
     console.error('Get flows error:', error)
@@ -33,14 +34,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check flow limit for free plan
-    if (session.user.plan === 'free') {
-      const activeFlows = database.getActiveFlowCount(session.user.id)
-      if (activeFlows >= 3) {
-        return NextResponse.json({ 
-          error: 'Free plan limited to 3 active flows. Upgrade to Pro for unlimited.' 
-        }, { status: 403 })
-      }
+    const user = await database.getUserById(session.user.id)
+    const activeFlows = await database.getActiveFlowCount(session.user.id)
+
+    if (user?.plan !== 'pro' && activeFlows >= 3) {
+      return NextResponse.json({ error: 'Upgrade to Pro for more flows' }, { status: 403 })
     }
 
     const body = await request.json()
@@ -50,12 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Client name is required' }, { status: 400 })
     }
 
-    const { id, slug } = database.createFlow(
-      session.user.id,
-      client_name,
-      client_email,
-      welcome_message
-    )
+    const { id, slug } = await database.createFlow(session.user.id, client_name, client_email, welcome_message)
 
     return NextResponse.json({ id, slug })
   } catch (error) {

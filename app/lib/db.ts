@@ -1,89 +1,81 @@
-import Database from 'better-sqlite3'
-import path from 'path'
+import { Pool } from 'pg'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
-const dbPath = path.join(process.cwd(), 'onboardlink.db')
-const db = new Database(dbPath)
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: { rejectUnauthorized: false }
+})
 
 // Initialize database schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    name TEXT NOT NULL,
-    company_name TEXT,
-    logo_url TEXT,
-    plan TEXT DEFAULT 'free',
-    stripe_customer_id TEXT,
-    stripe_subscription_id TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
-  );
+async function initDb() {
+  const client = await pool.connect()
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT,
+        name TEXT NOT NULL,
+        company_name TEXT,
+        logo_url TEXT,
+        plan TEXT DEFAULT 'free',
+        stripe_customer_id TEXT,
+        stripe_subscription_id TEXT,
+        oauth_provider TEXT,
+        oauth_id TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
 
-  CREATE TABLE IF NOT EXISTS flows (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    client_name TEXT NOT NULL,
-    client_email TEXT,
-    welcome_message TEXT,
-    slug TEXT UNIQUE NOT NULL,
-    status TEXT DEFAULT 'draft',
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    completed_at TEXT,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );
+      CREATE TABLE IF NOT EXISTS flows (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id),
+        client_name TEXT NOT NULL,
+        client_email TEXT,
+        welcome_message TEXT,
+        slug TEXT UNIQUE NOT NULL,
+        status TEXT DEFAULT 'draft',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP
+      );
 
-  CREATE TABLE IF NOT EXISTS steps (
-    id TEXT PRIMARY KEY,
-    flow_id TEXT NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    url TEXT,
-    file_id TEXT,
-    file_name TEXT,
-    position INTEGER NOT NULL,
-    completed BOOLEAN DEFAULT 0,
-    completed_at TEXT,
-    FOREIGN KEY (flow_id) REFERENCES flows(id) ON DELETE CASCADE
-  );
+      CREATE TABLE IF NOT EXISTS steps (
+        id TEXT PRIMARY KEY,
+        flow_id TEXT NOT NULL REFERENCES flows(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        url TEXT,
+        file_id TEXT,
+        file_name TEXT,
+        position INTEGER NOT NULL,
+        completed BOOLEAN DEFAULT false,
+        completed_at TIMESTAMP
+      );
 
-  CREATE TABLE IF NOT EXISTS files (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    original_name TEXT NOT NULL,
-    stored_name TEXT NOT NULL,
-    mime_type TEXT NOT NULL,
-    size INTEGER NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id),
+        token TEXT UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL
+      );
 
-  CREATE TABLE IF NOT EXISTS sessions (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    token TEXT UNIQUE NOT NULL,
-    expires_at TEXT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );
-`)
+      CREATE TABLE IF NOT EXISTS files (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id),
+        original_name TEXT NOT NULL,
+        stored_name TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `)
+  } finally {
+    client.release()
+  }
+}
 
-// Run migrations for existing databases
-try {
-  db.exec(`ALTER TABLE steps ADD COLUMN file_id TEXT`)
-} catch (e) { /* column already exists */ }
-
-try {
-  db.exec(`ALTER TABLE steps ADD COLUMN file_name TEXT`)
-} catch (e) { /* column already exists */ }
-
-try {
-  db.exec(`ALTER TABLE users ADD COLUMN oauth_provider TEXT`)
-} catch (e) { /* column already exists */ }
-
-try {
-  db.exec(`ALTER TABLE users ADD COLUMN oauth_id TEXT`)
-} catch (e) { /* column already exists */ }
+// Initialize on first import
+initDb().catch(console.error)
 
 // Helper functions
 function uuid() {
@@ -148,40 +140,42 @@ export interface FileRecord {
 // Database operations
 export const database = {
   // Users
-  createUser: (email: string, password: string, name: string) => {
+  createUser: async (email: string, password: string, name: string) => {
     const id = uuid()
     const password_hash = bcrypt.hashSync(password, 10)
-    db.prepare(`
-      INSERT INTO users (id, email, password_hash, name)
-      VALUES (?, ?, ?, ?)
-    `).run(id, email, password_hash, name)
+    await pool.query(
+      'INSERT INTO users (id, email, password_hash, name) VALUES ($1, $2, $3, $4)',
+      [id, email, password_hash, name]
+    )
     return id
   },
 
-  getUserByEmail: (email: string) => {
-    return db.prepare('SELECT * FROM users WHERE email = ?').get(email) as User | undefined
-  },
-
-  createUserFromOAuth: (email: string, name: string, provider: string, providerId: string) => {
+  createUserFromOAuth: async (email: string, name: string, provider: string, providerId: string) => {
     const id = uuid()
-    db.prepare(`
-      INSERT INTO users (id, email, name, oauth_provider, oauth_id)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(id, email, name, provider, providerId)
+    await pool.query(
+      'INSERT INTO users (id, email, name, oauth_provider, oauth_id) VALUES ($1, $2, $3, $4, $5)',
+      [id, email, name, provider, providerId]
+    )
     return id
   },
 
-  getUserById: (id: string) => {
-    return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as User | undefined
+  getUserByEmail: async (email: string) => {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
+    return result.rows[0] as User | undefined
   },
 
-  updateUser: (id: string, data: Partial<User>) => {
+  getUserById: async (id: string) => {
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id])
+    return result.rows[0] as User | undefined
+  },
+
+  updateUser: async (id: string, data: Partial<User>) => {
     const fields = Object.keys(data).filter(k => k !== 'id' && k !== 'password_hash')
     if (fields.length === 0) return
     
-    const sql = `UPDATE users SET ${fields.map(f => `${f} = ?`).join(', ')} WHERE id = ?`
-    const values = [...fields.map(f => data[f as keyof User]), id]
-    db.prepare(sql).run(...values)
+    const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
+    const values = [id, ...fields.map(f => data[f as keyof User])]
+    await pool.query(`UPDATE users SET ${setClause} WHERE id = $1`, values)
   },
 
   verifyPassword: (password: string, hash: string) => {
@@ -189,151 +183,155 @@ export const database = {
   },
 
   // Sessions
-  createSession: (userId: string) => {
+  createSession: async (userId: string) => {
     const id = uuid()
     const token = crypto.randomBytes(32).toString('hex')
     const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     
-    db.prepare(`
-      INSERT INTO sessions (id, user_id, token, expires_at)
-      VALUES (?, ?, ?, ?)
-    `).run(id, userId, token, expires_at)
+    await pool.query(
+      'INSERT INTO sessions (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)',
+      [id, userId, token, expires_at]
+    )
     
     return token
   },
 
-  getSession: (token: string) => {
-    const session = db.prepare(`
+  getSession: async (token: string) => {
+    const result = await pool.query(`
       SELECT s.*, u.* FROM sessions s
       JOIN users u ON s.user_id = u.id
-      WHERE s.token = ? AND s.expires_at > datetime('now')
-    `).get(token) as (User & { token: string }) | undefined
-    return session
+      WHERE s.token = $1 AND s.expires_at > NOW()
+    `, [token])
+    return result.rows[0] as (User & { token: string }) | undefined
   },
 
-  deleteSession: (token: string) => {
-    db.prepare('DELETE FROM sessions WHERE token = ?').run(token)
+  deleteSession: async (token: string) => {
+    await pool.query('DELETE FROM sessions WHERE token = $1', [token])
+  },
+
+  // Files
+  createFile: async (userId: string, originalName: string, storedName: string, mimeType: string, size: number) => {
+    const id = uuid()
+    await pool.query(
+      'INSERT INTO files (id, user_id, original_name, stored_name, mime_type, size) VALUES ($1, $2, $3, $4, $5, $6)',
+      [id, userId, originalName, storedName, mimeType, size]
+    )
+    return id
+  },
+
+  getFileById: async (id: string) => {
+    const result = await pool.query('SELECT * FROM files WHERE id = $1', [id])
+    return result.rows[0] as FileRecord | undefined
+  },
+
+  deleteFile: async (id: string) => {
+    await pool.query('DELETE FROM files WHERE id = $1', [id])
   },
 
   // Flows
-  createFlow: (userId: string, clientName: string, clientEmail?: string, welcomeMessage?: string) => {
+  createFlow: async (userId: string, clientName: string, clientEmail?: string, welcomeMessage?: string) => {
     const id = uuid()
     const slug = generateSlug()
     
-    db.prepare(`
-      INSERT INTO flows (id, user_id, client_name, client_email, welcome_message, slug)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(id, userId, clientName, clientEmail || null, welcomeMessage || null, slug)
+    await pool.query(
+      'INSERT INTO flows (id, user_id, client_name, client_email, welcome_message, slug) VALUES ($1, $2, $3, $4, $5, $6)',
+      [id, userId, clientName, clientEmail || null, welcomeMessage || null, slug]
+    )
     
     return { id, slug }
   },
 
-  getFlowsByUserId: (userId: string) => {
-    const flows = db.prepare(`
+  getFlowsByUserId: async (userId: string) => {
+    const result = await pool.query(`
       SELECT f.*, 
         (SELECT COUNT(*) FROM steps WHERE flow_id = f.id) as total_steps,
-        (SELECT COUNT(*) FROM steps WHERE flow_id = f.id AND completed = 1) as completed_steps
+        (SELECT COUNT(*) FROM steps WHERE flow_id = f.id AND completed = true) as completed_steps
       FROM flows f
-      WHERE f.user_id = ?
+      WHERE f.user_id = $1
       ORDER BY f.created_at DESC
-    `).all(userId) as (Flow & { total_steps: number; completed_steps: number })[]
-    return flows
+    `, [userId])
+    return result.rows as (Flow & { total_steps: number; completed_steps: number })[]
   },
 
-  getFlowById: (id: string) => {
-    return db.prepare('SELECT * FROM flows WHERE id = ?').get(id) as Flow | undefined
+  getFlowById: async (id: string) => {
+    const result = await pool.query('SELECT * FROM flows WHERE id = $1', [id])
+    return result.rows[0] as Flow | undefined
   },
 
-  getFlowBySlug: (slug: string) => {
-    return db.prepare('SELECT * FROM flows WHERE slug = ?').get(slug) as Flow | undefined
+  getFlowBySlug: async (slug: string) => {
+    const result = await pool.query('SELECT * FROM flows WHERE slug = $1', [slug])
+    return result.rows[0] as Flow | undefined
   },
 
-  updateFlow: (id: string, data: Partial<Flow>) => {
+  updateFlow: async (id: string, data: Partial<Flow>) => {
     const fields = Object.keys(data).filter(k => k !== 'id')
     if (fields.length === 0) return
     
-    const sql = `UPDATE flows SET ${fields.map(f => `${f} = ?`).join(', ')} WHERE id = ?`
-    const values = [...fields.map(f => data[f as keyof Flow]), id]
-    db.prepare(sql).run(...values)
+    const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
+    const values = [id, ...fields.map(f => data[f as keyof Flow])]
+    await pool.query(`UPDATE flows SET ${setClause} WHERE id = $1`, values)
   },
 
-  deleteFlow: (id: string) => {
-    db.prepare('DELETE FROM flows WHERE id = ?').run(id)
+  deleteFlow: async (id: string) => {
+    await pool.query('DELETE FROM flows WHERE id = $1', [id])
   },
 
-  getActiveFlowCount: (userId: string) => {
-    const result = db.prepare(`
-      SELECT COUNT(*) as count FROM flows 
-      WHERE user_id = ? AND status != 'completed'
-    `).get(userId) as { count: number }
-    return result.count
-  },
-
-  // Files
-  createFile: (userId: string, originalName: string, storedName: string, mimeType: string, size: number) => {
-    const id = uuid()
-    db.prepare(`
-      INSERT INTO files (id, user_id, original_name, stored_name, mime_type, size)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(id, userId, originalName, storedName, mimeType, size)
-    return id
-  },
-
-  getFileById: (id: string) => {
-    return db.prepare('SELECT * FROM files WHERE id = ?').get(id) as FileRecord | undefined
-  },
-
-  deleteFile: (id: string) => {
-    db.prepare('DELETE FROM files WHERE id = ?').run(id)
+  getActiveFlowCount: async (userId: string) => {
+    const result = await pool.query(
+      "SELECT COUNT(*) as count FROM flows WHERE user_id = $1 AND status != 'completed'",
+      [userId]
+    )
+    return parseInt(result.rows[0].count)
   },
 
   // Steps
-  createStep: (flowId: string, title: string, description: string | null, url: string | null, position: number, fileId?: string, fileName?: string) => {
+  createStep: async (flowId: string, title: string, description: string | null, url: string | null, position: number, fileId?: string, fileName?: string) => {
     const id = uuid()
-    db.prepare(`
-      INSERT INTO steps (id, flow_id, title, description, url, file_id, file_name, position)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, flowId, title, description, url, fileId || null, fileName || null, position)
+    await pool.query(
+      'INSERT INTO steps (id, flow_id, title, description, url, file_id, file_name, position) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+      [id, flowId, title, description, url, fileId || null, fileName || null, position]
+    )
     return id
   },
 
-  getStepsByFlowId: (flowId: string) => {
-    return db.prepare('SELECT * FROM steps WHERE flow_id = ? ORDER BY position').all(flowId) as Step[]
+  getStepsByFlowId: async (flowId: string) => {
+    const result = await pool.query('SELECT * FROM steps WHERE flow_id = $1 ORDER BY position', [flowId])
+    return result.rows as Step[]
   },
 
-  updateStep: (id: string, data: Partial<Step>) => {
+  updateStep: async (id: string, data: Partial<Step>) => {
     const fields = Object.keys(data).filter(k => k !== 'id')
     if (fields.length === 0) return
     
-    const sql = `UPDATE steps SET ${fields.map(f => `${f} = ?`).join(', ')} WHERE id = ?`
-    const values = [...fields.map(f => data[f as keyof Step]), id]
-    db.prepare(sql).run(...values)
+    const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
+    const values = [id, ...fields.map(f => data[f as keyof Step])]
+    await pool.query(`UPDATE steps SET ${setClause} WHERE id = $1`, values)
   },
 
-  deleteStep: (id: string) => {
-    db.prepare('DELETE FROM steps WHERE id = ?').run(id)
+  deleteStep: async (id: string) => {
+    await pool.query('DELETE FROM steps WHERE id = $1', [id])
   },
 
-  reorderSteps: (flowId: string, stepIds: string[]) => {
-    const stmt = db.prepare('UPDATE steps SET position = ? WHERE id = ? AND flow_id = ?')
-    stepIds.forEach((id, index) => {
-      stmt.run(index, id, flowId)
-    })
+  reorderSteps: async (flowId: string, stepIds: string[]) => {
+    for (let i = 0; i < stepIds.length; i++) {
+      await pool.query('UPDATE steps SET position = $1 WHERE id = $2 AND flow_id = $3', [i, stepIds[i], flowId])
+    }
   },
 
-  completeStep: (stepId: string) => {
+  completeStep: async (stepId: string) => {
     const now = new Date().toISOString()
-    db.prepare('UPDATE steps SET completed = 1, completed_at = ? WHERE id = ?').run(now, stepId)
+    await pool.query('UPDATE steps SET completed = true, completed_at = $1 WHERE id = $2', [now, stepId])
     
-    // Check if all steps are complete
-    const step = db.prepare('SELECT flow_id FROM steps WHERE id = ?').get(stepId) as { flow_id: string }
-    const incomplete = db.prepare('SELECT COUNT(*) as count FROM steps WHERE flow_id = ? AND completed = 0').get(step.flow_id) as { count: number }
+    const stepResult = await pool.query('SELECT flow_id FROM steps WHERE id = $1', [stepId])
+    const flowId = stepResult.rows[0]?.flow_id
     
-    if (incomplete.count === 0) {
-      db.prepare('UPDATE flows SET status = ?, completed_at = ? WHERE id = ?').run('completed', now, step.flow_id)
+    const incompleteResult = await pool.query('SELECT COUNT(*) as count FROM steps WHERE flow_id = $1 AND completed = false', [flowId])
+    
+    if (parseInt(incompleteResult.rows[0].count) === 0) {
+      await pool.query("UPDATE flows SET status = 'completed', completed_at = $1 WHERE id = $2", [now, flowId])
     }
     
-    return step.flow_id
+    return flowId
   },
 }
 

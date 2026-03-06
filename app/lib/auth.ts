@@ -8,7 +8,7 @@ export async function getSession() {
     return null
   }
 
-  const user = database.getUserByEmail(session.user.email)
+  const user = await database.getUserByEmail(session.user.email)
   
   if (!user) {
     return null

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const session = database.getSession(token)
+  const session = await database.getSession(token)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     await writeFile(filePath, Buffer.from(bytes))
 
     // Save to database
-    const fileId = database.createFile(
+    const fileId = await database.createFile(
       session.id,
       file.name,
       storedName,

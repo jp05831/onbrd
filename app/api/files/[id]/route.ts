@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { id } = await params
 
-  const file = database.getFileById(id)
+  const file = await database.getFileById(id)
   if (!file) {
     return NextResponse.json({ error: 'File not found' }, { status: 404 })
   }

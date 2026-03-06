@@ -13,13 +13,13 @@ export async function GET(
     }
 
     const { id } = await params
-    const flow = database.getFlowById(id)
+    const flow = await database.getFlowById(id)
 
     if (!flow || flow.user_id !== session.user.id) {
       return NextResponse.json({ error: 'Flow not found' }, { status: 404 })
     }
 
-    const steps = database.getStepsByFlowId(id)
+    const steps = await database.getStepsByFlowId(id)
 
     return NextResponse.json({ flow, steps })
   } catch (error) {
@@ -39,14 +39,14 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const flow = database.getFlowById(id)
+    const flow = await database.getFlowById(id)
 
     if (!flow || flow.user_id !== session.user.id) {
       return NextResponse.json({ error: 'Flow not found' }, { status: 404 })
     }
 
     const body = await request.json()
-    database.updateFlow(id, body)
+    await database.updateFlow(id, body)
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -66,13 +66,13 @@ export async function DELETE(
     }
 
     const { id } = await params
-    const flow = database.getFlowById(id)
+    const flow = await database.getFlowById(id)
 
     if (!flow || flow.user_id !== session.user.id) {
       return NextResponse.json({ error: 'Flow not found' }, { status: 404 })
     }
 
-    database.deleteFlow(id)
+    await database.deleteFlow(id)
 
     return NextResponse.json({ success: true })
   } catch (error) {
