@@ -17,6 +17,7 @@ async function initDb() {
   
   const client = await pool.connect()
   try {
+    // Create tables if they don't exist
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -76,6 +77,11 @@ async function initDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `)
+    
+    // Run migrations to add any missing columns to existing tables
+    // This ensures schema stays in sync when new features are added
+    await runMigrations(client)
+    
     dbInitialized = true
     console.log('Database initialized')
   } catch (error) {
@@ -84,6 +90,42 @@ async function initDb() {
   } finally {
     client.release()
   }
+}
+
+// Run schema migrations to add missing columns
+// This keeps existing databases in sync with code changes
+async function runMigrations(client: any) {
+  const migrations = [
+    // flows table migrations
+    { table: 'flows', column: 'is_template', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false' },
+    { table: 'flows', column: 'completed_at', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP' },
+    
+    // steps table migrations
+    { table: 'steps', column: 'file_id', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS file_id TEXT' },
+    { table: 'steps', column: 'file_name', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS file_name TEXT' },
+    { table: 'steps', column: 'completed_at', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP' },
+    
+    // users table migrations
+    { table: 'users', column: 'oauth_provider', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider TEXT' },
+    { table: 'users', column: 'oauth_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_id TEXT' },
+    { table: 'users', column: 'company_name', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS company_name TEXT' },
+    { table: 'users', column: 'logo_url', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS logo_url TEXT' },
+    { table: 'users', column: 'stripe_customer_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT' },
+    { table: 'users', column: 'stripe_subscription_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT' },
+  ]
+  
+  for (const migration of migrations) {
+    try {
+      await client.query(migration.sql)
+    } catch (error: any) {
+      // Ignore "column already exists" errors, log others
+      if (!error.message?.includes('already exists')) {
+        console.error(`Migration failed for ${migration.table}.${migration.column}:`, error.message)
+      }
+    }
+  }
+  
+  console.log('Schema migrations completed')
 }
 
 // Helper functions

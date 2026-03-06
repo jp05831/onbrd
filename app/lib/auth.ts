@@ -5,19 +5,13 @@ export async function getSession() {
   try {
     const session = await auth()
     
-    console.log('[getSession] NextAuth session:', JSON.stringify(session, null, 2))
-    
     if (!session?.user?.email) {
-      console.log('[getSession] No email in session')
       return null
     }
 
     const user = await database.getUserByEmail(session.user.email)
     
-    console.log('[getSession] Database user:', user?.id, user?.email)
-    
     if (!user) {
-      console.log('[getSession] User not found in database')
       return null
     }
 
@@ -30,7 +24,7 @@ export async function getSession() {
       }
     }
   } catch (error) {
-    console.error('[getSession] Error:', error)
+    console.error('Session error:', error)
     return null
   }
 }
