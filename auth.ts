@@ -23,24 +23,36 @@ providers.push(
       password: { label: 'Password', type: 'password' },
     },
     authorize: async (credentials) => {
+      console.log('[authorize] Attempting login for:', credentials?.email)
+      
       if (!credentials?.email || !credentials?.password) {
+        console.log('[authorize] Missing credentials')
         return null
       }
 
       try {
         const user = await database.getUserByEmail(credentials.email as string)
-        if (!user || !user.password_hash) return null
+        console.log('[authorize] Found user:', user?.id, user?.email)
+        
+        if (!user || !user.password_hash) {
+          console.log('[authorize] No user or no password hash')
+          return null
+        }
 
         const valid = database.verifyPassword(credentials.password as string, user.password_hash)
+        console.log('[authorize] Password valid:', valid)
+        
         if (!valid) return null
 
-        return {
+        const result = {
           id: user.id,
           email: user.email,
           name: user.name,
         }
+        console.log('[authorize] Returning user:', result)
+        return result
       } catch (error) {
-        console.error('Auth error:', error)
+        console.error('[authorize] Error:', error)
         return null
       }
     },
@@ -72,24 +84,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true
     },
     async jwt({ token, user }) {
+      console.log('[jwt] Called with user:', user?.email, 'existing token userId:', token.userId)
       if (user) {
         try {
           const dbUser = await database.getUserByEmail(user.email!)
+          console.log('[jwt] Database lookup result:', dbUser?.id)
           if (dbUser) {
             token.userId = dbUser.id
             token.plan = dbUser.plan
           }
         } catch (error) {
-          console.error('JWT error:', error)
+          console.error('[jwt] Error:', error)
         }
       }
+      console.log('[jwt] Returning token with userId:', token.userId)
       return token
     },
     async session({ session, token }) {
+      console.log('[session] Called with token userId:', token.userId)
       if (token.userId) {
         session.user.id = token.userId as string
         ;(session.user as any).plan = token.plan
       }
+      console.log('[session] Returning session user id:', session.user?.id)
       return session
     },
   },
