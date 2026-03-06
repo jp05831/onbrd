@@ -144,11 +144,11 @@ export default function LandingPage() {
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-1">Free</h3>
+              <h3 className="font-semibold text-gray-900 mb-1">Free Trial</h3>
               <p className="text-sm text-gray-500 mb-4">For getting started</p>
-              <div className="text-3xl font-semibold text-gray-900 mb-6">$0<span className="text-sm font-normal text-gray-500">/mo</span></div>
+              <div className="text-3xl font-semibold text-gray-900 mb-6">$0<span className="text-sm font-normal text-gray-500">/forever</span></div>
               <ul className="space-y-2 mb-6">
-                {['Up to 3 flows', 'Unlimited steps', 'Progress tracking'].map((f, i) => (
+                {['Up to 2 flows', 'Up to 2 steps per flow', 'Progress tracking', 'Shareable links'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <Check className="w-4 h-4 text-blue-600" />
                     {f}
@@ -159,12 +159,16 @@ export default function LandingPage() {
                 Get started
               </Link>
             </div>
-            <div className="border-2 border-gray-900 rounded-lg p-6 bg-gray-900 text-white">
+            <div className="border-2 border-gray-900 rounded-lg p-6 bg-gray-900 text-white relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="text-xs font-medium text-gray-900 bg-white px-3 py-1 rounded-full border border-gray-200">Most Popular</span>
+              </div>
               <h3 className="font-semibold mb-1">Pro</h3>
               <p className="text-sm text-gray-400 mb-4">For growing businesses</p>
-              <div className="text-3xl font-semibold mb-6">$10<span className="text-sm font-normal text-gray-400">/mo</span></div>
+              <div className="text-3xl font-semibold mb-1">$15<span className="text-sm font-normal text-gray-400">/mo</span></div>
+              <p className="text-sm text-gray-400 mb-6">or $150/year (save $30)</p>
               <ul className="space-y-2 mb-6">
-                {['Unlimited flows', 'Email notifications', 'Remove branding', 'Priority support'].map((f, i) => (
+                {['Unlimited flows', 'Unlimited steps', 'Unlimited users', 'Email notifications', 'Remove branding', 'Priority support'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
                     <Check className="w-4 h-4 text-blue-400" />
                     {f}

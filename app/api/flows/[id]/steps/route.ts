@@ -19,6 +19,15 @@ export async function POST(
       return NextResponse.json({ error: 'Flow not found' }, { status: 404 })
     }
 
+    // Check step limit for free plan
+    const user = await database.getUserById(session.user.id)
+    if (user?.plan !== 'pro') {
+      const existingSteps = await database.getStepsByFlowId(flowId)
+      if (existingSteps.length >= 2) {
+        return NextResponse.json({ error: 'Free plan limited to 2 steps per flow. Upgrade to Pro for unlimited steps.' }, { status: 403 })
+      }
+    }
+
     const body = await request.json()
     const { title, description, url, position, file_id, file_name } = body
 

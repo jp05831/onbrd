@@ -20,8 +20,16 @@ export async function GET(
     }
 
     const steps = await database.getStepsByFlowId(id)
+    const user = await database.getUserById(session.user.id)
 
-    return NextResponse.json({ flow, steps })
+    return NextResponse.json({
+      flow,
+      steps,
+      userPlan: {
+        plan: user?.plan || 'free',
+        maxStepsPerFlow: user?.plan === 'pro' ? Infinity : 2,
+      },
+    })
   } catch (error) {
     console.error('Get flow error:', error)
     return NextResponse.json({ error: 'Failed to fetch flow' }, { status: 500 })

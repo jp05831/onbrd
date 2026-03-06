@@ -19,11 +19,12 @@ interface UserPlan {
   plan: 'free' | 'pro'
   activeFlows: number
   maxFlows: number
+  maxStepsPerFlow: number
 }
 
 export default function DashboardPage() {
   const [flows, setFlows] = useState<Flow[]>([])
-  const [userPlan, setUserPlan] = useState<UserPlan>({ plan: 'free', activeFlows: 0, maxFlows: 3 })
+  const [userPlan, setUserPlan] = useState<UserPlan>({ plan: 'free', activeFlows: 0, maxFlows: 2, maxStepsPerFlow: 2 })
   const [loading, setLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
   const [newFlow, setNewFlow] = useState({ client_name: '', client_email: '', welcome_message: '', is_template: false })

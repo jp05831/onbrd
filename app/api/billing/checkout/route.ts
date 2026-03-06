@@ -1,13 +1,16 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '../../../lib/auth'
 import Stripe from 'stripe'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const body = await request.json().catch(() => ({}))
+    const interval = body.interval === 'year' ? 'year' : 'month'
 
     // Check if Stripe is configured
     const stripeKey = process.env.STRIPE_SECRET_KEY
@@ -17,6 +20,22 @@ export async function POST() {
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' })
+
+    // Pricing: $15/month or $150/year (2 months free)
+    const pricing = {
+      month: {
+        amount: 1500, // $15.00
+        interval: 'month' as const,
+        description: 'Billed monthly',
+      },
+      year: {
+        amount: 15000, // $150.00 (save $30)
+        interval: 'year' as const,
+        description: 'Billed annually (save $30)',
+      },
+    }
+
+    const selectedPricing = pricing[interval]
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -28,11 +47,11 @@ export async function POST() {
             currency: 'usd',
             product_data: {
               name: 'OnboardLink Pro',
-              description: 'Unlimited flows, email notifications, no branding',
+              description: `Unlimited flows, unlimited steps, unlimited users. ${selectedPricing.description}`,
             },
-            unit_amount: 1000, // $10.00
+            unit_amount: selectedPricing.amount,
             recurring: {
-              interval: 'month',
+              interval: selectedPricing.interval,
             },
           },
           quantity: 1,
@@ -42,6 +61,9 @@ export async function POST() {
       cancel_url: `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/dashboard/billing`,
       client_reference_id: session.user.id,
       customer_email: session.user.email,
+      metadata: {
+        billing_interval: interval,
+      },
     })
 
     return NextResponse.json({ url: checkoutSession.url })

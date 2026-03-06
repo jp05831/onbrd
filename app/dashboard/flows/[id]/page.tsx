@@ -55,6 +55,11 @@ interface Flow {
   status: 'draft' | 'published' | 'completed'
 }
 
+interface UserPlan {
+  plan: 'free' | 'pro'
+  maxStepsPerFlow: number
+}
+
 function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: { 
   step: Step
   index: number
@@ -225,6 +230,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
   const router = useRouter()
   const [flow, setFlow] = useState<Flow | null>(null)
   const [steps, setSteps] = useState<Step[]>([])
+  const [userPlan, setUserPlan] = useState<UserPlan>({ plan: 'free', maxStepsPerFlow: 2 })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -245,6 +251,9 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         const data = await res.json()
         setFlow(data.flow)
         setSteps(data.steps)
+        if (data.userPlan) {
+          setUserPlan(data.userPlan)
+        }
       } else {
         router.push('/dashboard')
       }
@@ -269,7 +278,14 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
     }
   }
 
+  const canAddStep = userPlan.plan === 'pro' || steps.length < userPlan.maxStepsPerFlow
+
   const addStep = async () => {
+    if (!canAddStep) {
+      router.push('/dashboard/billing')
+      return
+    }
+
     const newStep: Step = {
       id: `temp-${Date.now()}`,
       title: '',
@@ -296,9 +312,15 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       if (res.ok) {
         const data = await res.json()
         setSteps(prev => prev.map(s => s.id === newStep.id ? { ...s, id: data.id, title: 'New Step' } : s))
+      } else {
+        // If server rejected (e.g., limit reached), remove the temp step
+        const error = await res.json()
+        setSteps(prev => prev.filter(s => s.id !== newStep.id))
+        alert(error.error || 'Failed to add step')
       }
     } catch (error) {
       console.error('Failed to add step:', error)
+      setSteps(prev => prev.filter(s => s.id !== newStep.id))
     }
   }
 
@@ -524,13 +546,24 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
 
       {/* Steps */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-medium text-gray-900">Steps</h2>
+        <div>
+          <h2 className="text-sm font-medium text-gray-900">Steps</h2>
+          {userPlan.plan === 'free' && (
+            <p className="text-xs text-gray-500 mt-0.5">
+              {steps.length} of {userPlan.maxStepsPerFlow} steps used
+            </p>
+          )}
+        </div>
         <button
           onClick={addStep}
-          className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+          className={`inline-flex items-center gap-1 text-sm font-medium ${
+            canAddStep 
+              ? 'text-blue-600 hover:text-blue-700' 
+              : 'text-gray-400 hover:text-gray-500'
+          }`}
         >
           <Plus className="w-4 h-4" />
-          Add step
+          {canAddStep ? 'Add step' : 'Upgrade for more'}
         </button>
       </div>
 
@@ -564,13 +597,25 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         </DndContext>
       )}
 
-      {steps.length > 0 && (
+      {steps.length > 0 && canAddStep && (
         <button
           onClick={addStep}
           className="w-full mt-3 py-3 border border-gray-200 border-dashed rounded-lg text-sm text-gray-500 hover:border-gray-300 hover:text-gray-600"
         >
           + Add another step
         </button>
+      )}
+
+      {steps.length > 0 && !canAddStep && (
+        <div className="w-full mt-3 py-4 px-4 border border-orange-200 bg-orange-50 rounded-lg text-center">
+          <p className="text-sm text-orange-700 mb-2">Free plan limit: {userPlan.maxStepsPerFlow} steps per flow</p>
+          <button
+            onClick={() => router.push('/dashboard/billing')}
+            className="text-sm font-medium text-orange-700 hover:text-orange-800 underline"
+          >
+            Upgrade to Pro for unlimited steps →
+          </button>
+        </div>
       )}
     </div>
   )

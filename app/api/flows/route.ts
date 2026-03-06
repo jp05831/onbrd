@@ -18,7 +18,8 @@ export async function GET() {
       userPlan: {
         plan: user?.plan || 'free',
         activeFlows,
-        maxFlows: user?.plan === 'pro' ? Infinity : 3,
+        maxFlows: user?.plan === 'pro' ? Infinity : 2,
+        maxStepsPerFlow: user?.plan === 'pro' ? Infinity : 2,
       },
     })
   } catch (error) {
@@ -37,8 +38,9 @@ export async function POST(request: NextRequest) {
     const user = await database.getUserById(session.user.id)
     const activeFlows = await database.getActiveFlowCount(session.user.id)
 
-    if (user?.plan !== 'pro' && activeFlows >= 3) {
-      return NextResponse.json({ error: 'Upgrade to Pro for more flows' }, { status: 403 })
+    // Free plan: max 2 flows
+    if (user?.plan !== 'pro' && activeFlows >= 2) {
+      return NextResponse.json({ error: 'Free plan limited to 2 flows. Upgrade to Pro for unlimited flows.' }, { status: 403 })
     }
 
     const body = await request.json()
