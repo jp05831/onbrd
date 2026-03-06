@@ -20,7 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         const user = database.getUserByEmail(credentials.email as string)
-        if (!user) return null
+        if (!user || !user.password_hash) return null
 
         const valid = database.verifyPassword(credentials.password as string, user.password_hash)
         if (!valid) return null
