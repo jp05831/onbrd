@@ -3,12 +3,16 @@ import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 })
 
+let dbInitialized = false
+
 // Initialize database schema
 async function initDb() {
+  if (dbInitialized) return
+  
   const client = await pool.connect()
   try {
     await client.query(`
@@ -29,7 +33,7 @@ async function initDb() {
 
       CREATE TABLE IF NOT EXISTS flows (
         id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL REFERENCES users(id),
+        user_id TEXT NOT NULL,
         client_name TEXT NOT NULL,
         client_email TEXT,
         welcome_message TEXT,
@@ -41,7 +45,7 @@ async function initDb() {
 
       CREATE TABLE IF NOT EXISTS steps (
         id TEXT PRIMARY KEY,
-        flow_id TEXT NOT NULL REFERENCES flows(id) ON DELETE CASCADE,
+        flow_id TEXT NOT NULL,
         title TEXT NOT NULL,
         description TEXT,
         url TEXT,
@@ -54,14 +58,14 @@ async function initDb() {
 
       CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL REFERENCES users(id),
+        user_id TEXT NOT NULL,
         token TEXT UNIQUE NOT NULL,
         expires_at TIMESTAMP NOT NULL
       );
 
       CREATE TABLE IF NOT EXISTS files (
         id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL REFERENCES users(id),
+        user_id TEXT NOT NULL,
         original_name TEXT NOT NULL,
         stored_name TEXT NOT NULL,
         mime_type TEXT NOT NULL,
@@ -69,13 +73,15 @@ async function initDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `)
+    dbInitialized = true
+    console.log('Database initialized')
+  } catch (error) {
+    console.error('Database init error:', error)
+    throw error
   } finally {
     client.release()
   }
 }
-
-// Initialize on first import
-initDb().catch(console.error)
 
 // Helper functions
 function uuid() {
@@ -141,6 +147,7 @@ export interface FileRecord {
 export const database = {
   // Users
   createUser: async (email: string, password: string, name: string) => {
+    await initDb()
     const id = uuid()
     const password_hash = bcrypt.hashSync(password, 10)
     await pool.query(
@@ -151,6 +158,7 @@ export const database = {
   },
 
   createUserFromOAuth: async (email: string, name: string, provider: string, providerId: string) => {
+    await initDb()
     const id = uuid()
     await pool.query(
       'INSERT INTO users (id, email, name, oauth_provider, oauth_id) VALUES ($1, $2, $3, $4, $5)',
@@ -160,16 +168,19 @@ export const database = {
   },
 
   getUserByEmail: async (email: string) => {
+    await initDb()
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
     return result.rows[0] as User | undefined
   },
 
   getUserById: async (id: string) => {
+    await initDb()
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [id])
     return result.rows[0] as User | undefined
   },
 
   updateUser: async (id: string, data: Partial<User>) => {
+    await initDb()
     const fields = Object.keys(data).filter(k => k !== 'id' && k !== 'password_hash')
     if (fields.length === 0) return
     
@@ -184,6 +195,7 @@ export const database = {
 
   // Sessions
   createSession: async (userId: string) => {
+    await initDb()
     const id = uuid()
     const token = crypto.randomBytes(32).toString('hex')
     const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -197,6 +209,7 @@ export const database = {
   },
 
   getSession: async (token: string) => {
+    await initDb()
     const result = await pool.query(`
       SELECT s.*, u.* FROM sessions s
       JOIN users u ON s.user_id = u.id
@@ -206,11 +219,13 @@ export const database = {
   },
 
   deleteSession: async (token: string) => {
+    await initDb()
     await pool.query('DELETE FROM sessions WHERE token = $1', [token])
   },
 
   // Files
   createFile: async (userId: string, originalName: string, storedName: string, mimeType: string, size: number) => {
+    await initDb()
     const id = uuid()
     await pool.query(
       'INSERT INTO files (id, user_id, original_name, stored_name, mime_type, size) VALUES ($1, $2, $3, $4, $5, $6)',
@@ -220,16 +235,19 @@ export const database = {
   },
 
   getFileById: async (id: string) => {
+    await initDb()
     const result = await pool.query('SELECT * FROM files WHERE id = $1', [id])
     return result.rows[0] as FileRecord | undefined
   },
 
   deleteFile: async (id: string) => {
+    await initDb()
     await pool.query('DELETE FROM files WHERE id = $1', [id])
   },
 
   // Flows
   createFlow: async (userId: string, clientName: string, clientEmail?: string, welcomeMessage?: string) => {
+    await initDb()
     const id = uuid()
     const slug = generateSlug()
     
@@ -242,6 +260,7 @@ export const database = {
   },
 
   getFlowsByUserId: async (userId: string) => {
+    await initDb()
     const result = await pool.query(`
       SELECT f.*, 
         (SELECT COUNT(*) FROM steps WHERE flow_id = f.id) as total_steps,
@@ -254,16 +273,19 @@ export const database = {
   },
 
   getFlowById: async (id: string) => {
+    await initDb()
     const result = await pool.query('SELECT * FROM flows WHERE id = $1', [id])
     return result.rows[0] as Flow | undefined
   },
 
   getFlowBySlug: async (slug: string) => {
+    await initDb()
     const result = await pool.query('SELECT * FROM flows WHERE slug = $1', [slug])
     return result.rows[0] as Flow | undefined
   },
 
   updateFlow: async (id: string, data: Partial<Flow>) => {
+    await initDb()
     const fields = Object.keys(data).filter(k => k !== 'id')
     if (fields.length === 0) return
     
@@ -273,10 +295,13 @@ export const database = {
   },
 
   deleteFlow: async (id: string) => {
+    await initDb()
+    await pool.query('DELETE FROM steps WHERE flow_id = $1', [id])
     await pool.query('DELETE FROM flows WHERE id = $1', [id])
   },
 
   getActiveFlowCount: async (userId: string) => {
+    await initDb()
     const result = await pool.query(
       "SELECT COUNT(*) as count FROM flows WHERE user_id = $1 AND status != 'completed'",
       [userId]
@@ -286,6 +311,7 @@ export const database = {
 
   // Steps
   createStep: async (flowId: string, title: string, description: string | null, url: string | null, position: number, fileId?: string, fileName?: string) => {
+    await initDb()
     const id = uuid()
     await pool.query(
       'INSERT INTO steps (id, flow_id, title, description, url, file_id, file_name, position) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
@@ -295,11 +321,13 @@ export const database = {
   },
 
   getStepsByFlowId: async (flowId: string) => {
+    await initDb()
     const result = await pool.query('SELECT * FROM steps WHERE flow_id = $1 ORDER BY position', [flowId])
     return result.rows as Step[]
   },
 
   updateStep: async (id: string, data: Partial<Step>) => {
+    await initDb()
     const fields = Object.keys(data).filter(k => k !== 'id')
     if (fields.length === 0) return
     
@@ -309,16 +337,19 @@ export const database = {
   },
 
   deleteStep: async (id: string) => {
+    await initDb()
     await pool.query('DELETE FROM steps WHERE id = $1', [id])
   },
 
   reorderSteps: async (flowId: string, stepIds: string[]) => {
+    await initDb()
     for (let i = 0; i < stepIds.length; i++) {
       await pool.query('UPDATE steps SET position = $1 WHERE id = $2 AND flow_id = $3', [i, stepIds[i], flowId])
     }
   },
 
   completeStep: async (stepId: string) => {
+    await initDb()
     const now = new Date().toISOString()
     await pool.query('UPDATE steps SET completed = true, completed_at = $1 WHERE id = $2', [now, stepId])
     

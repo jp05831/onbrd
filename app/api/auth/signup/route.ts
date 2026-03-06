@@ -23,8 +23,11 @@ export async function POST(request: NextRequest) {
     await database.createUser(email, password, name)
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Signup error:', error)
-    return NextResponse.json({ error: 'Signup failed' }, { status: 500 })
+    return NextResponse.json({ 
+      error: error?.message || 'Signup failed',
+      details: process.env.NODE_ENV === 'development' ? error?.toString() : undefined
+    }, { status: 500 })
   }
 }
