@@ -1,171 +1,182 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Check, Save } from 'lucide-react'
-
-interface User {
-  id: string
-  email: string
-  name: string
-  company_name: string | null
-  logo_url: string | null
-}
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 export default function SettingsPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: session } = useSession()
+  const [companyName, setCompanyName] = useState('')
+  const [email, setEmail] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    company_name: '',
-    logo_url: '',
-  })
 
   useEffect(() => {
-    fetchUser()
-  }, [])
+    if (session?.user) {
+      setEmail(session.user.email || '')
+      fetchSettings()
+    }
+  }, [session])
 
-  const fetchUser = async () => {
+  const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/auth/me')
+      const res = await fetch('/api/user/settings')
       if (res.ok) {
         const data = await res.json()
-        setUser(data.user)
-        setFormData({
-          name: data.user.name || '',
-          company_name: data.user.company_name || '',
-          logo_url: data.user.logo_url || '',
-        })
+        setCompanyName(data.company_name || '')
       }
     } catch (error) {
-      console.error('Failed to fetch user:', error)
-    } finally {
-      setLoading(false)
+      console.error('Failed to fetch settings:', error)
     }
   }
 
-  const handleSave = async () => {
+  const saveCompanyName = async () => {
     setSaving(true)
-    setSaved(false)
-    
     try {
       const res = await fetch('/api/user/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ company_name: companyName }),
       })
-      
       if (res.ok) {
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)
       }
     } catch (error) {
-      console.error('Failed to save settings:', error)
+      console.error('Failed to save:', error)
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) {
-    return <div className="text-center py-12 text-gray-500">Loading...</div>
+  const saveEmail = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
+    } catch (error) {
+      console.error('Failed to save:', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your account and branding</p>
+        <h1 className="text-2xl font-semibold text-gray-900">Account Settings</h1>
+        <p className="text-gray-500 mt-1">Manage your account and company information.</p>
       </div>
 
-      <div className="max-w-2xl">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-6">Profile</h2>
-          
-          <div className="space-y-5">
+      <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200">
+        {/* Company Name */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Your Name
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              />
+              <h3 className="font-medium text-gray-900">Company Name</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                This will be displayed on your client portals.
+              </p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Company Name
-              </label>
-              <input
-                type="text"
-                value={formData.company_name}
-                onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="Your Company"
-              />
-              <p className="text-sm text-gray-500 mt-1">Shown to clients in onboarding portals</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Logo URL
-              </label>
-              <input
-                type="url"
-                value={formData.logo_url}
-                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="https://..."
-              />
-              <p className="text-sm text-gray-500 mt-1">Link to your company logo image</p>
-              
-              {formData.logo_url && (
-                <div className="mt-3 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-2">Preview:</p>
-                  <img 
-                    src={formData.logo_url} 
-                    alt="Logo preview" 
-                    className="h-12 object-contain"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
-                  />
-                </div>
-              )}
+            <div className="md:col-span-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Your Company Name"
+                  maxLength={32}
+                />
+                <button
+                  onClick={saveCompanyName}
+                  disabled={saving}
+                  className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1.5">Max 32 characters</p>
             </div>
           </div>
+        </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              {saved ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  Saved!
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </>
-              )}
-            </button>
+        {/* Email */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <div>
+              <h3 className="font-medium text-gray-900">Email Address</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Your primary email for notifications.
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="you@company.com"
+                />
+                <button
+                  onClick={saveEmail}
+                  disabled={saving}
+                  className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Info */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <div>
+              <h3 className="font-medium text-gray-900">Account</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Your account details.
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <div className="text-sm text-gray-600">
+                <p>Signed in as <span className="font-medium text-gray-900">{session?.user?.name}</span></p>
+                <p className="text-gray-400 mt-1">{session?.user?.email}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="p-6 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <div>
+              <h3 className="font-medium text-red-600">Danger Zone</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Irreversible actions.
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <button
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+                    // TODO: Implement account deletion
+                    alert('Contact support to delete your account.')
+                  }
+                }}
+                className="px-4 py-2 border border-red-200 text-red-600 text-sm font-medium rounded-md hover:bg-red-50"
+              >
+                Delete Account
+              </button>
+            </div>
           </div>
         </div>
       </div>
