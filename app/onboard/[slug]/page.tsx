@@ -34,8 +34,8 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
       }))}
       owner={{
         name: user?.name || 'Unknown',
-        company_name: user?.company_name,
-        logo_url: user?.logo_url,
+        company_name: user?.company_name ?? null,
+        logo_url: user?.logo_url ?? null,
         plan: user?.plan || 'free',
       }}
     />
