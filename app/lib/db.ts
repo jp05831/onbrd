@@ -27,6 +27,7 @@ async function initDb() {
         company_name TEXT,
         logo_url TEXT,
         plan TEXT DEFAULT 'free',
+        is_pro BOOLEAN DEFAULT FALSE,
         stripe_customer_id TEXT,
         stripe_subscription_id TEXT,
         oauth_provider TEXT,
@@ -112,6 +113,7 @@ async function runMigrations(client: any) {
     { table: 'users', column: 'logo_url', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS logo_url TEXT' },
     { table: 'users', column: 'stripe_customer_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT' },
     { table: 'users', column: 'stripe_subscription_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT' },
+    { table: 'users', column: 'is_pro', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_pro BOOLEAN DEFAULT FALSE' },
   ]
   
   for (const migration of migrations) {
@@ -146,6 +148,7 @@ export interface User {
   company_name: string | null
   logo_url: string | null
   plan: 'free' | 'pro'
+  is_pro: boolean
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
   oauth_provider: string | null
