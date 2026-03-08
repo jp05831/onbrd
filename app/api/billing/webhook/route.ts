@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
         .from("users")
         .update({
           is_pro: isActive,
+          plan: isActive ? "pro" : "free",
           stripe_subscription_id: sub.id,
         })
         .eq("stripe_customer_id", sub.customer as string);
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
 
       await supabase
         .from("users")
-        .update({ is_pro: false, stripe_subscription_id: null })
+        .update({ is_pro: false, plan: "free", stripe_subscription_id: null })
         .eq("stripe_customer_id", sub.customer as string);
       break;
     }
