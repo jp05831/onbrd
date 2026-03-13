@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ url: null })
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' })
+    const stripe = new Stripe(stripeKey)
 
     // Pricing: $15/month or $150/year (2 months free)
     const pricing = {
