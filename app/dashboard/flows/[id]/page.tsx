@@ -116,21 +116,21 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white border border-gray-200 rounded-lg ${isDragging ? 'shadow-lg opacity-90' : ''}`}
+      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors ${isDragging ? 'shadow-lg opacity-90' : ''}`}
     >
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-100 bg-gray-50">
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-t-lg">
         <button
           {...attributes}
           {...listeners}
-          className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-grab active:cursor-grabbing"
         >
           <GripVertical className="w-4 h-4" />
         </button>
-        <span className="text-sm font-medium text-gray-500">Step {index + 1}</span>
+        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Step {index + 1}</span>
         <div className="flex-1" />
         <button
           onClick={() => onDelete(step.id)}
-          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+          className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -138,37 +138,37 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
       
       <div className="p-4 space-y-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Title</label>
           <input
             type="text"
             value={step.title}
             onChange={(e) => onUpdate(step.id, { title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             placeholder="e.g., Sign the contract"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Description (optional)</label>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Description (optional)</label>
           <input
             type="text"
             value={step.description || ''}
             onChange={(e) => onUpdate(step.id, { description: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             placeholder="Brief instructions"
           />
         </div>
         
         {/* Link Type Selector */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-2">Link to</label>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Link to</label>
           <div className="flex gap-2 mb-2">
             <button
               type="button"
               onClick={switchToUrl}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
                 linkType === 'url'
-                  ? 'border-blue-600 bg-blue-50 text-blue-600'
-                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <ExternalLink className="w-4 h-4" />
@@ -180,8 +180,8 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               disabled={uploading}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
                 linkType === 'file'
-                  ? 'border-blue-600 bg-blue-50 text-blue-600'
-                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Upload className="w-4 h-4" />
@@ -202,18 +202,18 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               type="url"
               value={step.url || ''}
               onChange={(e) => onUpdate(step.id, { url: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               placeholder="https://..."
             />
           )}
           
           {step.file_id && step.file_name && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md">
               <File className="w-4 h-4 text-red-500" />
-              <span className="flex-1 text-sm text-gray-700 truncate">{step.file_name}</span>
+              <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">{step.file_name}</span>
               <button
                 onClick={clearFile}
-                className="p-1 text-gray-400 hover:text-gray-600"
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -313,7 +313,6 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         const data = await res.json()
         setSteps(prev => prev.map(s => s.id === newStep.id ? { ...s, id: data.id, title: 'New Step' } : s))
       } else {
-        // If server rejected (e.g., limit reached), remove the temp step
         const error = await res.json()
         setSteps(prev => prev.filter(s => s.id !== newStep.id))
         alert(error.error || 'Failed to add step')
@@ -437,7 +436,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       <div className="mb-8">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to flows
@@ -449,15 +448,15 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               type="text"
               value={flow.client_name}
               onChange={(e) => updateFlow({ client_name: e.target.value })}
-              className="text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none p-0 focus:ring-0"
+              className="text-2xl font-semibold text-gray-900 dark:text-white bg-transparent border-none outline-none p-0 focus:ring-0"
             />
             <div className="flex items-center gap-2 mt-1">
               {flow.status === 'published' ? (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
                   <Globe className="w-3 h-3" /> Live
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
                   <FileText className="w-3 h-3" /> Draft
                 </span>
               )}
@@ -471,7 +470,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               <>
                 <button
                   onClick={copyLink}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   {copied ? 'Copied' : 'Copy link'}
@@ -479,7 +478,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
                 <a
                   href={`/onboard/${flow.slug}`}
                   target="_blank"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   Preview
@@ -489,7 +488,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               <button
                 onClick={publishFlow}
                 disabled={saving || steps.length === 0}
-                className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {saving ? 'Publishing...' : 'Publish'}
               </button>
@@ -499,42 +498,42 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* Settings */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-        <h2 className="text-sm font-medium text-gray-900 mb-4">Settings</h2>
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 transition-colors">
+        <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Settings</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Client email (optional)</label>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Client email (optional)</label>
             <input
               type="email"
               value={flow.client_email || ''}
               onChange={(e) => updateFlow({ client_email: e.target.value || null })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               placeholder="client@company.com"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Welcome message (optional)</label>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Welcome message (optional)</label>
             <textarea
               value={flow.welcome_message || ''}
               onChange={(e) => updateFlow({ welcome_message: e.target.value || null })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               rows={2}
               placeholder="Welcome! Complete the steps below..."
             />
           </div>
           {flow.status === 'published' && (
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Portal URL</label>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portal URL</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={`${typeof window !== 'undefined' ? window.location.origin : ''}/onboard/${flow.slug}`}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm font-mono text-gray-600"
+                  className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md text-sm font-mono text-gray-600 dark:text-gray-300 transition-colors"
                 />
                 <button
                   onClick={copyLink}
-                  className="px-3 py-2 border border-gray-200 rounded-md hover:bg-gray-50"
+                  className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   {copied ? <Check className="w-4 h-4 text-blue-600" /> : <Copy className="w-4 h-4 text-gray-400" />}
                 </button>
@@ -547,9 +546,9 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       {/* Steps */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-medium text-gray-900">Steps</h2>
+          <h2 className="text-sm font-medium text-gray-900 dark:text-white">Steps</h2>
           {userPlan.plan === 'free' && (
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {steps.length} of {userPlan.maxStepsPerFlow} steps used
             </p>
           )}
@@ -558,7 +557,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
           onClick={addStep}
           className={`inline-flex items-center gap-1 text-sm font-medium ${
             canAddStep 
-              ? 'text-blue-600 hover:text-blue-700' 
+              ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300' 
               : 'text-gray-400 hover:text-gray-500'
           }`}
         >
@@ -568,11 +567,11 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {steps.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 border-dashed rounded-lg p-8 text-center">
-          <p className="text-gray-500 mb-4">No steps yet</p>
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 border-dashed rounded-lg p-8 text-center transition-colors">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">No steps yet</p>
           <button
             onClick={addStep}
-            className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add first step
@@ -600,18 +599,18 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       {steps.length > 0 && canAddStep && (
         <button
           onClick={addStep}
-          className="w-full mt-3 py-3 border border-gray-200 border-dashed rounded-lg text-sm text-gray-500 hover:border-gray-300 hover:text-gray-600"
+          className="w-full mt-3 py-3 border border-gray-200 dark:border-gray-600 border-dashed rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           + Add another step
         </button>
       )}
 
       {steps.length > 0 && !canAddStep && (
-        <div className="w-full mt-3 py-4 px-4 border border-orange-200 bg-orange-50 rounded-lg text-center">
-          <p className="text-sm text-orange-700 mb-2">Free plan limit: {userPlan.maxStepsPerFlow} steps per flow</p>
+        <div className="w-full mt-3 py-4 px-4 border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/30 rounded-lg text-center transition-colors">
+          <p className="text-sm text-orange-700 dark:text-orange-400 mb-2">Free plan limit: {userPlan.maxStepsPerFlow} steps per flow</p>
           <button
             onClick={() => router.push('/dashboard/billing')}
-            className="text-sm font-medium text-orange-700 hover:text-orange-800 underline"
+            className="text-sm font-medium text-orange-700 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 underline"
           >
             Upgrade to Pro for unlimited steps →
           </button>
