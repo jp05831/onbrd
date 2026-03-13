@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '../../../lib/auth'
-import db from '../../../lib/db'
+import database from '../../../lib/db'
 
 export async function POST(request: NextRequest) {
   const session = await getSession()
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id
 
     // Update user plan to free
-    db.prepare('UPDATE users SET plan = ? WHERE id = ?').run('free', userId)
+    await database.updateUser(userId, { plan: 'free', is_pro: false })
 
     return NextResponse.json({ 
       success: true,
