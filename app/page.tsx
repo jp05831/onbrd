@@ -11,7 +11,7 @@ export default function LandingPage() {
             <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="font-semibold text-gray-900">OnboardLink</span>
+            <span className="font-semibold text-gray-900">Onbrd</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
@@ -209,7 +209,7 @@ export default function LandingPage() {
             <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />
             </div>
-            <span className="text-sm font-medium text-gray-900">OnboardLink</span>
+            <span className="text-sm font-medium text-gray-900">Onbrd</span>
           </div>
           <p className="text-sm text-gray-400">© 2024</p>
         </div>

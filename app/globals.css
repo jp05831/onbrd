@@ -17,6 +17,8 @@
   --color-primary-900: #1e3a8a;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 * {
   font-family: var(--font-family-sans);
 }
@@ -24,7 +26,35 @@
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #fff;
+}
+
+/* Light mode (default) */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+}
+
+/* Dark mode */
+.dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* Custom scrollbar */
@@ -42,8 +72,16 @@ body {
   border-radius: 4px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }
 
 /* Focus states */
@@ -59,6 +97,11 @@ body {
 ::selection {
   background: #dbeafe;
   color: #1e3a8a;
+}
+
+.dark ::selection {
+  background: #1e40af;
+  color: #dbeafe;
 }
 
 input::placeholder,

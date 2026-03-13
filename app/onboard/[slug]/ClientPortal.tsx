@@ -81,7 +81,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
           {owner.plan === 'free' && (
             <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-400 mt-12 hover:text-gray-500">
               <Sparkles className="w-3 h-3" />
-              Powered by OnboardLink
+              Powered by Onbrd
             </a>
           )}
         </div>
@@ -226,7 +226,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
           <div className="text-center mt-12">
             <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-500">
               <Sparkles className="w-3 h-3" />
-              Powered by OnboardLink
+              Powered by Onbrd
             </a>
           </div>
         )}

@@ -98,8 +98,8 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Your Flows</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Your Flows</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {userPlan.plan === 'free' 
               ? `${userPlan.activeFlows} of ${userPlan.maxFlows} flows used`
               : 'Unlimited flows'}
@@ -119,12 +119,12 @@ export default function DashboardPage() {
           <div className="text-gray-400">Loading...</div>
         </div>
       ) : flows.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No flows yet</h3>
-          <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No flows yet</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
             Create your first onboarding flow to start guiding clients through your process.
           </p>
           <button
@@ -142,7 +142,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Repeat className="w-4 h-4 text-gray-400" />
-                <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Templates</h2>
+                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Templates</h2>
               </div>
               <div className="grid gap-4">
                 {templates.map((flow) => (
@@ -164,7 +164,7 @@ export default function DashboardPage() {
               {templates.length > 0 && (
                 <div className="flex items-center gap-2 mb-4">
                   <Users className="w-4 h-4 text-gray-400" />
-                  <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Client Flows</h2>
+                  <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Client Flows</h2>
                 </div>
               )}
               <div className="grid gap-4">
@@ -186,59 +186,59 @@ export default function DashboardPage() {
       {/* Modal */}
       {showNewModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md shadow-xl">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">Create New Flow</h2>
-              <p className="text-sm text-gray-500 mt-1">Set up onboarding for a client or create a reusable template.</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-xl">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Flow</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Set up onboarding for a client or create a reusable template.</p>
             </div>
             
             <div className="p-6 space-y-4">
               {/* Flow Type Toggle */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Flow Type</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Flow Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setNewFlow({ ...newFlow, is_template: false })}
                     className={`p-3 border rounded-lg text-left transition-colors ${
                       !newFlow.is_template 
-                        ? 'border-blue-600 bg-blue-50 text-blue-700' 
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
                       <span className="font-medium text-sm">Single Client</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">One-time use for a specific client</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">One-time use for a specific client</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewFlow({ ...newFlow, is_template: true })}
                     className={`p-3 border rounded-lg text-left transition-colors ${
                       newFlow.is_template 
-                        ? 'border-blue-600 bg-blue-50 text-blue-700' 
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <Repeat className="w-4 h-4" />
                       <span className="font-medium text-sm">Template</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Reusable for multiple clients</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Reusable for multiple clients</p>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {newFlow.is_template ? 'Template Name' : 'Client Name'} *
                 </label>
                 <input
                   type="text"
                   value={newFlow.client_name}
                   onChange={(e) => setNewFlow({ ...newFlow, client_name: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={newFlow.is_template ? "e.g., Standard Onboarding" : "e.g., Acme Corp"}
                   autoFocus
                 />
@@ -246,33 +246,33 @@ export default function DashboardPage() {
 
               {!newFlow.is_template && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Client Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Email</label>
                   <input
                     type="email"
                     value={newFlow.client_email}
                     onChange={(e) => setNewFlow({ ...newFlow, client_email: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="client@company.com"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Welcome Message</label>
                 <textarea
                   value={newFlow.welcome_message}
                   onChange={(e) => setNewFlow({ ...newFlow, welcome_message: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={2}
                   placeholder="Welcome! Complete the steps below..."
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
               <button
                 onClick={() => setShowNewModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100"
+                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
@@ -300,16 +300,16 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
   const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-            flow.is_template ? 'bg-purple-100' : 'bg-blue-100'
+            flow.is_template ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
           }`}>
             {flow.is_template ? (
-              <Repeat className="w-6 h-6 text-purple-600" />
+              <Repeat className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             ) : (
-              <span className="text-lg font-semibold text-blue-600">
+              <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
                 {flow.client_name.charAt(0).toUpperCase()}
               </span>
             )}
@@ -317,26 +317,26 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
           <div>
             <Link 
               href={`/dashboard/flows/${flow.id}`}
-              className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+              className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               {flow.client_name}
             </Link>
             <div className="flex items-center gap-3 mt-1.5">
               {flow.status === 'published' ? (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
                   <Globe className="w-3 h-3" /> Live
                 </span>
               ) : flow.status === 'completed' ? (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
                   <Check className="w-3 h-3" /> Completed
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
                   <FileText className="w-3 h-3" /> Draft
                 </span>
               )}
               {flow.is_template && (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-purple-600">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-purple-600 dark:text-purple-400">
                   <Repeat className="w-3 h-3" /> Template
                 </span>
               )}
@@ -350,7 +350,7 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
             <>
               <button
                 onClick={() => onCopy(flow.slug, flow.id)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 title="Copy link"
               >
                 {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -358,7 +358,7 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
               <a
                 href={`/onboard/${flow.slug}`}
                 target="_blank"
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 title="Preview"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -367,13 +367,13 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
           )}
           <Link
             href={`/dashboard/flows/${flow.id}`}
-            className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             Edit
           </Link>
           <button
             onClick={() => onDelete(flow.id)}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />
@@ -383,12 +383,12 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
       
       {/* Progress bar for published flows */}
       {flow.status === 'published' && flow.total_steps > 0 && !flow.is_template && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-gray-500">Client Progress</span>
-            <span className="font-medium text-gray-700">{flow.completed_steps}/{flow.total_steps} complete</span>
+            <span className="text-gray-500 dark:text-gray-400">Client Progress</span>
+            <span className="font-medium text-gray-700 dark:text-gray-300">{flow.completed_steps}/{flow.total_steps} complete</span>
           </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-blue-600 rounded-full transition-all"
               style={{ width: `${progress}%` }}

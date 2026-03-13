@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'OnboardLink Pro',
+              name: 'Onbrd Pro',
               description: `Unlimited flows, unlimited steps, unlimited users. ${selectedPricing.description}`,
             },
             unit_amount: selectedPricing.amount,

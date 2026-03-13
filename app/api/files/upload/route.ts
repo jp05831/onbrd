@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { put } from '@vercel/blob'
 import { getSession } from '../../../lib/auth'
 import crypto from 'crypto'
-
-const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
 
 export async function POST(request: NextRequest) {
   const session = await getSession()
@@ -16,6 +11,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const token = process.env.BLOB_READ_WRITE_TOKEN
+    
+    if (!token) {
+      console.error('BLOB_READ_WRITE_TOKEN not configured')
+      return NextResponse.json({ error: 'Storage not configured' }, { status: 500 })
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
 
@@ -38,30 +40,18 @@ export async function POST(request: NextRequest) {
     const storedName = `${crypto.randomBytes(16).toString('hex')}.${ext}`
     const filePath = `uploads/${session.user.id}/${storedName}`
 
-    // Upload to Supabase Storage
-    const bytes = await file.arrayBuffer()
-    const { data, error } = await supabase.storage
-      .from('files')
-      .upload(filePath, Buffer.from(bytes), {
-        contentType: file.type,
-        upsert: false
-      })
-
-    if (error) {
-      console.error('Supabase upload error:', error)
-      return NextResponse.json({ error: 'Upload failed: ' + error.message }, { status: 500 })
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('files')
-      .getPublicUrl(filePath)
+    // Upload to Vercel Blob
+    const blob = await put(filePath, file, {
+      access: 'public',
+      contentType: file.type,
+      token,
+    })
 
     return NextResponse.json({ 
       id: storedName,
       name: file.name,
       size: file.size,
-      url: urlData.publicUrl
+      url: blob.url
     })
   } catch (error) {
     console.error('Upload error:', error)

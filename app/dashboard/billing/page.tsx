@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, Sparkles, AlertTriangle } from 'lucide-react'
 
 export default function BillingPage() {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month')
   const [loading, setLoading] = useState(false)
+  const [cancelLoading, setCancelLoading] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
 
   useEffect(() => {
     if (session?.user && (session.user as any)?.plan) {
@@ -35,6 +37,30 @@ export default function BillingPage() {
     }
   }
 
+  const handleCancel = async () => {
+    setCancelLoading(true)
+    try {
+      const res = await fetch('/api/billing/cancel', {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (data.success) {
+        setCurrentPlan('free')
+        setShowCancelModal(false)
+        // Refresh session to update plan
+        await update()
+        alert('Your subscription has been cancelled.')
+      } else {
+        alert(data.error || 'Failed to cancel subscription')
+      }
+    } catch (error) {
+      console.error('Cancel error:', error)
+      alert('Failed to cancel subscription')
+    } finally {
+      setCancelLoading(false)
+    }
+  }
+
   const pricing = {
     month: { price: 15, period: '/month', savings: null },
     year: { price: 150, period: '/year', savings: 'Save $30' },
@@ -45,39 +71,91 @@ export default function BillingPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Billing</h1>
-        <p className="text-gray-500 mt-1">Manage your subscription and billing details.</p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Billing</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your subscription and billing details.</p>
       </div>
 
       {/* Current Plan */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium text-gray-900">Current Plan</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              You are currently on the <span className="font-medium text-gray-900 capitalize">{currentPlan}</span> plan.
+            <h3 className="font-medium text-gray-900 dark:text-white">Current Plan</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              You are currently on the <span className="font-medium text-gray-900 dark:text-white capitalize">{currentPlan}</span> plan.
             </p>
           </div>
           <span className={`px-3 py-1 text-sm font-medium rounded-full ${
             currentPlan === 'pro' 
-              ? 'bg-blue-100 text-blue-700' 
-              : 'bg-gray-100 text-gray-700'
+              ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' 
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
           }`}>
             {currentPlan === 'pro' ? 'Pro' : 'Free Trial'}
           </span>
         </div>
+
+        {/* Cancel Button for Pro users */}
+        {currentPlan === 'pro' && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setShowCancelModal(true)}
+              className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+            >
+              Cancel subscription
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Cancel Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cancel Subscription</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to cancel your Pro subscription? You'll lose access to:
+            </p>
+            <ul className="space-y-2 mb-6">
+              {['Unlimited flows', 'Unlimited steps', 'Email notifications', 'Priority support'].map((feature, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                Keep Subscription
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelLoading}
+                className="flex-1 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50"
+              >
+                {cancelLoading ? 'Cancelling...' : 'Yes, Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Billing Toggle */}
       {currentPlan !== 'pro' && (
         <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
+          <div className="inline-flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <button
               onClick={() => setBillingInterval('month')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 billingInterval === 'month'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Monthly
@@ -86,12 +164,12 @@ export default function BillingPage() {
               onClick={() => setBillingInterval('year')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
                 billingInterval === 'year'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Annual
-              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Save $30</span>
+              <span className="text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">Save $30</span>
             </button>
           </div>
         </div>
@@ -100,18 +178,18 @@ export default function BillingPage() {
       {/* Plans */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Free Plan */}
-        <div className={`bg-white border-2 rounded-lg p-6 ${
-          currentPlan === 'free' ? 'border-gray-300' : 'border-gray-200'
+        <div className={`bg-white dark:bg-gray-800 border-2 rounded-lg p-6 ${
+          currentPlan === 'free' ? 'border-gray-300 dark:border-gray-600' : 'border-gray-200 dark:border-gray-700'
         }`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Free Trial</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Free Trial</h3>
             {currentPlan === 'free' && (
-              <span className="text-xs font-medium text-gray-600">Current</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Current</span>
             )}
           </div>
           <div className="mb-4">
-            <span className="text-3xl font-semibold text-gray-900">$0</span>
-            <span className="text-gray-500">/forever</span>
+            <span className="text-3xl font-semibold text-gray-900 dark:text-white">$0</span>
+            <span className="text-gray-500 dark:text-gray-400">/forever</span>
           </div>
           <ul className="space-y-3 mb-6">
             {[
@@ -120,8 +198,8 @@ export default function BillingPage() {
               'Progress tracking',
               'Shareable links',
             ].map((feature, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                <Check className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <Check className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                 {feature}
               </li>
             ))}
@@ -129,13 +207,13 @@ export default function BillingPage() {
           {currentPlan === 'free' ? (
             <button
               disabled
-              className="w-full py-2 border border-gray-200 text-gray-400 text-sm font-medium rounded-md cursor-not-allowed"
+              className="w-full py-2 border border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
             >
               Current Plan
             </button>
           ) : (
             <button
-              className="w-full py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50"
+              className="w-full py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Downgrade
             </button>
@@ -143,7 +221,7 @@ export default function BillingPage() {
         </div>
 
         {/* Pro Plan */}
-        <div className={`bg-white border-2 rounded-lg p-6 relative ${
+        <div className={`bg-white dark:bg-gray-800 border-2 rounded-lg p-6 relative ${
           currentPlan === 'pro' ? 'border-blue-600' : 'border-blue-600'
         }`}>
           <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -153,16 +231,16 @@ export default function BillingPage() {
             </span>
           </div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">Pro</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Pro</h3>
             {currentPlan === 'pro' && (
-              <span className="text-xs font-medium text-blue-600">Current</span>
+              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">Current</span>
             )}
           </div>
           <div className="mb-4">
-            <span className="text-3xl font-semibold text-gray-900">${selectedPrice.price}</span>
-            <span className="text-gray-500">{selectedPrice.period}</span>
+            <span className="text-3xl font-semibold text-gray-900 dark:text-white">${selectedPrice.price}</span>
+            <span className="text-gray-500 dark:text-gray-400">{selectedPrice.period}</span>
             {selectedPrice.savings && (
-              <span className="ml-2 text-sm text-green-600 font-medium">{selectedPrice.savings}</span>
+              <span className="ml-2 text-sm text-green-600 dark:text-green-400 font-medium">{selectedPrice.savings}</span>
             )}
           </div>
           <ul className="space-y-3 mb-6">
@@ -174,8 +252,8 @@ export default function BillingPage() {
               'Remove branding',
               'Priority support',
             ].map((feature, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                 {feature}
               </li>
             ))}
@@ -183,7 +261,7 @@ export default function BillingPage() {
           {currentPlan === 'pro' ? (
             <button
               disabled
-              className="w-full py-2 border border-gray-200 text-gray-400 text-sm font-medium rounded-md cursor-not-allowed"
+              className="w-full py-2 border border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
             >
               Current Plan
             </button>
@@ -201,9 +279,9 @@ export default function BillingPage() {
 
       {/* Billing History */}
       <div className="mt-8">
-        <h3 className="font-medium text-gray-900 mb-4">Billing History</h3>
-        <div className="bg-white border border-gray-200 rounded-lg">
-          <div className="p-8 text-center text-gray-500 text-sm">
+        <h3 className="font-medium text-gray-900 dark:text-white mb-4">Billing History</h3>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             No billing history yet.
           </div>
         </div>
@@ -211,23 +289,23 @@ export default function BillingPage() {
 
       {/* FAQ */}
       <div className="mt-8">
-        <h3 className="font-medium text-gray-900 mb-4">Frequently Asked Questions</h3>
-        <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200">
+        <h3 className="font-medium text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h3>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
           <div className="p-4">
-            <h4 className="font-medium text-gray-900 text-sm">Can I cancel anytime?</h4>
-            <p className="text-sm text-gray-500 mt-1">Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period.</p>
+            <h4 className="font-medium text-gray-900 dark:text-white text-sm">Can I cancel anytime?</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period.</p>
           </div>
           <div className="p-4">
-            <h4 className="font-medium text-gray-900 text-sm">What happens to my flows if I downgrade?</h4>
-            <p className="text-sm text-gray-500 mt-1">Your existing flows will remain, but you won't be able to create new ones beyond the free plan limit (2 flows, 2 steps each).</p>
+            <h4 className="font-medium text-gray-900 dark:text-white text-sm">What happens to my flows if I downgrade?</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Your existing flows will remain, but you won't be able to create new ones beyond the free plan limit (2 flows, 2 steps each).</p>
           </div>
           <div className="p-4">
-            <h4 className="font-medium text-gray-900 text-sm">Do you offer refunds?</h4>
-            <p className="text-sm text-gray-500 mt-1">We offer a 7-day money-back guarantee if you're not satisfied with Pro.</p>
+            <h4 className="font-medium text-gray-900 dark:text-white text-sm">Do you offer refunds?</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">We offer a 7-day money-back guarantee if you're not satisfied with Pro.</p>
           </div>
           <div className="p-4">
-            <h4 className="font-medium text-gray-900 text-sm">What's included in unlimited users?</h4>
-            <p className="text-sm text-gray-500 mt-1">Pro plan allows unlimited clients to access and complete your onboarding flows — no per-user charges.</p>
+            <h4 className="font-medium text-gray-900 dark:text-white text-sm">What's included in unlimited users?</h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Pro plan allows unlimited clients to access and complete your onboarding flows — no per-user charges.</p>
           </div>
         </div>
       </div>

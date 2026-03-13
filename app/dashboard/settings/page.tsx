@@ -70,17 +70,17 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Account Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your account and company information.</p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Account Settings</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your account and company information.</p>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
         {/* Company Name */}
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <div>
-              <h3 className="font-medium text-gray-900">Company Name</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="font-medium text-gray-900 dark:text-white">Company Name</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 This will be displayed on your client portals.
               </p>
             </div>
@@ -90,14 +90,14 @@ export default function SettingsPage() {
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Your Company Name"
                   maxLength={32}
                 />
                 <button
                   onClick={saveCompanyName}
                   disabled={saving}
-                  className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
                 </button>
@@ -111,8 +111,8 @@ export default function SettingsPage() {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <div>
-              <h3 className="font-medium text-gray-900">Email Address</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="font-medium text-gray-900 dark:text-white">Email Address</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Your primary email for notifications.
               </p>
             </div>
@@ -122,13 +122,13 @@ export default function SettingsPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="you@company.com"
                 />
                 <button
                   onClick={saveEmail}
                   disabled={saving}
-                  className="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
                 </button>
@@ -141,14 +141,14 @@ export default function SettingsPage() {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <div>
-              <h3 className="font-medium text-gray-900">Account</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="font-medium text-gray-900 dark:text-white">Account</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Your account details.
               </p>
             </div>
             <div className="md:col-span-2">
-              <div className="text-sm text-gray-600">
-                <p>Signed in as <span className="font-medium text-gray-900">{session?.user?.name}</span></p>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <p>Signed in as <span className="font-medium text-gray-900 dark:text-white">{session?.user?.name}</span></p>
                 <p className="text-gray-400 mt-1">{session?.user?.email}</p>
               </div>
             </div>
@@ -156,11 +156,11 @@ export default function SettingsPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="p-6 bg-gray-50">
+        <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-b-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <div>
-              <h3 className="font-medium text-red-600">Danger Zone</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="font-medium text-red-600 dark:text-red-400">Danger Zone</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Irreversible actions.
               </p>
             </div>
@@ -172,7 +172,7 @@ export default function SettingsPage() {
                     alert('Contact support to delete your account.')
                   }
                 }}
-                className="px-4 py-2 border border-red-200 text-red-600 text-sm font-medium rounded-md hover:bg-red-50"
+                className="px-4 py-2 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium rounded-md hover:bg-red-50 dark:hover:bg-red-900/30"
               >
                 Delete Account
               </button>

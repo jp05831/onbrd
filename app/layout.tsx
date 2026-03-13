@@ -3,7 +3,7 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'OnboardLink - Client Onboarding Portal Builder',
+  title: 'Onbrd - Client Onboarding Portal Builder',
   description: 'Create beautiful, step-by-step client onboarding experiences',
 }
 
