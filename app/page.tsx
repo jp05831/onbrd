@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Check, ArrowRight, Sparkles } from 'lucide-react'
+import Image from 'next/image'
+import { Check, ArrowRight } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -7,11 +8,15 @@ export default function LandingPage() {
       {/* Header */}
       <header className="border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold text-gray-900">Onbrd</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo-light.png"
+              alt="Onbrd"
+              width={100}
+              height={50}
+              className="h-8 w-auto"
+              priority
+            />
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
@@ -205,12 +210,13 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-8 px-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-sm font-medium text-gray-900">Onbrd</span>
-          </div>
+          <Image
+            src="/logo-light.png"
+            alt="Onbrd"
+            width={80}
+            height={40}
+            className="h-6 w-auto"
+          />
           <p className="text-sm text-gray-400">© 2024</p>
         </div>
       </footer>

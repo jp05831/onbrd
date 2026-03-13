@@ -4,7 +4,8 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { Sparkles, LayoutDashboard, Settings, LogOut, CreditCard, Sun, Moon } from 'lucide-react'
+import Image from 'next/image'
+import { LayoutDashboard, Settings, LogOut, CreditCard, Sun, Moon } from 'lucide-react'
 import { useTheme } from '../lib/theme'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -46,11 +47,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-semibold text-gray-900 dark:text-white">Onbrd</span>
+            <Link href="/dashboard" className="flex items-center">
+              {/* Light mode logo */}
+              <Image
+                src="/logo-light.png"
+                alt="Onbrd"
+                width={100}
+                height={50}
+                className="h-8 w-auto dark:hidden"
+                priority
+              />
+              {/* Dark mode logo */}
+              <Image
+                src="/logo-dark.png"
+                alt="Onbrd"
+                width={100}
+                height={50}
+                className="h-8 w-auto hidden dark:block"
+                priority
+              />
             </Link>
 
             <nav className="hidden sm:flex items-center gap-1">
