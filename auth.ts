@@ -71,7 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         try {
           const dbUser = await database.getUserByEmail(user.email!)
@@ -81,6 +81,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         } catch (error) {
           console.error('JWT error:', error)
+        }
+      }
+      // Refresh plan from DB on session update (after upgrade/downgrade)
+      if (trigger === 'update' && token.userId) {
+        try {
+          const dbUser = await database.getUserById(token.userId as string)
+          if (dbUser) {
+            token.plan = dbUser.plan
+          }
+        } catch (error) {
+          console.error('JWT refresh error:', error)
         }
       }
       return token
