@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-gray-400">Loading...</div>
       </div>
     )
@@ -99,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                 isActive
                   ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800'
               } ${!sidebarOpen ? 'justify-center' : ''}`}
               title={!sidebarOpen ? item.label : undefined}
             >
@@ -123,11 +123,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-3 border-t border-gray-200 dark:border-neutral-800">
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className={`flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${!sidebarOpen ? 'justify-center' : ''}`}
+          className={`flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors ${!sidebarOpen ? 'justify-center' : ''}`}
           title={!sidebarOpen ? (theme === 'light' ? 'Dark mode' : 'Light mode') : undefined}
         >
           {theme === 'light' ? (
@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <button
               onClick={handleLogout}
-              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 flex-shrink-0"
               title="Log out"
             >
               <LogOut className="w-4 h-4" />
@@ -165,7 +165,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ) : (
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center w-full px-3 py-2.5 mt-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex items-center justify-center w-full px-3 py-2.5 mt-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800"
             title="Log out"
           >
             <LogOut className="w-5 h-5" />
@@ -176,10 +176,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-black flex">
       {/* Desktop Sidebar */}
       <aside 
-        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 z-30 ${
+        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transition-all duration-300 z-30 ${
           sidebarOpen ? 'w-60' : 'w-16'
         }`}
       >
@@ -188,14 +188,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Collapse Toggle */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="absolute -right-3 top-7 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 shadow-sm"
+          className="absolute -right-3 top-7 w-6 h-6 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 shadow-sm"
         >
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
       </aside>
 
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 z-30">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between px-4 z-30">
         <Link href="/dashboard" className="flex items-center">
           <Image
             src="/logo-light.png"
@@ -216,7 +216,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </Link>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+          className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -232,7 +232,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile Sidebar */}
       <aside 
-        className={`lg:hidden fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50 transform transition-transform duration-300 ${
+        className={`lg:hidden fixed inset-y-0 left-0 w-64 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 z-50 transform transition-transform duration-300 ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

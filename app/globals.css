@@ -40,16 +40,16 @@ body {
   --border-secondary: #d1d5db;
 }
 
-/* Dark mode */
+/* Dark mode - true black */
 .dark {
-  --bg-primary: #111827;
-  --bg-secondary: #1f2937;
-  --bg-tertiary: #374151;
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
-  --border-primary: #374151;
-  --border-secondary: #4b5563;
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #171717;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1a1;
+  --text-muted: #737373;
+  --border-primary: #262626;
+  --border-secondary: #404040;
 }
 
 body {

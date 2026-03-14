@@ -13,7 +13,7 @@ export default function TeamPage() {
       </div>
 
       {/* Coming Soon State */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-12 text-center">
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-12 text-center">
         <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
           <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
         </div>
@@ -25,7 +25,7 @@ export default function TeamPage() {
         </p>
         <button
           disabled
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-lg cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-lg cursor-not-allowed"
         >
           <Mail className="w-4 h-4" />
           Invite team member

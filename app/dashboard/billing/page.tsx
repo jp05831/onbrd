@@ -76,7 +76,7 @@ export default function BillingPage() {
       </div>
 
       {/* Current Plan */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium text-gray-900 dark:text-white">Current Plan</h3>
@@ -87,7 +87,7 @@ export default function BillingPage() {
           <span className={`px-3 py-1 text-sm font-medium rounded-full ${
             currentPlan === 'pro' 
               ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' 
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              : 'bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-gray-300'
           }`}>
             {currentPlan === 'pro' ? 'Pro' : 'Free Trial'}
           </span>
@@ -95,7 +95,7 @@ export default function BillingPage() {
 
         {/* Cancel Button for Pro users */}
         {currentPlan === 'pro' && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800">
             <button
               onClick={() => setShowCancelModal(true)}
               className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
@@ -109,7 +109,7 @@ export default function BillingPage() {
       {/* Cancel Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
@@ -130,7 +130,7 @@ export default function BillingPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="flex-1 py-2 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800"
               >
                 Keep Subscription
               </button>
@@ -149,12 +149,12 @@ export default function BillingPage() {
       {/* Billing Toggle */}
       {currentPlan !== 'pro' && (
         <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <div className="inline-flex items-center bg-gray-100 dark:bg-neutral-900 rounded-lg p-1">
             <button
               onClick={() => setBillingInterval('month')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 billingInterval === 'month'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -164,7 +164,7 @@ export default function BillingPage() {
               onClick={() => setBillingInterval('year')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
                 billingInterval === 'year'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -178,8 +178,8 @@ export default function BillingPage() {
       {/* Plans */}
       <div className="grid md:grid-cols-2 gap-4">
         {/* Free Plan */}
-        <div className={`bg-white dark:bg-gray-800 border-2 rounded-lg p-6 ${
-          currentPlan === 'free' ? 'border-gray-300 dark:border-gray-600' : 'border-gray-200 dark:border-gray-700'
+        <div className={`bg-white dark:bg-neutral-900 border-2 rounded-lg p-6 ${
+          currentPlan === 'free' ? 'border-gray-300 dark:border-neutral-700' : 'border-gray-200 dark:border-neutral-800'
         }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">Free Trial</h3>
@@ -207,13 +207,13 @@ export default function BillingPage() {
           {currentPlan === 'free' ? (
             <button
               disabled
-              className="w-full py-2 border border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
+              className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
             >
               Current Plan
             </button>
           ) : (
             <button
-              className="w-full py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800"
             >
               Downgrade
             </button>
@@ -221,7 +221,7 @@ export default function BillingPage() {
         </div>
 
         {/* Pro Plan */}
-        <div className={`bg-white dark:bg-gray-800 border-2 rounded-lg p-6 relative ${
+        <div className={`bg-white dark:bg-neutral-900 border-2 rounded-lg p-6 relative ${
           currentPlan === 'pro' ? 'border-blue-600' : 'border-blue-600'
         }`}>
           <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -261,7 +261,7 @@ export default function BillingPage() {
           {currentPlan === 'pro' ? (
             <button
               disabled
-              className="w-full py-2 border border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
+              className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
             >
               Current Plan
             </button>
@@ -280,7 +280,7 @@ export default function BillingPage() {
       {/* Billing History */}
       <div className="mt-8">
         <h3 className="font-medium text-gray-900 dark:text-white mb-4">Billing History</h3>
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg">
           <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             No billing history yet.
           </div>
@@ -290,7 +290,7 @@ export default function BillingPage() {
       {/* FAQ */}
       <div className="mt-8">
         <h3 className="font-medium text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h3>
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
           <div className="p-4">
             <h4 className="font-medium text-gray-900 dark:text-white text-sm">Can I cancel anytime?</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period.</p>

@@ -74,7 +74,7 @@ export default function SettingsPage() {
         <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your account and company information.</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
         {/* Company Name */}
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
@@ -90,14 +90,14 @@ export default function SettingsPage() {
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Your Company Name"
                   maxLength={32}
                 />
                 <button
                   onClick={saveCompanyName}
                   disabled={saving}
-                  className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
                 </button>
@@ -122,13 +122,13 @@ export default function SettingsPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="you@company.com"
                 />
                 <button
                   onClick={saveEmail}
                   disabled={saving}
-                  className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
                 </button>
@@ -156,7 +156,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-b-lg">
+        <div className="p-6 bg-gray-50 dark:bg-neutral-900/50 rounded-b-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <div>
               <h3 className="font-medium text-red-600 dark:text-red-400">Danger Zone</h3>

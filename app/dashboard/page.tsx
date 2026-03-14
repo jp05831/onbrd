@@ -126,9 +126,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Flows Section */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl">
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <button
@@ -136,7 +136,7 @@ export default function DashboardPage() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                   filter === 'all' 
                     ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
                 }`}
               >
                 All
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                   filter === 'active' 
                     ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
                 }`}
               >
                 Active
@@ -156,7 +156,7 @@ export default function DashboardPage() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                   filter === 'completed' 
                     ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
                 }`}
               >
                 Completed
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                   filter === 'templates' 
                     ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
                 }`}
               >
                 Templates
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                   placeholder="Search flows..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 w-48 border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-9 pr-4 py-2 w-48 border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <button
@@ -202,7 +202,7 @@ export default function DashboardPage() {
           </div>
         ) : filteredFlows.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -241,8 +241,8 @@ export default function DashboardPage() {
       {/* Modal */}
       {showNewModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-xl">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-neutral-900 rounded-xl w-full max-w-md shadow-xl">
+            <div className="p-6 border-b border-gray-100 dark:border-neutral-800">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Flow</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Set up onboarding for a client or create a reusable template.</p>
             </div>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                     className={`p-3 border rounded-lg text-left transition-colors ${
                       !newFlow.is_template 
                         ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -273,7 +273,7 @@ export default function DashboardPage() {
                     className={`p-3 border rounded-lg text-left transition-colors ${
                       newFlow.is_template 
                         ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -293,7 +293,7 @@ export default function DashboardPage() {
                   type="text"
                   value={newFlow.client_name}
                   onChange={(e) => setNewFlow({ ...newFlow, client_name: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={newFlow.is_template ? "e.g., Standard Onboarding" : "e.g., Acme Corp"}
                   autoFocus
                 />
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                     type="email"
                     value={newFlow.client_email}
                     onChange={(e) => setNewFlow({ ...newFlow, client_email: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="client@company.com"
                   />
                 </div>
@@ -317,17 +317,17 @@ export default function DashboardPage() {
                 <textarea
                   value={newFlow.welcome_message}
                   onChange={(e) => setNewFlow({ ...newFlow, welcome_message: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={2}
                   placeholder="Welcome! Complete the steps below..."
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 rounded-b-xl">
               <button
                 onClick={() => setShowNewModal(false)}
-                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800"
               >
                 Cancel
               </button>
@@ -355,7 +355,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete }: {
   const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
 
   return (
-    <div className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+    <div className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
       {/* Icon */}
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
         flow.is_template 
@@ -430,7 +430,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete }: {
           <>
             <button
               onClick={() => onCopy(flow.slug, flow.id)}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
               title="Copy link"
             >
               {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -438,7 +438,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete }: {
             <a
               href={`/onboard/${flow.slug}`}
               target="_blank"
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
               title="Preview"
             >
               <ExternalLink className="w-4 h-4" />
@@ -447,7 +447,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete }: {
         )}
         <Link
           href={`/dashboard/flows/${flow.id}`}
-          className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+          className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
         >
           Edit
         </Link>

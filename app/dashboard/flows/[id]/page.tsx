@@ -126,9 +126,9 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors ${isDragging ? 'shadow-lg opacity-90' : ''}`}
+      className={`bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg transition-colors ${isDragging ? 'shadow-lg opacity-90' : ''}`}
     >
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-t-lg">
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 rounded-t-lg">
         <button
           {...attributes}
           {...listeners}
@@ -153,7 +153,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
             type="text"
             value={step.title}
             onChange={(e) => onUpdate(step.id, { title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             placeholder="e.g., Sign the contract"
           />
         </div>
@@ -163,7 +163,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
             type="text"
             value={step.description || ''}
             onChange={(e) => onUpdate(step.id, { description: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             placeholder="Brief instructions"
           />
         </div>
@@ -178,7 +178,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
                 stepType === 'link' && !step.file_id
                   ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
               }`}
             >
               <ExternalLink className="w-4 h-4" />
@@ -191,7 +191,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
                 step.file_id
                   ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
               }`}
             >
               <Upload className="w-4 h-4" />
@@ -203,7 +203,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
                 stepType === 'request_pdf'
                   ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
               }`}
             >
               <FileUp className="w-4 h-4" />
@@ -215,7 +215,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
                 stepType === 'request_photo'
                   ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
               }`}
             >
               <Camera className="w-4 h-4" />
@@ -237,14 +237,14 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               type="url"
               value={step.url || ''}
               onChange={(e) => onUpdate(step.id, { url: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               placeholder="https://..."
             />
           )}
           
           {/* File display */}
           {step.file_id && step.file_name && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md">
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md">
               <File className="w-4 h-4 text-red-500" />
               <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">{step.file_name}</span>
               <button
@@ -589,7 +589,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               <>
                 <button
                   onClick={copyLink}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-neutral-700 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   {copied ? 'Copied' : 'Copy link'}
@@ -597,7 +597,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
                 <a
                   href={`/onboard/${flow.slug}`}
                   target="_blank"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-neutral-700 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   Preview
@@ -617,7 +617,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* Settings */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 transition-colors">
+      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg p-4 mb-6 transition-colors">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Settings</h2>
         <div className="space-y-4">
           {/* Logo Upload */}
@@ -638,7 +638,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
                 <img 
                   src={flow.logo_url} 
                   alt="Company logo" 
-                  className="h-12 max-w-[200px] object-contain rounded border border-gray-200 dark:border-gray-600 bg-white p-1"
+                  className="h-12 max-w-[200px] object-contain rounded border border-gray-200 dark:border-neutral-700 bg-white p-1"
                 />
                 <div className="flex gap-2">
                   <button
@@ -660,7 +660,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               <button
                 onClick={() => logoInputRef.current?.click()}
                 disabled={uploadingLogo}
-                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-600 border-dashed rounded-md text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-neutral-700 border-dashed rounded-md text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
               >
                 <Upload className="w-4 h-4" />
                 {uploadingLogo ? 'Uploading...' : 'Upload logo'}
@@ -675,7 +675,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               type="email"
               value={flow.client_email || ''}
               onChange={(e) => updateFlow({ client_email: e.target.value || null })}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               placeholder="client@company.com"
             />
           </div>
@@ -684,7 +684,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
             <textarea
               value={flow.welcome_message || ''}
               onChange={(e) => updateFlow({ welcome_message: e.target.value || null })}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               rows={2}
               placeholder="Welcome! Complete the steps below..."
             />
@@ -697,11 +697,11 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
                   type="text"
                   value={`${typeof window !== 'undefined' ? window.location.origin : ''}/onboard/${flow.slug}`}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md text-sm font-mono text-gray-600 dark:text-gray-300 transition-colors"
+                  className="flex-1 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md text-sm font-mono text-gray-600 dark:text-gray-300 transition-colors"
                 />
                 <button
                   onClick={copyLink}
-                  className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="px-3 py-2 border border-gray-200 dark:border-neutral-700 rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                 >
                   {copied ? <Check className="w-4 h-4 text-blue-600" /> : <Copy className="w-4 h-4 text-gray-400" />}
                 </button>
@@ -735,7 +735,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {steps.length === 0 ? (
-        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 border-dashed rounded-lg p-8 text-center transition-colors">
+        <div className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 border-dashed rounded-lg p-8 text-center transition-colors">
           <p className="text-gray-500 dark:text-gray-400 mb-4">No steps yet</p>
           <button
             onClick={addStep}
@@ -767,7 +767,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       {steps.length > 0 && canAddStep && (
         <button
           onClick={addStep}
-          className="w-full mt-3 py-3 border border-gray-200 dark:border-gray-600 border-dashed rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="w-full mt-3 py-3 border border-gray-200 dark:border-neutral-700 border-dashed rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           + Add another step
         </button>
