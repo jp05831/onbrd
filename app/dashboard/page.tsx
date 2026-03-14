@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText, Users, MoreHorizontal, Repeat } from 'lucide-react'
+import { 
+  Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText, Users, 
+  Repeat, TrendingUp, Clock, CheckCircle2, BarChart3, Search,
+  ArrowRight, Sparkles
+} from 'lucide-react'
 
 interface Flow {
   id: string
@@ -30,6 +34,8 @@ export default function DashboardPage() {
   const [newFlow, setNewFlow] = useState({ client_name: '', client_email: '', welcome_message: '', is_template: false })
   const [creating, setCreating] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'templates'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchFlows()
@@ -90,98 +96,233 @@ export default function DashboardPage() {
 
   const canCreateFlow = userPlan.plan === 'pro' || userPlan.activeFlows < userPlan.maxFlows
 
+  // Stats
   const templates = flows.filter(f => f.is_template)
-  const regularFlows = flows.filter(f => !f.is_template)
+  const clientFlows = flows.filter(f => !f.is_template)
+  const activeFlows = clientFlows.filter(f => f.status === 'published')
+  const completedFlows = clientFlows.filter(f => f.status === 'completed')
+  const draftFlows = clientFlows.filter(f => f.status === 'draft')
+  
+  const totalSteps = clientFlows.reduce((sum, f) => sum + f.total_steps, 0)
+  const completedSteps = clientFlows.reduce((sum, f) => sum + f.completed_steps, 0)
+  const completionRate = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
+
+  // Filtered flows
+  const filteredFlows = flows.filter(f => {
+    const matchesSearch = f.client_name.toLowerCase().includes(searchQuery.toLowerCase())
+    if (!matchesSearch) return false
+    
+    switch (filter) {
+      case 'active': return f.status === 'published' && !f.is_template
+      case 'completed': return f.status === 'completed'
+      case 'templates': return f.is_template
+      default: return true
+    }
+  })
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Your Flows</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {userPlan.plan === 'free' 
-              ? `${userPlan.activeFlows} of ${userPlan.maxFlows} flows used`
-              : 'Unlimited flows'}
-          </p>
-        </div>
-        <button
-          onClick={() => canCreateFlow ? setShowNewModal(true) : window.location.href = '/dashboard/billing'}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          New Flow
-        </button>
+    <div className="max-w-6xl mx-auto">
+      {/* Welcome Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">
+          Manage your onboarding flows and track client progress.
+        </p>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-gray-400">Loading...</div>
-        </div>
-      ) : flows.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-gray-400" />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Flows</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">{clientFlows.length}</p>
+            </div>
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No flows yet</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-            Create your first onboarding flow to start guiding clients through your process.
-          </p>
-          <button
-            onClick={() => setShowNewModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Create your first flow
-          </button>
+          {userPlan.plan === 'free' && (
+            <p className="text-xs text-gray-400 mt-2">{userPlan.maxFlows - userPlan.activeFlows} remaining</p>
+          )}
         </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Templates Section */}
-          {templates.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Repeat className="w-4 h-4 text-gray-400" />
-                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Templates</h2>
-              </div>
-              <div className="grid gap-4">
-                {templates.map((flow) => (
-                  <FlowCard 
-                    key={flow.id} 
-                    flow={flow} 
-                    copiedId={copiedId}
-                    onCopy={copyLink}
-                    onDelete={deleteFlow}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Regular Flows */}
-          {regularFlows.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+          <div className="flex items-center justify-between">
             <div>
-              {templates.length > 0 && (
-                <div className="flex items-center gap-2 mb-4">
-                  <Users className="w-4 h-4 text-gray-400" />
-                  <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Client Flows</h2>
-                </div>
-              )}
-              <div className="grid gap-4">
-                {regularFlows.map((flow) => (
-                  <FlowCard 
-                    key={flow.id} 
-                    flow={flow} 
-                    copiedId={copiedId}
-                    onCopy={copyLink}
-                    onDelete={deleteFlow}
-                  />
-                ))}
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Active</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">{activeFlows.length}</p>
+            </div>
+            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <Globe className="w-5 h-5 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">{draftFlows.length} drafts</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Completed</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">{completedFlows.length}</p>
+            </div>
+            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">All steps done</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Completion Rate</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white mt-1">{completionRate}%</p>
+            </div>
+            <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">{completedSteps}/{totalSteps} steps</p>
+        </div>
+      </div>
+
+      {/* Upgrade Banner for Free Users */}
+      {userPlan.plan === 'free' && (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 mb-8 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Upgrade to Pro</h3>
+                <p className="text-blue-100 text-sm">Unlimited flows, unlimited steps, remove branding</p>
               </div>
             </div>
-          )}
+            <Link
+              href="/dashboard/billing"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              Upgrade
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       )}
+
+      {/* Flows Section */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  filter === 'all' 
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilter('active')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  filter === 'active' 
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setFilter('completed')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  filter === 'completed' 
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                Completed
+              </button>
+              <button
+                onClick={() => setFilter('templates')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  filter === 'templates' 
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                Templates
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search flows..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-4 py-2 w-48 border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <button
+                onClick={() => canCreateFlow ? setShowNewModal(true) : window.location.href = '/dashboard/billing'}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                New Flow
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Flow List */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-gray-400">Loading...</div>
+          </div>
+        ) : filteredFlows.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              {flows.length === 0 ? 'No flows yet' : 'No matching flows'}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
+              {flows.length === 0 
+                ? 'Create your first onboarding flow to start guiding clients through your process.'
+                : 'Try adjusting your search or filter.'}
+            </p>
+            {flows.length === 0 && (
+              <button
+                onClick={() => setShowNewModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+                Create your first flow
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            {filteredFlows.map((flow) => (
+              <FlowRow 
+                key={flow.id} 
+                flow={flow} 
+                copiedId={copiedId}
+                onCopy={copyLink}
+                onDelete={deleteFlow}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Modal */}
       {showNewModal && (
@@ -291,7 +432,7 @@ export default function DashboardPage() {
   )
 }
 
-function FlowCard({ flow, copiedId, onCopy, onDelete }: {
+function FlowRow({ flow, copiedId, onCopy, onDelete }: {
   flow: Flow
   copiedId: string | null
   onCopy: (slug: string, id: string) => void
@@ -300,95 +441,67 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
   const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-            flow.is_template ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
-          }`}>
-            {flow.is_template ? (
-              <Repeat className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            ) : (
-              <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                {flow.client_name.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
-          <div>
-            <Link 
-              href={`/dashboard/flows/${flow.id}`}
-              className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              {flow.client_name}
-            </Link>
-            <div className="flex items-center gap-3 mt-1.5">
-              {flow.status === 'published' ? (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
-                  <Globe className="w-3 h-3" /> Live
-                </span>
-              ) : flow.status === 'completed' ? (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400">
-                  <Check className="w-3 h-3" /> Completed
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                  <FileText className="w-3 h-3" /> Draft
-                </span>
-              )}
-              {flow.is_template && (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-purple-600 dark:text-purple-400">
-                  <Repeat className="w-3 h-3" /> Template
-                </span>
-              )}
-              <span className="text-xs text-gray-400">{flow.total_steps} steps</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          {flow.status === 'published' && (
-            <>
-              <button
-                onClick={() => onCopy(flow.slug, flow.id)}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title="Copy link"
-              >
-                {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-              </button>
-              <a
-                href={`/onboard/${flow.slug}`}
-                target="_blank"
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title="Preview"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            </>
-          )}
-          <Link
+    <div className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+      {/* Icon */}
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+        flow.is_template 
+          ? 'bg-purple-100 dark:bg-purple-900/30' 
+          : flow.status === 'completed'
+          ? 'bg-green-100 dark:bg-green-900/30'
+          : 'bg-blue-100 dark:bg-blue-900/30'
+      }`}>
+        {flow.is_template ? (
+          <Repeat className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+        ) : flow.status === 'completed' ? (
+          <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+        ) : (
+          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+            {flow.client_name.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <Link 
             href={`/dashboard/flows/${flow.id}`}
-            className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
           >
-            Edit
+            {flow.client_name}
           </Link>
-          <button
-            onClick={() => onDelete(flow.id)}
-            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {flow.is_template && (
+            <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded">
+              Template
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 mt-1">
+          {flow.status === 'published' ? (
+            <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+              <Globe className="w-3 h-3" /> Live
+            </span>
+          ) : flow.status === 'completed' ? (
+            <span className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+              <Check className="w-3 h-3" /> Completed
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+              <FileText className="w-3 h-3" /> Draft
+            </span>
+          )}
+          <span className="text-xs text-gray-400">•</span>
+          <span className="text-xs text-gray-400">{flow.total_steps} steps</span>
         </div>
       </div>
-      
-      {/* Progress bar for published flows */}
+
+      {/* Progress (for active flows) */}
       {flow.status === 'published' && flow.total_steps > 0 && !flow.is_template && (
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-gray-500 dark:text-gray-400">Client Progress</span>
-            <span className="font-medium text-gray-700 dark:text-gray-300">{flow.completed_steps}/{flow.total_steps} complete</span>
+        <div className="hidden sm:block w-32">
+          <div className="flex items-center justify-between text-xs mb-1">
+            <span className="text-gray-400">{flow.completed_steps}/{flow.total_steps}</span>
           </div>
-          <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-gray-100 dark:bg-gray-600 rounded-full overflow-hidden">
             <div
               className="h-full bg-blue-600 rounded-full transition-all"
               style={{ width: `${progress}%` }}
@@ -396,6 +509,42 @@ function FlowCard({ flow, copiedId, onCopy, onDelete }: {
           </div>
         </div>
       )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-1">
+        {flow.status === 'published' && (
+          <>
+            <button
+              onClick={() => onCopy(flow.slug, flow.id)}
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              title="Copy link"
+            >
+              {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+            </button>
+            <a
+              href={`/onboard/${flow.slug}`}
+              target="_blank"
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              title="Preview"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </>
+        )}
+        <Link
+          href={`/dashboard/flows/${flow.id}`}
+          className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+        >
+          Edit
+        </Link>
+        <button
+          onClick={() => onDelete(flow.id)}
+          className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+          title="Delete"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   )
 }
