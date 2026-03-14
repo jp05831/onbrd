@@ -12,9 +12,9 @@ export default function LandingPage() {
             <Image
               src="/logo-light.png"
               alt="Onbrd"
-              width={100}
-              height={50}
-              className="h-8 w-auto"
+              width={120}
+              height={60}
+              className="h-10 w-auto"
               priority
             />
           </Link>
@@ -213,9 +213,9 @@ export default function LandingPage() {
           <Image
             src="/logo-light.png"
             alt="Onbrd"
-            width={80}
-            height={40}
-            className="h-6 w-auto"
+            width={100}
+            height={50}
+            className="h-8 w-auto"
           />
           <p className="text-sm text-gray-400">© 2024</p>
         </div>

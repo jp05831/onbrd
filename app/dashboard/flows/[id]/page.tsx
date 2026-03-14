@@ -101,7 +101,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
   }
 
   const switchToUrl = () => {
-    onUpdate(step.id, { url: 'https://', file_id: null, file_name: null })
+    onUpdate(step.id, { url: '', file_id: null, file_name: null })
   }
 
   const switchToFile = () => {
@@ -109,7 +109,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
   }
 
   const clearFile = () => {
-    onUpdate(step.id, { url: 'https://', file_id: null, file_name: null })
+    onUpdate(step.id, { url: '', file_id: null, file_name: null })
   }
 
   return (
@@ -290,7 +290,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       id: `temp-${Date.now()}`,
       title: '',
       description: null,
-      url: 'https://',
+      url: '',
       file_id: null,
       file_name: null,
       position: steps.length,
@@ -305,7 +305,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({
           title: 'New Step',
           description: '',
-          url: 'https://',
+          url: '',
           position: steps.length,
         }),
       })

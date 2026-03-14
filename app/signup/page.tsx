@@ -69,17 +69,17 @@ export default function SignupPage() {
           <Image
             src="/logo-light.png"
             alt="Onbrd"
-            width={100}
-            height={50}
-            className="h-8 w-auto dark:hidden"
+            width={120}
+            height={60}
+            className="h-10 w-auto dark:hidden"
             priority
           />
           <Image
             src="/logo-dark.png"
             alt="Onbrd"
-            width={100}
-            height={50}
-            className="h-8 w-auto hidden dark:block"
+            width={120}
+            height={60}
+            className="h-10 w-auto hidden dark:block"
             priority
           />
         </Link>
