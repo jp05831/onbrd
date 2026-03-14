@@ -22,6 +22,7 @@ interface ClientPortalProps {
     id: string
     client_name: string
     welcome_message: string | null
+    logo_url: string | null
     status: string
   }
   steps: Step[]
@@ -134,8 +135,8 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
       <div className="max-w-xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          {owner.logo_url ? (
-            <img src={owner.logo_url} alt="" className="h-10 object-contain" />
+          {(flow.logo_url || owner.logo_url) ? (
+            <img src={flow.logo_url || owner.logo_url!} alt="" className="h-10 object-contain" />
           ) : (
             <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
               <span className="text-white font-semibold">

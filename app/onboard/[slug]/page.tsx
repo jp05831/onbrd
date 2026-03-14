@@ -20,6 +20,7 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
         id: flow.id,
         client_name: flow.client_name,
         welcome_message: flow.welcome_message,
+        logo_url: flow.logo_url,
         status: flow.status,
       }}
       steps={steps.map(s => ({
@@ -29,6 +30,9 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
         url: s.url,
         file_id: s.file_id,
         file_name: s.file_name,
+        step_type: s.step_type,
+        uploaded_file_id: s.uploaded_file_id,
+        uploaded_file_name: s.uploaded_file_name,
         position: s.position,
         completed: s.completed,
       }))}

@@ -56,6 +56,7 @@ interface Flow {
   client_name: string
   client_email: string | null
   welcome_message: string | null
+  logo_url: string | null
   slug: string
   status: 'draft' | 'published' | 'completed'
 }
@@ -303,6 +304,8 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -436,6 +439,43 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       console.error('Upload failed:', error)
       alert('Upload failed')
     }
+  }
+
+  const handleLogoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file')
+      return
+    }
+    setUploadingLogo(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/files/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        await updateFlow({ logo_url: data.url || `/api/files/${data.id}` })
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Upload failed')
+      }
+    } catch (error) {
+      console.error('Logo upload failed:', error)
+      alert('Logo upload failed')
+    } finally {
+      setUploadingLogo(false)
+      if (logoInputRef.current) {
+        logoInputRef.current.value = ''
+      }
+    }
+  }
+
+  const removeLogo = async () => {
+    await updateFlow({ logo_url: null })
   }
 
   const deleteStep = async (stepId: string) => {
@@ -580,6 +620,55 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 transition-colors">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Settings</h2>
         <div className="space-y-4">
+          {/* Logo Upload */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Company logo (optional)</label>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleLogoUpload(file)
+              }}
+              className="hidden"
+            />
+            {flow.logo_url ? (
+              <div className="flex items-center gap-3">
+                <img 
+                  src={flow.logo_url} 
+                  alt="Company logo" 
+                  className="h-12 max-w-[200px] object-contain rounded border border-gray-200 dark:border-gray-600 bg-white p-1"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50"
+                  >
+                    {uploadingLogo ? 'Uploading...' : 'Change'}
+                  </button>
+                  <button
+                    onClick={removeLogo}
+                    className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-600 border-dashed rounded-md text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+              >
+                <Upload className="w-4 h-4" />
+                {uploadingLogo ? 'Uploading...' : 'Upload logo'}
+              </button>
+            )}
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Displays at the top of the client form</p>
+          </div>
+
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Client email (optional)</label>
             <input

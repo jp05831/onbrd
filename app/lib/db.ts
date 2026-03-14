@@ -103,6 +103,7 @@ async function runMigrations(client: any) {
     // flows table migrations
     { table: 'flows', column: 'is_template', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false' },
     { table: 'flows', column: 'completed_at', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP' },
+    { table: 'flows', column: 'logo_url', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS logo_url TEXT' },
     
     // steps table migrations
     { table: 'steps', column: 'file_id', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS file_id TEXT' },
@@ -168,6 +169,7 @@ export interface Flow {
   client_name: string
   client_email: string | null
   welcome_message: string | null
+  logo_url: string | null
   slug: string
   status: 'draft' | 'published' | 'completed'
   is_template: boolean
