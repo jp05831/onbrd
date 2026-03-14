@@ -56,6 +56,9 @@ async function initDb() {
         url TEXT,
         file_id TEXT,
         file_name TEXT,
+        step_type TEXT DEFAULT 'link',
+        uploaded_file_id TEXT,
+        uploaded_file_name TEXT,
         position INTEGER NOT NULL,
         completed BOOLEAN DEFAULT false,
         completed_at TIMESTAMP
@@ -104,6 +107,9 @@ async function runMigrations(client: any) {
     // steps table migrations
     { table: 'steps', column: 'file_id', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS file_id TEXT' },
     { table: 'steps', column: 'file_name', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS file_name TEXT' },
+    { table: 'steps', column: 'step_type', sql: "ALTER TABLE steps ADD COLUMN IF NOT EXISTS step_type TEXT DEFAULT 'link'" },
+    { table: 'steps', column: 'uploaded_file_id', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS uploaded_file_id TEXT' },
+    { table: 'steps', column: 'uploaded_file_name', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS uploaded_file_name TEXT' },
     { table: 'steps', column: 'completed_at', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP' },
     
     // users table migrations
@@ -177,6 +183,9 @@ export interface Step {
   url: string | null
   file_id: string | null
   file_name: string | null
+  step_type: 'link' | 'request_pdf' | 'request_photo'
+  uploaded_file_id: string | null
+  uploaded_file_name: string | null
   position: number
   completed: boolean
   completed_at: string | null
@@ -374,6 +383,12 @@ export const database = {
     await initDb()
     const result = await pool.query('SELECT * FROM steps WHERE flow_id = $1 ORDER BY position', [flowId])
     return result.rows as Step[]
+  },
+
+  getStepById: async (stepId: string) => {
+    await initDb()
+    const result = await pool.query('SELECT * FROM steps WHERE id = $1', [stepId])
+    return result.rows[0] as Step | undefined
   },
 
   updateStep: async (id: string, data: Partial<Step>) => {

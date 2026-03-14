@@ -15,7 +15,9 @@ import {
   FileText,
   Upload,
   File,
-  X
+  X,
+  Camera,
+  FileUp
 } from 'lucide-react'
 import {
   DndContext,
@@ -42,6 +44,9 @@ interface Step {
   url: string | null
   file_id: string | null
   file_name: string | null
+  step_type: 'link' | 'request_pdf' | 'request_photo'
+  uploaded_file_id: string | null
+  uploaded_file_name: string | null
   position: number
   completed: boolean
 }
@@ -69,7 +74,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
-  const linkType = step.file_id ? 'file' : 'url'
+  const stepType = step.step_type || 'link'
 
   const {
     attributes,
@@ -100,8 +105,12 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
     }
   }
 
-  const switchToUrl = () => {
-    onUpdate(step.id, { url: '', file_id: null, file_name: null })
+  const setStepType = (type: 'link' | 'request_pdf' | 'request_photo') => {
+    if (type === 'link') {
+      onUpdate(step.id, { step_type: type, url: '', file_id: null, file_name: null })
+    } else {
+      onUpdate(step.id, { step_type: type, url: null, file_id: null, file_name: null })
+    }
   }
 
   const switchToFile = () => {
@@ -158,15 +167,15 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
           />
         </div>
         
-        {/* Link Type Selector */}
+        {/* Step Type Selector */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Link to</label>
-          <div className="flex gap-2 mb-2">
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Step Type</label>
+          <div className="grid grid-cols-4 gap-2 mb-2">
             <button
               type="button"
-              onClick={switchToUrl}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
-                linkType === 'url'
+              onClick={() => setStepType('link')}
+              className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
+                stepType === 'link' && !step.file_id
                   ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                   : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
@@ -178,14 +187,38 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               type="button"
               onClick={switchToFile}
               disabled={uploading}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
-                linkType === 'file'
+              className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
+                step.file_id
                   ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                   : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Upload className="w-4 h-4" />
-              {uploading ? 'Uploading...' : 'PDF File'}
+              {uploading ? '...' : 'PDF'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setStepType('request_pdf')}
+              className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
+                stepType === 'request_pdf'
+                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <FileUp className="w-4 h-4" />
+              Request PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => setStepType('request_photo')}
+              className={`flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
+                stepType === 'request_photo'
+                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                  : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <Camera className="w-4 h-4" />
+              Request Photo
             </button>
           </div>
           
@@ -197,16 +230,18 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
             className="hidden"
           />
           
-          {linkType === 'url' && !step.file_id && (
+          {/* URL input for link type */}
+          {stepType === 'link' && !step.file_id && (
             <input
               type="url"
               value={step.url || ''}
               onChange={(e) => onUpdate(step.id, { url: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               placeholder="https://..."
             />
           )}
           
+          {/* File display */}
           {step.file_id && step.file_name && (
             <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md">
               <File className="w-4 h-4 text-red-500" />
@@ -217,6 +252,40 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload }: {
               >
                 <X className="w-4 h-4" />
               </button>
+            </div>
+          )}
+
+          {/* Request type info */}
+          {stepType === 'request_pdf' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md">
+              <FileUp className="w-4 h-4 text-purple-500" />
+              <span className="text-sm text-purple-700 dark:text-purple-300">Client will upload a PDF document</span>
+            </div>
+          )}
+
+          {stepType === 'request_photo' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md">
+              <Camera className="w-4 h-4 text-purple-500" />
+              <span className="text-sm text-purple-700 dark:text-purple-300">Client will upload a photo</span>
+            </div>
+          )}
+
+          {/* Show uploaded file if client has submitted */}
+          {(stepType === 'request_pdf' || stepType === 'request_photo') && step.uploaded_file_name && (
+            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+              <Check className="w-4 h-4 text-green-500" />
+              <span className="flex-1 text-sm text-green-700 dark:text-green-300 truncate">
+                Uploaded: {step.uploaded_file_name}
+              </span>
+              {step.uploaded_file_id && (
+                <a
+                  href={step.uploaded_file_id}
+                  target="_blank"
+                  className="text-xs text-green-600 dark:text-green-400 hover:underline"
+                >
+                  View
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -293,6 +362,9 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       url: '',
       file_id: null,
       file_name: null,
+      step_type: 'link',
+      uploaded_file_id: null,
+      uploaded_file_name: null,
       position: steps.length,
       completed: false,
     }
@@ -306,6 +378,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
           title: 'New Step',
           description: '',
           url: '',
+          step_type: 'link',
           position: steps.length,
         }),
       })
@@ -352,7 +425,8 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         updateStep(stepId, { 
           file_id: data.url || data.id, 
           file_name: data.name,
-          url: null 
+          url: null,
+          step_type: 'link'
         })
       } else {
         const error = await res.json()
@@ -395,8 +469,13 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
 
   const publishFlow = async () => {
     if (steps.length === 0) return alert('Add at least one step before publishing')
-    const incompleteSteps = steps.filter(s => !s.title || (!s.url && !s.file_id))
-    if (incompleteSteps.length > 0) return alert('Please fill in all step titles and provide a URL or file')
+    const incompleteSteps = steps.filter(s => {
+      if (s.step_type === 'request_pdf' || s.step_type === 'request_photo') {
+        return !s.title
+      }
+      return !s.title || (!s.url && !s.file_id)
+    })
+    if (incompleteSteps.length > 0) return alert('Please fill in all step titles and provide content where required')
 
     setSaving(true)
     try {

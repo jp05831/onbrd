@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Check, Lock, ArrowUpRight, Sparkles, FileText } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Check, Lock, ArrowUpRight, Sparkles, FileText, Upload, Camera, FileUp } from 'lucide-react'
 
 interface Step {
   id: string
@@ -10,6 +10,9 @@ interface Step {
   url: string | null
   file_id: string | null
   file_name: string | null
+  step_type: 'link' | 'request_pdf' | 'request_photo'
+  uploaded_file_id: string | null
+  uploaded_file_name: string | null
   position: number
   completed: boolean
 }
@@ -33,6 +36,8 @@ interface ClientPortalProps {
 export default function ClientPortal({ flow, steps: initialSteps, owner }: ClientPortalProps) {
   const [steps, setSteps] = useState(initialSteps)
   const [completing, setCompleting] = useState<string | null>(null)
+  const [uploading, setUploading] = useState<string | null>(null)
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
   const completedCount = steps.filter(s => s.completed).length
   const progress = steps.length > 0 ? (completedCount / steps.length) * 100 : 0
@@ -63,6 +68,41 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
     } finally {
       setCompleting(null)
     }
+  }
+
+  const handleFileUpload = async (stepId: string, file: File) => {
+    setUploading(stepId)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('stepId', stepId)
+
+      const res = await fetch('/api/onboard/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setSteps(prev => prev.map(s => 
+          s.id === stepId 
+            ? { ...s, uploaded_file_id: data.url, uploaded_file_name: data.name, completed: true } 
+            : s
+        ))
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Upload failed')
+      }
+    } catch (error) {
+      console.error('Upload failed:', error)
+      alert('Upload failed')
+    } finally {
+      setUploading(null)
+    }
+  }
+
+  const triggerFileInput = (stepId: string) => {
+    fileInputRefs.current[stepId]?.click()
   }
 
   if (allComplete) {
@@ -137,6 +177,8 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
         <div className="space-y-3">
           {steps.map((step, index) => {
             const status = getStepStatus(step, index)
+            const stepType = step.step_type || 'link'
+            const isUploadType = stepType === 'request_pdf' || stepType === 'request_photo'
             
             return (
               <div
@@ -179,40 +221,93 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
                     )}
 
                     {status === 'active' && (
-                      <div className="flex gap-2 mt-3">
-                        {step.file_id ? (
-                          <a
-                            href={step.file_id.startsWith('http') ? step.file_id : `/api/files/${step.file_id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            View PDF
-                          </a>
-                        ) : step.url ? (
-                          <a
-                            href={step.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
-                          >
-                            Open
-                            <ArrowUpRight className="w-3.5 h-3.5" />
-                          </a>
-                        ) : null}
-                        <button
-                          onClick={() => completeStep(step.id)}
-                          disabled={completing === step.id}
-                          className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-                        >
-                          {completing === step.id ? 'Saving...' : 'Mark done'}
-                        </button>
+                      <div className="mt-3">
+                        {/* Link/File step types */}
+                        {!isUploadType && (
+                          <div className="flex gap-2">
+                            {step.file_id ? (
+                              <a
+                                href={step.file_id.startsWith('http') ? step.file_id : `/api/files/${step.file_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                View PDF
+                              </a>
+                            ) : step.url ? (
+                              <a
+                                href={step.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors"
+                              >
+                                Open
+                                <ArrowUpRight className="w-3.5 h-3.5" />
+                              </a>
+                            ) : null}
+                            <button
+                              onClick={() => completeStep(step.id)}
+                              disabled={completing === step.id}
+                              className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                              {completing === step.id ? 'Saving...' : 'Mark done'}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Upload step types */}
+                        {isUploadType && (
+                          <div>
+                            <input
+                              ref={el => { fileInputRefs.current[step.id] = el }}
+                              type="file"
+                              accept={stepType === 'request_photo' ? 'image/*' : '.pdf,application/pdf'}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) handleFileUpload(step.id, file)
+                              }}
+                              className="hidden"
+                            />
+                            <button
+                              onClick={() => triggerFileInput(step.id)}
+                              disabled={uploading === step.id}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50"
+                            >
+                              {uploading === step.id ? (
+                                'Uploading...'
+                              ) : stepType === 'request_photo' ? (
+                                <>
+                                  <Camera className="w-4 h-4" />
+                                  Upload Photo
+                                </>
+                              ) : (
+                                <>
+                                  <FileUp className="w-4 h-4" />
+                                  Upload PDF
+                                </>
+                              )}
+                            </button>
+                            <p className="text-xs text-gray-500 mt-2">
+                              {stepType === 'request_photo' 
+                                ? 'Accepts JPG, PNG, or other image formats'
+                                : 'Accepts PDF files only'}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {status === 'completed' && (
-                      <p className="text-sm text-blue-600 mt-1">Completed</p>
+                      <div className="mt-1">
+                        {isUploadType && step.uploaded_file_name ? (
+                          <p className="text-sm text-blue-600">
+                            ✓ Uploaded: {step.uploaded_file_name}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-blue-600">Completed</p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
