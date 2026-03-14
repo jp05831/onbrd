@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { 
   LayoutDashboard, Settings, LogOut, CreditCard, Sun, Moon, 
-  ChevronLeft, ChevronRight, Sparkles, Users, Truck, Menu, X
+  ChevronLeft, ChevronRight, Sparkles, Users, Menu, X
 } from 'lucide-react'
 import { useTheme } from '../lib/theme'
 
@@ -53,10 +53,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/dashboard/team', icon: Users, label: 'Team' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
     { href: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
-  ]
-
-  const appItems = [
-    { href: 'https://movescout.app', icon: Truck, label: 'MoveScout', external: true },
   ]
 
   const SidebarContent = () => (
@@ -124,28 +120,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {sidebarOpen && <span>Upgrade</span>}
           </Link>
         )}
-
-        {/* Divider */}
-        <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-          {sidebarOpen && (
-            <p className="px-3 mb-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
-              Apps
-            </p>
-          )}
-          {appItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${!sidebarOpen ? 'justify-center' : ''}`}
-              title={!sidebarOpen ? item.label : undefined}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {sidebarOpen && <span>{item.label}</span>}
-            </a>
-          ))}
-        </div>
       </nav>
 
       {/* Bottom Section */}
@@ -165,13 +139,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </button>
 
         {/* User */}
-        <div className={`flex items-center gap-3 px-3 py-2.5 mt-1 ${!sidebarOpen ? 'justify-center' : ''}`}>
-          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              {session.user?.name?.charAt(0).toUpperCase() || 'U'}
-            </span>
-          </div>
-          {sidebarOpen && (
+        {sidebarOpen ? (
+          <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                {session.user?.name?.charAt(0).toUpperCase() || 'U'}
+              </span>
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                 {session.user?.name}
@@ -180,15 +154,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {session.user?.email}
               </p>
             </div>
-          )}
+            <button
+              onClick={handleLogout}
+              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+              title="Log out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
           <button
             onClick={handleLogout}
-            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+            className="flex items-center justify-center w-full px-3 py-2.5 mt-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             title="Log out"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-5 h-5" />
           </button>
-        </div>
+        )}
       </div>
     </>
   )
