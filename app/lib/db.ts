@@ -126,6 +126,7 @@ async function runMigrations(client: any) {
     { table: 'users', column: 'stripe_customer_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT' },
     { table: 'users', column: 'stripe_subscription_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT' },
     { table: 'users', column: 'is_pro', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_pro BOOLEAN DEFAULT FALSE' },
+    { table: 'users', column: 'is_banned', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE' },
   ]
   
   for (const migration of migrations) {

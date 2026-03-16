@@ -1,0 +1,19 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyAdminSession } from '@/app/lib/admin-auth'
+import { Pool } from 'pg'
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+const pool = new Pool({ connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL })
+
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await verifyAdminSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE')
+
+  const { id } = await params
+  const { ban } = await req.json()
+
+  await pool.query('UPDATE users SET is_banned = $1 WHERE id = $2', [ban, id])
+  return NextResponse.json({ success: true, is_banned: ban })
+}
