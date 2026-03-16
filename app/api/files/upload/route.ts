@@ -25,9 +25,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    // Check file type (only PDF for now)
-    if (file.type !== 'application/pdf') {
-      return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 })
+    // Check file type (PDF and images)
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+    ]
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: 'Only PDF and image files (PNG, JPG, GIF, WebP, SVG) are allowed' }, { status: 400 })
     }
 
     // Check file size (max 10MB)
