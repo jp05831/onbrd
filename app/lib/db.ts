@@ -5,6 +5,11 @@ import bcrypt from 'bcryptjs'
 // Fix SSL issues with Supabase
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
+// Pro tier overrides (emails that get pro for free)
+const PRO_OVERRIDES = [
+  'info@movescout.net',
+]
+
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
 })
@@ -230,13 +235,25 @@ export const database = {
   getUserByEmail: async (email: string) => {
     await initDb()
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
-    return result.rows[0] as User | undefined
+    const user = result.rows[0] as User | undefined
+    // Apply pro overrides
+    if (user && PRO_OVERRIDES.includes(user.email.toLowerCase())) {
+      user.plan = 'pro'
+      user.is_pro = true
+    }
+    return user
   },
 
   getUserById: async (id: string) => {
     await initDb()
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [id])
-    return result.rows[0] as User | undefined
+    const user = result.rows[0] as User | undefined
+    // Apply pro overrides
+    if (user && PRO_OVERRIDES.includes(user.email.toLowerCase())) {
+      user.plan = 'pro'
+      user.is_pro = true
+    }
+    return user
   },
 
   updateUser: async (id: string, data: Partial<User>) => {
