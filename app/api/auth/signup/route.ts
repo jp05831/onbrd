@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import database from '../../../lib/db'
+import { sendVerificationEmail } from '../../../lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,21 +15,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
     }
 
-    // Check if user exists
     const existing = await database.getUserByEmail(email)
     if (existing) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
     }
 
-    // Create user
-    await database.createUser(email, password, name)
+    const userId = await database.createUser(email, password, name)
+    const token = randomUUID()
+    await database.setVerificationToken(userId, token)
 
-    return NextResponse.json({ success: true })
+    await sendVerificationEmail(email, token)
+
+    return NextResponse.json({ success: true, requiresVerification: true })
   } catch (error: any) {
     console.error('Signup error:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: error?.message || 'Signup failed',
-      details: process.env.NODE_ENV === 'development' ? error?.toString() : undefined
+      details: process.env.NODE_ENV === 'development' ? error?.toString() : undefined,
     }, { status: 500 })
   }
 }

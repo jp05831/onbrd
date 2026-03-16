@@ -28,23 +28,13 @@ export default function SignupPage() {
         body: JSON.stringify({ name, email, password }),
       })
       const data = await res.json()
-      
+
       if (!res.ok) {
         throw new Error(data.error || 'Signup failed')
       }
 
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        throw new Error('Failed to sign in after signup')
-      }
-
-      router.push('/dashboard')
-      router.refresh()
+      // Redirect to verify-email page — don't auto sign in
+      router.push('/verify-email')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed')
     } finally {
@@ -66,22 +56,8 @@ export default function SignupPage() {
     <div className="min-h-screen bg-white dark:bg-black flex flex-col transition-colors">
       <header className="px-6 py-4">
         <Link href="/" className="inline-flex items-center">
-          <Image
-            src="/logo-light.png"
-            alt="Onbrd"
-            width={120}
-            height={60}
-            className="h-10 w-auto dark:hidden"
-            priority
-          />
-          <Image
-            src="/logo-dark.png"
-            alt="Onbrd"
-            width={120}
-            height={60}
-            className="h-10 w-auto hidden dark:block"
-            priority
-          />
+          <Image src="/logo-light.png" alt="Onbrd" width={120} height={60} className="h-10 w-auto dark:hidden" priority />
+          <Image src="/logo-dark.png" alt="Onbrd" width={120} height={60} className="h-10 w-auto hidden dark:block" priority />
         </Link>
       </header>
 
@@ -90,7 +66,6 @@ export default function SignupPage() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">Create an account</h1>
           <p className="text-gray-500 dark:text-gray-400 mb-6">Start onboarding clients in minutes</p>
 
-          {/* Google Sign In */}
           <button
             onClick={handleGoogleSignIn}
             disabled={googleLoading}

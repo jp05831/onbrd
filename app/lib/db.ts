@@ -127,6 +127,8 @@ async function runMigrations(client: any) {
     { table: 'users', column: 'stripe_subscription_id', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT' },
     { table: 'users', column: 'is_pro', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_pro BOOLEAN DEFAULT FALSE' },
     { table: 'users', column: 'is_banned', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE' },
+    { table: 'users', column: 'is_email_verified', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE' },
+    { table: 'users', column: 'verification_token', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT' },
   ]
   
   for (const migration of migrations) {
@@ -167,6 +169,8 @@ export interface User {
   oauth_provider: string | null
   oauth_id: string | null
   created_at: string
+  is_email_verified: boolean
+  verification_token: string | null
 }
 
 export interface Flow {
@@ -269,6 +273,20 @@ export const database = {
 
   verifyPassword: (password: string, hash: string) => {
     return bcrypt.compareSync(password, hash)
+  },
+
+  setVerificationToken: async (userId: string, token: string) => {
+    await initDb()
+    await pool.query('UPDATE users SET verification_token = $1, is_email_verified = FALSE WHERE id = $2', [token, userId])
+  },
+
+  verifyEmail: async (token: string) => {
+    await initDb()
+    const result = await pool.query(
+      'UPDATE users SET is_email_verified = TRUE, verification_token = NULL WHERE verification_token = $1 RETURNING id, email',
+      [token]
+    )
+    return result.rows[0] as { id: string; email: string } | undefined
   },
 
   // Sessions

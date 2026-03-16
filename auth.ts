@@ -5,7 +5,6 @@ import database from './app/lib/db'
 
 const providers = []
 
-// Only add Google if credentials are configured
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     Google({
@@ -15,7 +14,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   )
 }
 
-// Always add credentials provider
 providers.push(
   Credentials({
     credentials: {
@@ -34,14 +32,19 @@ providers.push(
         const valid = database.verifyPassword(credentials.password as string, user.password_hash)
         if (!valid) return null
 
+        // Block sign-in if email not verified
+        if (!user.is_email_verified) {
+          throw new Error('email_not_verified')
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Auth error:', error)
-        return null
+        throw error
       }
     },
   })
@@ -54,7 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account?.provider === 'google') {
         try {
           let dbUser = await database.getUserByEmail(user.email!)
-          
+
           if (!dbUser) {
             const id = await database.createUserFromOAuth(
               user.email!,
@@ -64,6 +67,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             )
             dbUser = await database.getUserById(id)
           }
+          // Google users are considered verified
         } catch (error) {
           console.error('Google sign in error:', error)
           return false
@@ -83,7 +87,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error('JWT error:', error)
         }
       }
-      // Refresh plan from DB on session update (after upgrade/downgrade)
       if (trigger === 'update' && token.userId) {
         try {
           const dbUser = await database.getUserById(token.userId as string)
