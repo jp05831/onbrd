@@ -31,7 +31,7 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        if (result.error === 'email_not_verified') {
+        if (result.error.includes('email_not_verified') || result.error.includes('not verified')) {
           setError('Please verify your email before signing in. Check your inbox.')
         } else {
           setError('Invalid email or password')

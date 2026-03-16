@@ -43,8 +43,12 @@ providers.push(
           name: user.name,
         }
       } catch (error: any) {
+        // Re-throw verification errors so NextAuth passes them through
+        if (error?.message === 'email_not_verified') {
+          throw error
+        }
         console.error('Auth error:', error)
-        throw error
+        return null
       }
     },
   })
