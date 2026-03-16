@@ -6,8 +6,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 const FROM_EMAIL = 'Onbrd <noreply@onbrd.net>'
 
 export async function sendVerificationEmail(email: string, token: string) {
-  // Link goes to the API route, not the page
-  const verifyUrl = `${APP_URL}/api/auth/verify-email?token=${token}`
+  // Link goes to the verify page which handles the token
+  const verifyUrl = `${APP_URL}/verify-email?token=${token}`
 
   await resend.emails.send({
     from: FROM_EMAIL,

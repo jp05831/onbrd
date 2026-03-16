@@ -5,14 +5,14 @@ export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token')
 
   if (!token) {
-    return NextResponse.redirect(new URL('/verify-email?error=missing', request.url))
+    return NextResponse.json({ error: 'missing' }, { status: 400 })
   }
 
   const user = await database.verifyEmail(token)
 
   if (!user) {
-    return NextResponse.redirect(new URL('/verify-email?error=invalid', request.url))
+    return NextResponse.json({ error: 'invalid' }, { status: 400 })
   }
 
-  return NextResponse.redirect(new URL('/login?verified=1', request.url))
+  return NextResponse.json({ success: true, email: user.email })
 }
