@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Check, ArrowRight, Zap, Link2, BarChart3 } from 'lucide-react'
+import { Check, ArrowRight, Zap, Link2, BarChart3, ShieldCheck } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -173,40 +173,49 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="py-24 px-6 border-t border-neutral-800">
+      <section className="py-24 px-6 border-t border-neutral-800" id="pricing">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold text-white text-center mb-4">
+          <h2 className="text-2xl font-semibold text-white text-center mb-3">
             Simple pricing
           </h2>
-          <p className="text-gray-500 text-center mb-14">
+          <p className="text-gray-500 text-center mb-3">
             Start free. Upgrade when you&apos;re ready.
+          </p>
+          {/* Annual callout */}
+          <p className="text-center text-sm text-blue-400 font-medium mb-12">
+            🎉 Annual plan saves you $30/yr — just $12.50/mo
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             {/* Free */}
             <div className="border border-neutral-800 rounded-xl p-6 bg-neutral-900">
               <h3 className="font-semibold text-white mb-1">Free</h3>
-              <p className="text-sm text-gray-500 mb-4">For getting started</p>
-              <div className="text-3xl font-semibold text-white mb-6">
+              <p className="text-sm text-gray-500 mb-4">Try it out, no card needed</p>
+              <div className="text-3xl font-semibold text-white mb-5">
                 $0<span className="text-sm font-normal text-gray-500">/forever</span>
               </div>
               <ul className="space-y-2.5 mb-6">
-                {['Up to 2 flows', 'Up to 2 steps per flow', 'Progress tracking', 'Shareable links'].map((f, i) => (
+                {[
+                  '2 flows',
+                  '2 steps per flow',
+                  'Progress tracking',
+                  'Shareable client links',
+                ].map((f, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-sm text-gray-400">
-                    <Check className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-gray-500 flex-shrink-0" />
                     {f}
                   </li>
                 ))}
               </ul>
-              <Link 
-                href="/signup" 
+              <Link
+                href="/signup"
                 className="block text-center py-2.5 border border-neutral-700 text-gray-300 font-medium rounded-lg hover:bg-neutral-800 hover:border-neutral-600 transition-colors"
               >
-                Get started
+                Get started free
               </Link>
             </div>
 
             {/* Pro */}
-            <div className="border-2 border-blue-600 rounded-xl p-6 bg-neutral-900 relative">
+            <div className="border-2 border-blue-600 rounded-xl p-6 bg-neutral-900 relative shadow-lg shadow-blue-600/10">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="text-xs font-medium text-white bg-blue-600 px-3 py-1 rounded-full">
                   Most Popular
@@ -214,24 +223,37 @@ export default function LandingPage() {
               </div>
               <h3 className="font-semibold text-white mb-1">Pro</h3>
               <p className="text-sm text-gray-500 mb-4">For growing businesses</p>
-              <div className="text-3xl font-semibold text-white mb-1">
-                $15<span className="text-sm font-normal text-gray-500">/mo</span>
+              <div className="flex items-end gap-2 mb-1">
+                <div className="text-3xl font-semibold text-white">
+                  $15<span className="text-sm font-normal text-gray-500">/mo</span>
+                </div>
+                <span className="text-sm text-gray-500 pb-0.5">or <span className="text-blue-400 font-medium">$12.50/mo</span> billed annually</span>
               </div>
-              <p className="text-sm text-gray-500 mb-6">or $150/year (save $30)</p>
+              <p className="text-xs text-green-400 font-medium mb-5">Save $30 with the annual plan</p>
               <ul className="space-y-2.5 mb-6">
-                {['Unlimited flows', 'Unlimited steps', 'Unlimited users', 'Email notifications', 'Remove branding', 'Priority support'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-2.5 text-sm text-gray-400">
+                {[
+                  'Unlimited flows & steps',
+                  'Unlimited clients — no seat fees',
+                  'Email notifications on completion',
+                  'White-label — remove Onbrd branding',
+                  'Priority support',
+                ].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2.5 text-sm text-gray-300">
                     <Check className="w-4 h-4 text-blue-400 flex-shrink-0" />
                     {f}
                   </li>
                 ))}
               </ul>
-              <Link 
-                href="/signup" 
+              <Link
+                href="/signup"
                 className="block text-center py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Start free trial
+                Start free — upgrade anytime
               </Link>
+              <div className="flex items-center justify-center gap-1.5 mt-2.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-gray-500" />
+                <p className="text-xs text-gray-500">7-day money-back guarantee · Cancel anytime</p>
+              </div>
             </div>
           </div>
         </div>
