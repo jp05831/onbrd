@@ -82,7 +82,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
       })
       if (res.ok) {
         setSteps(prev => prev.map(s => 
-          s.id === stepId ? { ...s, completed: false } : s
+          s.id === stepId ? { ...s, completed: false, uploaded_file_id: null, uploaded_file_name: null } : s
         ))
       }
     } catch (error) {

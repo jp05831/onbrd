@@ -15,10 +15,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Step not found' }, { status: 404 })
     }
 
-    // Uncomplete the step
+    // Uncomplete the step and clear any uploaded file
     await database.updateStep(stepId, { 
       completed: false, 
-      completed_at: null 
+      completed_at: null,
+      uploaded_file_id: null,
+      uploaded_file_name: null
     } as any)
 
     // If the flow was marked completed, revert it to published

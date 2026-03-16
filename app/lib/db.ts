@@ -325,12 +325,22 @@ export const database = {
       SELECT f.*, 
         COALESCE(f.is_template, false) as is_template,
         (SELECT COUNT(*) FROM steps WHERE flow_id = f.id) as total_steps,
-        (SELECT COUNT(*) FROM steps WHERE flow_id = f.id AND completed = true) as completed_steps
+        (SELECT COUNT(*) FROM steps WHERE flow_id = f.id AND completed = true) as completed_steps,
+        (SELECT COUNT(*) FROM steps WHERE flow_id = f.id AND uploaded_file_id IS NOT NULL) as uploaded_files_count
       FROM flows f
       WHERE f.user_id = $1
       ORDER BY f.is_template DESC, f.created_at DESC
     `, [userId])
-    return result.rows as (Flow & { total_steps: number; completed_steps: number })[]
+    return result.rows as (Flow & { total_steps: number; completed_steps: number; uploaded_files_count: number })[]
+  },
+
+  getUploadedStepsByFlowId: async (flowId: string) => {
+    await initDb()
+    const result = await pool.query(
+      'SELECT id, title, step_type, uploaded_file_id, uploaded_file_name FROM steps WHERE flow_id = $1 AND uploaded_file_id IS NOT NULL ORDER BY position',
+      [flowId]
+    )
+    return result.rows as Pick<Step, 'id' | 'title' | 'step_type' | 'uploaded_file_id' | 'uploaded_file_name'>[]
   },
 
   getFlowById: async (id: string) => {

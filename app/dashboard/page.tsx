@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { 
   Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText, Users, 
-  Repeat, CheckCircle2, Search
+  Repeat, CheckCircle2, Search, Paperclip, X, Image, FileUp
 } from 'lucide-react'
 
 interface Flow {
@@ -15,7 +15,16 @@ interface Flow {
   is_template: boolean
   total_steps: number
   completed_steps: number
+  uploaded_files_count: number
   created_at: string
+}
+
+interface UploadedFile {
+  id: string
+  title: string
+  step_type: 'request_pdf' | 'request_photo'
+  uploaded_file_id: string
+  uploaded_file_name: string
 }
 
 interface UserPlan {
@@ -35,6 +44,9 @@ export default function DashboardPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'templates'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [filesModal, setFilesModal] = useState<{ flowId: string; flowName: string } | null>(null)
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [loadingFiles, setLoadingFiles] = useState(false)
 
   useEffect(() => {
     fetchFlows()
@@ -91,6 +103,26 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(`${window.location.origin}/onboard/${slug}`)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  const viewFiles = async (flowId: string) => {
+    const flow = flows.find(f => f.id === flowId)
+    if (!flow) return
+    
+    setFilesModal({ flowId, flowName: flow.client_name })
+    setLoadingFiles(true)
+    
+    try {
+      const res = await fetch(`/api/flows/${flowId}/uploads`)
+      if (res.ok) {
+        const data = await res.json()
+        setUploadedFiles(data.uploads)
+      }
+    } catch (error) {
+      console.error('Failed to fetch uploads:', error)
+    } finally {
+      setLoadingFiles(false)
+    }
   }
 
   const canCreateFlow = userPlan.plan === 'pro' || userPlan.activeFlows < userPlan.maxFlows
@@ -232,6 +264,7 @@ export default function DashboardPage() {
                 copiedId={copiedId}
                 onCopy={copyLink}
                 onDelete={deleteFlow}
+                onViewFiles={viewFiles}
               />
             ))}
           </div>
@@ -342,15 +375,83 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Files Modal */}
+      {filesModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-xl w-full max-w-md shadow-xl">
+            <div className="p-6 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Uploaded Files</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{filesModal.flowName}</p>
+              </div>
+              <button
+                onClick={() => { setFilesModal(null); setUploadedFiles([]); }}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 max-h-96 overflow-y-auto">
+              {loadingFiles ? (
+                <div className="text-center py-8 text-gray-400">Loading...</div>
+              ) : uploadedFiles.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">No files uploaded yet</div>
+              ) : (
+                <div className="space-y-3">
+                  {uploadedFiles.map((file) => (
+                    <div key={file.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        file.step_type === 'request_photo' 
+                          ? 'bg-blue-100 dark:bg-blue-900/30' 
+                          : 'bg-red-100 dark:bg-red-900/30'
+                      }`}>
+                        {file.step_type === 'request_photo' ? (
+                          <Image className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        ) : (
+                          <FileUp className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{file.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{file.uploaded_file_name}</p>
+                      </div>
+                      <a
+                        href={file.uploaded_file_id}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        View
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 rounded-b-xl">
+              <button
+                onClick={() => { setFilesModal(null); setUploadedFiles([]); }}
+                className="w-full px-4 py-2.5 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function FlowRow({ flow, copiedId, onCopy, onDelete }: {
+function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles }: {
   flow: Flow
   copiedId: string | null
   onCopy: (slug: string, id: string) => void
   onDelete: (id: string) => void
+  onViewFiles: (flowId: string) => void
 }) {
   const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
 
@@ -406,6 +507,14 @@ function FlowRow({ flow, copiedId, onCopy, onDelete }: {
           )}
           <span className="text-xs text-gray-400">•</span>
           <span className="text-xs text-gray-400">{flow.total_steps} steps</span>
+          {flow.uploaded_files_count > 0 && (
+            <>
+              <span className="text-xs text-gray-400">•</span>
+              <span className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                <Paperclip className="w-3 h-3" /> {flow.uploaded_files_count} file{flow.uploaded_files_count > 1 ? 's' : ''}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -426,6 +535,15 @@ function FlowRow({ flow, copiedId, onCopy, onDelete }: {
 
       {/* Actions */}
       <div className="flex items-center gap-1">
+        {flow.uploaded_files_count > 0 && (
+          <button
+            onClick={() => onViewFiles(flow.id)}
+            className="p-2 text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
+            title="View uploaded files"
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
+        )}
         {flow.status === 'published' && (
           <>
             <button
