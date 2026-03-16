@@ -33,7 +33,7 @@ export default function SignupChart({ data }: Props) {
           contentStyle={{ backgroundColor: '#171717', border: '1px solid #404040', borderRadius: '8px' }}
           labelStyle={{ color: '#a3a3a3', fontSize: 11 }}
           itemStyle={{ color: '#60a5fa' }}
-          formatter={(value: number) => [value, 'Signups']}
+          formatter={(value) => [value, 'Signups']}
         />
         <Line
           type="monotone"
