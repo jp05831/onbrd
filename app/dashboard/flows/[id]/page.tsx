@@ -262,18 +262,56 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
             </div>
           )}
 
-          {/* Request type info */}
+          {/* Request type info + expiry */}
           {stepType === 'request_pdf' && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md">
-              <FileUp className="w-4 h-4 text-purple-500" />
-              <span className="text-sm text-purple-700 dark:text-purple-300">Client will upload a PDF document</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md">
+                <FileUp className="w-4 h-4 text-purple-500" />
+                <span className="text-sm text-purple-700 dark:text-purple-300">Client will upload a PDF document</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md">
+                <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Auto-delete uploaded file:</span>
+                <select
+                  value={step.expire_days ?? 'never'}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    onSetExpiry(step.id, val === 'never' ? null : parseInt(val))
+                  }}
+                  className="flex-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer"
+                >
+                  <option value="never">Never</option>
+                  <option value="7">After 7 days</option>
+                  <option value="30">After 30 days</option>
+                </select>
+                {step.expire_at && <ExpiryBadge expireAt={step.expire_at} />}
+              </div>
             </div>
           )}
 
           {stepType === 'request_photo' && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md">
-              <Camera className="w-4 h-4 text-purple-500" />
-              <span className="text-sm text-purple-700 dark:text-purple-300">Client will upload a photo</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md">
+                <Camera className="w-4 h-4 text-purple-500" />
+                <span className="text-sm text-purple-700 dark:text-purple-300">Client will upload a photo</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md">
+                <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Auto-delete uploaded file:</span>
+                <select
+                  value={step.expire_days ?? 'never'}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    onSetExpiry(step.id, val === 'never' ? null : parseInt(val))
+                  }}
+                  className="flex-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer"
+                >
+                  <option value="never">Never</option>
+                  <option value="7">After 7 days</option>
+                  <option value="30">After 30 days</option>
+                </select>
+                {step.expire_at && <ExpiryBadge expireAt={step.expire_at} />}
+              </div>
             </div>
           )}
 
@@ -296,28 +334,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
             </div>
           )}
 
-          {/* Auto-expire selector — always visible on upload-type steps */}
-          {(stepType === 'request_pdf' || stepType === 'request_photo') && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md mt-2">
-              <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Auto-expire:</span>
-              <select
-                value={step.expire_days ?? 'never'}
-                onChange={(e) => {
-                  const val = e.target.value
-                  onSetExpiry(step.id, val === 'never' ? null : parseInt(val))
-                }}
-                className="flex-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer"
-              >
-                <option value="never">Never</option>
-                <option value="7">7 days</option>
-                <option value="30">30 days</option>
-              </select>
-              {step.expire_at && (
-                <ExpiryBadge expireAt={step.expire_at} />
-              )}
-            </div>
-          )}
+
         </div>
       </div>
     </div>
