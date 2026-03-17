@@ -39,7 +39,9 @@ export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan: 'free', activeFlows: 0, maxFlows: 2, maxStepsPerFlow: 2 })
   const [loading, setLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
+  const [newFlowType, setNewFlowType] = useState<'client' | 'template' | 'from_template'>('client')
   const [newFlow, setNewFlow] = useState({ client_name: '', client_email: '', welcome_message: '', is_template: false })
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [creating, setCreating] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [useTemplateModal, setUseTemplateModal] = useState<{ flowId: string; flowName: string } | null>(null)
@@ -75,15 +77,26 @@ export default function DashboardPage() {
     if (!newFlow.client_name.trim()) return
     setCreating(true)
     try {
-      const res = await fetch('/api/flows', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newFlow),
-      })
+      let res: Response
+      if (newFlowType === 'from_template' && selectedTemplateId) {
+        res = await fetch(`/api/flows/${selectedTemplateId}/clone`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client_name: newFlow.client_name.trim(), client_email: newFlow.client_email || undefined }),
+        })
+      } else {
+        res = await fetch('/api/flows', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...newFlow, is_template: newFlowType === 'template' }),
+        })
+      }
       if (res.ok) {
         const data = await res.json()
         setShowNewModal(false)
         setNewFlow({ client_name: '', client_email: '', welcome_message: '', is_template: false })
+        setSelectedTemplateId('')
+        setNewFlowType('client')
         window.location.href = `/dashboard/flows/${data.id}`
       }
     } catch (error) {
@@ -244,7 +257,7 @@ export default function DashboardPage() {
                 />
               </div>
               <button
-                onClick={() => canCreateFlow ? setShowNewModal(true) : window.location.href = '/dashboard/billing'}
+                onClick={() => { if (canCreateFlow) { setNewFlowType('client'); setNewFlow({ client_name: '', client_email: '', welcome_message: '', is_template: false }); setSelectedTemplateId(''); setShowNewModal(true) } else { window.location.href = '/dashboard/billing' } }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
@@ -309,60 +322,90 @@ export default function DashboardPage() {
             </div>
             
             <div className="p-6 space-y-4">
-              {/* Flow Type Toggle */}
+              {/* Flow Type — 3 options */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Flow Type</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
-                    onClick={() => setNewFlow({ ...newFlow, is_template: false })}
+                    onClick={() => setNewFlowType('client')}
                     className={`p-3 border rounded-lg text-left transition-colors ${
-                      !newFlow.is_template 
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                      newFlowType === 'client'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                         : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      <span className="font-medium text-sm">Single Client</span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">One-time use for a specific client</p>
+                    <Users className="w-4 h-4 mb-1" />
+                    <span className="font-medium text-xs block">Single Client</span>
+                    <p className="text-xs text-gray-400 mt-0.5">One-time use</p>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setNewFlow({ ...newFlow, is_template: true })}
-                    className={`p-3 border rounded-lg text-left transition-colors ${
-                      newFlow.is_template 
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' 
+                    onClick={() => setNewFlowType('from_template')}
+                    disabled={flows.filter(f => f.is_template).length === 0}
+                    className={`p-3 border rounded-lg text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                      newFlowType === 'from_template'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                         : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <Repeat className="w-4 h-4" />
-                      <span className="font-medium text-sm">Template</span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Reusable for multiple clients</p>
+                    <Repeat className="w-4 h-4 mb-1" />
+                    <span className="font-medium text-xs block">From Template</span>
+                    <p className="text-xs text-gray-400 mt-0.5">Use existing</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewFlowType('template')}
+                    className={`p-3 border rounded-lg text-left transition-colors ${
+                      newFlowType === 'template'
+                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                        : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-gray-500'
+                    }`}
+                  >
+                    <FileText className="w-4 h-4 mb-1" />
+                    <span className="font-medium text-xs block">New Template</span>
+                    <p className="text-xs text-gray-400 mt-0.5">Reusable base</p>
                   </button>
                 </div>
+                {newFlowType === 'from_template' && flows.filter(f => f.is_template).length === 0 && (
+                  <p className="text-xs text-gray-400 mt-2">No templates yet — create one first.</p>
+                )}
               </div>
+
+              {/* Template picker */}
+              {newFlowType === 'from_template' && flows.filter(f => f.is_template).length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Choose Template *</label>
+                  <select
+                    value={selectedTemplateId}
+                    onChange={(e) => setSelectedTemplateId(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a template...</option>
+                    {flows.filter(f => f.is_template).map(t => (
+                      <option key={t.id} value={t.id}>{t.client_name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {newFlow.is_template ? 'Template Name' : 'Client Name'} *
+                  {newFlowType === 'template' ? 'Template Name' : 'Client Name'} *
                 </label>
                 <input
                   type="text"
                   value={newFlow.client_name}
                   onChange={(e) => setNewFlow({ ...newFlow, client_name: e.target.value })}
                   className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={newFlow.is_template ? "e.g., Standard Onboarding" : "e.g., Acme Corp"}
+                  placeholder={newFlowType === 'template' ? 'e.g., Standard Onboarding' : 'e.g., Acme Corp'}
                   autoFocus
                 />
               </div>
 
-              {!newFlow.is_template && (
+              {newFlowType !== 'template' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Email <span className="text-gray-400 font-normal">(optional)</span></label>
                   <input
                     type="email"
                     value={newFlow.client_email}
@@ -373,16 +416,18 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Welcome Message</label>
-                <textarea
-                  value={newFlow.welcome_message}
-                  onChange={(e) => setNewFlow({ ...newFlow, welcome_message: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={2}
-                  placeholder="Welcome! Complete the steps below..."
-                />
-              </div>
+              {newFlowType !== 'from_template' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Welcome Message <span className="text-gray-400 font-normal">(optional)</span></label>
+                  <textarea
+                    value={newFlow.welcome_message}
+                    onChange={(e) => setNewFlow({ ...newFlow, welcome_message: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={2}
+                    placeholder="Welcome! Complete the steps below..."
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 rounded-b-xl">
@@ -394,7 +439,11 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={createFlow}
-                disabled={!newFlow.client_name.trim() || creating}
+                disabled={
+                  !newFlow.client_name.trim() ||
+                  (newFlowType === 'from_template' && !selectedTemplateId) ||
+                  creating
+                }
                 className="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
                 {creating ? 'Creating...' : 'Create Flow'}
