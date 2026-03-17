@@ -454,6 +454,24 @@ export const database = {
     await pool.query('DELETE FROM steps WHERE id = $1', [id])
   },
 
+  deleteAccount: async (userId: string) => {
+    await initDb()
+    // Delete all steps belonging to user's flows
+    await pool.query(`
+      DELETE FROM steps WHERE flow_id IN (
+        SELECT id FROM flows WHERE user_id = $1
+      )
+    `, [userId])
+    // Delete all flows
+    await pool.query('DELETE FROM flows WHERE user_id = $1', [userId])
+    // Delete all files
+    await pool.query('DELETE FROM files WHERE user_id = $1', [userId])
+    // Delete all sessions
+    await pool.query('DELETE FROM sessions WHERE user_id = $1', [userId])
+    // Delete the user
+    await pool.query('DELETE FROM users WHERE id = $1', [userId])
+  },
+
   reorderSteps: async (flowId: string, stepIds: string[]) => {
     await initDb()
     for (let i = 0; i < stepIds.length; i++) {

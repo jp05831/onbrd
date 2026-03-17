@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 
 export default function SettingsPage() {
   const { data: session } = useSession()
@@ -45,6 +45,20 @@ export default function SettingsPage() {
       console.error('Failed to save:', error)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const deleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This will permanently delete all your flows, steps, and data. This cannot be undone.')) return
+    try {
+      const res = await fetch('/api/user/delete', { method: 'DELETE' })
+      if (res.ok) {
+        await signOut({ callbackUrl: '/' })
+      } else {
+        alert('Failed to delete account. Please try again.')
+      }
+    } catch (error) {
+      alert('Something went wrong. Please try again.')
     }
   }
 
@@ -166,12 +180,7 @@ export default function SettingsPage() {
             </div>
             <div className="md:col-span-2">
               <button
-                onClick={() => {
-                  if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
-                    // TODO: Implement account deletion
-                    alert('Contact support to delete your account.')
-                  }
-                }}
+                onClick={deleteAccount}
                 className="px-4 py-2 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium rounded-md hover:bg-red-50 dark:hover:bg-red-900/30"
               >
                 Delete Account
