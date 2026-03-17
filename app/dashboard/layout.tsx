@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { 
   LayoutDashboard, Settings, LogOut, CreditCard, Sun, Moon, 
-  ChevronLeft, ChevronRight, Sparkles, Users, Menu, X
+  ChevronLeft, ChevronRight, Sparkles, Menu, X
 } from 'lucide-react'
 import { useTheme } from '../lib/theme'
 
@@ -50,7 +50,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const mainNavItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Flows' },
-    { href: '/dashboard/team', icon: Users, label: 'Team' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
     { href: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
   ]
