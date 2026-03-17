@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Check, Lock, ArrowUpRight, Sparkles, FileText, Upload, Camera, FileUp, RotateCcw } from 'lucide-react'
+import ExpiryBadge from '../../components/ExpiryBadge'
 
 interface Step {
   id: string
@@ -15,6 +16,7 @@ interface Step {
   uploaded_file_name: string | null
   position: number
   completed: boolean
+  expire_at: string | null
 }
 
 interface ClientPortalProps {
@@ -335,13 +337,16 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
                     )}
 
                     {status === 'completed' && (
-                      <div className="mt-2 flex items-center gap-3">
+                      <div className="mt-2 flex items-center gap-3 flex-wrap">
                         {isUploadType && step.uploaded_file_name ? (
                           <p className="text-sm text-blue-400">
                             ✓ Uploaded: {step.uploaded_file_name}
                           </p>
                         ) : (
                           <p className="text-sm text-blue-400">Completed</p>
+                        )}
+                        {step.expire_at && (
+                          <ExpiryBadge expireAt={step.expire_at} />
                         )}
                         <button
                           onClick={() => uncompleteStep(step.id)}

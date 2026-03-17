@@ -85,6 +85,17 @@ async function initDb() {
         size INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS deletion_log (
+        id TEXT PRIMARY KEY,
+        step_id TEXT NOT NULL,
+        flow_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        file_url TEXT NOT NULL,
+        file_name TEXT,
+        deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reason TEXT DEFAULT 'expired'
+      );
     `)
     
     // Run migrations to add any missing columns to existing tables
@@ -117,6 +128,8 @@ async function runMigrations(client: any) {
     { table: 'steps', column: 'uploaded_file_id', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS uploaded_file_id TEXT' },
     { table: 'steps', column: 'uploaded_file_name', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS uploaded_file_name TEXT' },
     { table: 'steps', column: 'completed_at', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP' },
+    { table: 'steps', column: 'expire_days', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS expire_days INTEGER' },
+    { table: 'steps', column: 'expire_at', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS expire_at TIMESTAMP' },
     
     // users table migrations
     { table: 'users', column: 'oauth_provider', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider TEXT' },
@@ -201,6 +214,8 @@ export interface Step {
   position: number
   completed: boolean
   completed_at: string | null
+  expire_days: number | null
+  expire_at: string | null
 }
 
 export interface FileRecord {
@@ -452,6 +467,67 @@ export const database = {
   deleteStep: async (id: string) => {
     await initDb()
     await pool.query('DELETE FROM steps WHERE id = $1', [id])
+  },
+
+  // Expiry
+  setStepExpiry: async (stepId: string, expireDays: number | null) => {
+    await initDb()
+    if (expireDays === null) {
+      await pool.query('UPDATE steps SET expire_days = NULL, expire_at = NULL WHERE id = $1', [stepId])
+    } else {
+      // expire_at is calculated from when the file was uploaded (completed_at) or now
+      const result = await pool.query('SELECT completed_at FROM steps WHERE id = $1', [stepId])
+      const base = result.rows[0]?.completed_at ? new Date(result.rows[0].completed_at) : new Date()
+      const expireAt = new Date(base.getTime() + expireDays * 24 * 60 * 60 * 1000)
+      await pool.query(
+        'UPDATE steps SET expire_days = $1, expire_at = $2 WHERE id = $3',
+        [expireDays, expireAt.toISOString(), stepId]
+      )
+    }
+  },
+
+  getExpiredUploadSteps: async () => {
+    await initDb()
+    const result = await pool.query(`
+      SELECT s.*, f.user_id as flow_user_id, f.id as flow_id_ref
+      FROM steps s
+      JOIN flows f ON s.flow_id = f.id
+      WHERE s.expire_at IS NOT NULL
+        AND s.expire_at <= NOW()
+        AND s.uploaded_file_id IS NOT NULL
+    `)
+    return result.rows as (Step & { flow_user_id: string; flow_id_ref: string })[]
+  },
+
+  getExpiringUploadSteps: async (withinHours: number) => {
+    await initDb()
+    const result = await pool.query(`
+      SELECT s.*, f.user_id as flow_user_id, f.id as flow_id_ref, f.client_name
+      FROM steps s
+      JOIN flows f ON s.flow_id = f.id
+      WHERE s.expire_at IS NOT NULL
+        AND s.expire_at > NOW()
+        AND s.expire_at <= NOW() + INTERVAL '${withinHours} hours'
+        AND s.uploaded_file_id IS NOT NULL
+    `)
+    return result.rows as (Step & { flow_user_id: string; flow_id_ref: string; client_name: string })[]
+  },
+
+  clearUploadedFile: async (stepId: string) => {
+    await initDb()
+    await pool.query(
+      'UPDATE steps SET uploaded_file_id = NULL, uploaded_file_name = NULL, completed = FALSE, completed_at = NULL, expire_days = NULL, expire_at = NULL WHERE id = $1',
+      [stepId]
+    )
+  },
+
+  logDeletion: async (stepId: string, flowId: string, userId: string, fileUrl: string, fileName: string | null) => {
+    await initDb()
+    const id = uuid()
+    await pool.query(
+      'INSERT INTO deletion_log (id, step_id, flow_id, user_id, file_url, file_name, reason) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [id, stepId, flowId, userId, fileUrl, fileName, 'expired']
+    )
   },
 
   deleteAccount: async (userId: string) => {

@@ -35,6 +35,7 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
         uploaded_file_name: s.uploaded_file_name,
         position: s.position,
         completed: s.completed,
+        expire_at: s.expire_at ?? null,
       }))}
       owner={{
         name: user?.name || 'Unknown',
