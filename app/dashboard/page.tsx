@@ -42,6 +42,10 @@ export default function DashboardPage() {
   const [newFlow, setNewFlow] = useState({ client_name: '', client_email: '', welcome_message: '', is_template: false })
   const [creating, setCreating] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [useTemplateModal, setUseTemplateModal] = useState<{ flowId: string; flowName: string } | null>(null)
+  const [templateClientName, setTemplateClientName] = useState('')
+  const [templateClientEmail, setTemplateClientEmail] = useState('')
+  const [cloningTemplate, setCloningTemplate] = useState(false)
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'templates'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [filesModal, setFilesModal] = useState<{ flowId: string; flowName: string } | null>(null)
@@ -103,6 +107,29 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(`${window.location.origin}/onboard/${slug}`)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  const useTemplate = async () => {
+    if (!useTemplateModal || !templateClientName.trim()) return
+    setCloningTemplate(true)
+    try {
+      const res = await fetch(`/api/flows/${useTemplateModal.flowId}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_name: templateClientName.trim(), client_email: templateClientEmail.trim() || undefined }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setUseTemplateModal(null)
+        setTemplateClientName('')
+        setTemplateClientEmail('')
+        window.location.href = `/dashboard/flows/${data.id}`
+      }
+    } catch (error) {
+      console.error('Failed to clone template:', error)
+    } finally {
+      setCloningTemplate(false)
+    }
   }
 
   const viewFiles = async (flowId: string) => {
@@ -265,6 +292,7 @@ export default function DashboardPage() {
                 onCopy={copyLink}
                 onDelete={deleteFlow}
                 onViewFiles={viewFiles}
+                onUseTemplate={(id, name) => { setUseTemplateModal({ flowId: id, flowName: name }); setTemplateClientName(''); setTemplateClientEmail('') }}
               />
             ))}
           </div>
@@ -376,6 +404,59 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Use Template Modal */}
+      {useTemplateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-xl w-full max-w-md shadow-xl">
+            <div className="p-6 border-b border-gray-100 dark:border-neutral-800">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Use Template</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Creates a fresh copy of <span className="font-medium text-gray-700 dark:text-gray-300">{useTemplateModal.flowName}</span> for a new client.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Name *</label>
+                <input
+                  type="text"
+                  value={templateClientName}
+                  onChange={(e) => setTemplateClientName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && useTemplate()}
+                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Acme Corp"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client Email <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input
+                  type="email"
+                  value={templateClientEmail}
+                  onChange={(e) => setTemplateClientEmail(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="client@company.com"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 rounded-b-xl">
+              <button
+                onClick={() => { setUseTemplateModal(null); setTemplateClientName(''); setTemplateClientEmail('') }}
+                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={useTemplate}
+                disabled={!templateClientName.trim() || cloningTemplate}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {cloningTemplate ? 'Creating...' : 'Create Flow'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Files Modal */}
       {filesModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -446,12 +527,13 @@ export default function DashboardPage() {
   )
 }
 
-function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles }: {
+function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate }: {
   flow: Flow
   copiedId: string | null
   onCopy: (slug: string, id: string) => void
   onDelete: (id: string) => void
   onViewFiles: (flowId: string) => void
+  onUseTemplate: (id: string, name: string) => void
 }) {
   const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
 
@@ -544,24 +626,33 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles }: {
             <Paperclip className="w-4 h-4" />
           </button>
         )}
-        {flow.status === 'published' && (
-          <>
-            <button
-              onClick={() => onCopy(flow.slug, flow.id)}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-              title="Copy link"
-            >
-              {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-            </button>
-            <a
-              href={`/onboard/${flow.slug}`}
-              target="_blank"
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-              title="Preview"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </>
+        {flow.is_template ? (
+          <button
+            onClick={() => onUseTemplate(flow.id, flow.client_name)}
+            className="px-3 py-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors border border-purple-200 dark:border-purple-800"
+          >
+            Use Template
+          </button>
+        ) : (
+          flow.status === 'published' && (
+            <>
+              <button
+                onClick={() => onCopy(flow.slug, flow.id)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                title="Copy link"
+              >
+                {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              </button>
+              <a
+                href={`/onboard/${flow.slug}`}
+                target="_blank"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                title="Preview"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </>
+          )
         )}
         <Link
           href={`/dashboard/flows/${flow.id}`}

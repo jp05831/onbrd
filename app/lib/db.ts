@@ -530,6 +530,35 @@ export const database = {
     )
   },
 
+  cloneFlow: async (flowId: string, newClientName: string, newClientEmail?: string) => {
+    await initDb()
+    const source = await pool.query('SELECT * FROM flows WHERE id = $1', [flowId])
+    const flow = source.rows[0] as Flow | undefined
+    if (!flow) throw new Error('Flow not found')
+
+    const newId = uuid()
+    const newSlug = generateSlug()
+
+    await pool.query(
+      `INSERT INTO flows (id, user_id, client_name, client_email, welcome_message, slug, status, is_template, logo_url)
+       VALUES ($1, $2, $3, $4, $5, $6, 'draft', false, $7)`,
+      [newId, flow.user_id, newClientName, newClientEmail || null, flow.welcome_message, newSlug, flow.logo_url || null]
+    )
+
+    // Clone steps, resetting all completion/upload state
+    const steps = await pool.query('SELECT * FROM steps WHERE flow_id = $1 ORDER BY position', [flowId])
+    for (const step of steps.rows as Step[]) {
+      const stepId = uuid()
+      await pool.query(
+        `INSERT INTO steps (id, flow_id, title, description, url, file_id, file_name, step_type, position, completed, expire_days)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false, $10)`,
+        [stepId, newId, step.title, step.description, step.url, step.file_id, step.file_name, step.step_type, step.position, step.expire_days || null]
+      )
+    }
+
+    return { id: newId, slug: newSlug }
+  },
+
   deleteAccount: async (userId: string) => {
     await initDb()
     // Delete all steps belonging to user's flows

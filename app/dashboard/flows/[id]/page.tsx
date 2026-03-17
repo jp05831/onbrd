@@ -20,7 +20,7 @@ import {
   FileUp,
   Clock
 } from 'lucide-react'
-import ExpiryBadge from '../../components/ExpiryBadge'
+import ExpiryBadge from '../../../components/ExpiryBadge'
 import {
   DndContext,
   closestCenter,
