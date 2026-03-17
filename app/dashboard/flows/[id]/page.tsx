@@ -279,43 +279,43 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
 
           {/* Show uploaded file if client has submitted */}
           {(stepType === 'request_pdf' || stepType === 'request_photo') && step.uploaded_file_name && (
-            <div className="mt-2 space-y-2">
-              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                <Check className="w-4 h-4 text-green-500" />
-                <span className="flex-1 text-sm text-green-700 dark:text-green-300 truncate">
-                  Uploaded: {step.uploaded_file_name}
-                </span>
-                {step.uploaded_file_id && (
-                  <a
-                    href={step.uploaded_file_id}
-                    target="_blank"
-                    className="text-xs text-green-600 dark:text-green-400 hover:underline"
-                  >
-                    View
-                  </a>
-                )}
-              </div>
-
-              {/* Auto-expire selector */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md">
-                <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Auto-expire:</span>
-                <select
-                  value={step.expire_days ?? 'never'}
-                  onChange={(e) => {
-                    const val = e.target.value
-                    onSetExpiry(step.id, val === 'never' ? null : parseInt(val))
-                  }}
-                  className="flex-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer"
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md mt-2">
+              <Check className="w-4 h-4 text-green-500" />
+              <span className="flex-1 text-sm text-green-700 dark:text-green-300 truncate">
+                Uploaded: {step.uploaded_file_name}
+              </span>
+              {step.uploaded_file_id && (
+                <a
+                  href={step.uploaded_file_id}
+                  target="_blank"
+                  className="text-xs text-green-600 dark:text-green-400 hover:underline"
                 >
-                  <option value="never">Never</option>
-                  <option value="7">7 days</option>
-                  <option value="30">30 days</option>
-                </select>
-                {step.expire_at && (
-                  <ExpiryBadge expireAt={step.expire_at} />
-                )}
-              </div>
+                  View
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Auto-expire selector — always visible on upload-type steps */}
+          {(stepType === 'request_pdf' || stepType === 'request_photo') && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md mt-2">
+              <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">Auto-expire:</span>
+              <select
+                value={step.expire_days ?? 'never'}
+                onChange={(e) => {
+                  const val = e.target.value
+                  onSetExpiry(step.id, val === 'never' ? null : parseInt(val))
+                }}
+                className="flex-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer"
+              >
+                <option value="never">Never</option>
+                <option value="7">7 days</option>
+                <option value="30">30 days</option>
+              </select>
+              {step.expire_at && (
+                <ExpiryBadge expireAt={step.expire_at} />
+              )}
             </div>
           )}
         </div>
