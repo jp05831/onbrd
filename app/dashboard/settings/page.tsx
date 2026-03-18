@@ -2,17 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import { AlertTriangle } from 'lucide-react'
 
 export default function SettingsPage() {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelLoading, setCancelLoading] = useState(false)
 
   useEffect(() => {
     if (session?.user) {
       setEmail(session.user.email || '')
+      if ((session.user as any)?.plan) {
+        setCurrentPlan((session.user as any).plan)
+      }
       fetchSettings()
     }
   }, [session])
@@ -48,20 +55,6 @@ export default function SettingsPage() {
     }
   }
 
-  const deleteAccount = async () => {
-    if (!confirm('Are you sure you want to delete your account? This will permanently delete all your flows, steps, and data. This cannot be undone.')) return
-    try {
-      const res = await fetch('/api/user/delete', { method: 'DELETE' })
-      if (res.ok) {
-        await signOut({ callbackUrl: '/' })
-      } else {
-        alert('Failed to delete account. Please try again.')
-      }
-    } catch (error) {
-      alert('Something went wrong. Please try again.')
-    }
-  }
-
   const saveEmail = async () => {
     setSaving(true)
     try {
@@ -78,6 +71,41 @@ export default function SettingsPage() {
       console.error('Failed to save:', error)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleCancel = async () => {
+    setCancelLoading(true)
+    try {
+      const res = await fetch('/api/billing/cancel', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        setCurrentPlan('free')
+        setShowCancelModal(false)
+        await update()
+        alert('Your subscription has been cancelled.')
+      } else {
+        alert(data.error || 'Failed to cancel subscription')
+      }
+    } catch (error) {
+      console.error('Cancel error:', error)
+      alert('Failed to cancel subscription')
+    } finally {
+      setCancelLoading(false)
+    }
+  }
+
+  const deleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This will permanently delete all your flows, steps, and data. This cannot be undone.')) return
+    try {
+      const res = await fetch('/api/user/delete', { method: 'DELETE' })
+      if (res.ok) {
+        await signOut({ callbackUrl: '/' })
+      } else {
+        alert('Failed to delete account. Please try again.')
+      }
+    } catch (error) {
+      alert('Something went wrong. Please try again.')
     }
   }
 
@@ -169,6 +197,42 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Plan */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <div>
+              <h3 className="font-medium text-gray-900 dark:text-white">Plan</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Your current subscription.
+              </p>
+            </div>
+            <div className="md:col-span-2 flex items-center gap-3">
+              <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                currentPlan === 'pro'
+                  ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                  : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
+              }`}>
+                {currentPlan === 'pro' ? 'Pro' : 'Free'}
+              </span>
+              {currentPlan === 'pro' ? (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="text-sm text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
+                >
+                  Cancel subscription
+                </button>
+              ) : (
+                <a
+                  href="/dashboard/billing"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                >
+                  Upgrade to Pro →
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Danger Zone */}
         <div className="p-6 bg-gray-50 dark:bg-neutral-900/50 rounded-b-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
@@ -189,6 +253,52 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Cancel Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cancel Subscription</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure? You&apos;ll immediately lose access to:
+            </p>
+            <ul className="space-y-2 mb-6">
+              {[
+                'All flows beyond your first 2',
+                'Steps beyond 2 per flow',
+                'Email notifications',
+                'White-label branding',
+                'Priority support',
+              ].map((feature, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-2 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800"
+              >
+                Keep My Plan
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelLoading}
+                className="flex-1 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50"
+              >
+                {cancelLoading ? 'Cancelling...' : 'Yes, Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,16 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
-import { Check, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { Check, Sparkles, ShieldCheck } from 'lucide-react'
 
 export default function BillingPage() {
-  const { data: session, update } = useSession()
+  const { data: session } = useSession()
   const searchParams = useSearchParams()
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('year')
   const [loading, setLoading] = useState(false)
-  const [cancelLoading, setCancelLoading] = useState(false)
-  const [showCancelModal, setShowCancelModal] = useState(false)
 
   // Fire Meta Pixel Purchase event after successful Stripe checkout
   useEffect(() => {
@@ -50,29 +48,6 @@ export default function BillingPage() {
     }
   }
 
-  const handleCancel = async () => {
-    setCancelLoading(true)
-    try {
-      const res = await fetch('/api/billing/cancel', {
-        method: 'POST',
-      })
-      const data = await res.json()
-      if (data.success) {
-        setCurrentPlan('free')
-        setShowCancelModal(false)
-        await update()
-        alert('Your subscription has been cancelled.')
-      } else {
-        alert(data.error || 'Failed to cancel subscription')
-      }
-    } catch (error) {
-      console.error('Cancel error:', error)
-      alert('Failed to cancel subscription')
-    } finally {
-      setCancelLoading(false)
-    }
-  }
-
   const pricing = {
     month: { displayPrice: '$15', period: '/mo', subtext: 'billed monthly', savings: null },
     year: { displayPrice: '$12.50', period: '/mo', subtext: 'billed $150/yr', savings: 'Save $30' },
@@ -96,82 +71,6 @@ export default function BillingPage() {
             <p className="text-sm text-blue-700 dark:text-blue-400 mt-0.5">
               Limited to 2 flows and 2 steps each. Upgrade to Pro for unlimited flows, unlimited clients, and white-label branding.
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* Current Plan */}
-      <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white">Current Plan</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              You are currently on the <span className="font-medium text-gray-900 dark:text-white capitalize">{currentPlan}</span> plan.
-            </p>
-          </div>
-          <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-            currentPlan === 'pro'
-              ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
-              : 'bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-gray-300'
-          }`}>
-            {currentPlan === 'pro' ? 'Pro' : 'Free'}
-          </span>
-        </div>
-
-        {currentPlan === 'pro' && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800">
-            <button
-              onClick={() => setShowCancelModal(true)}
-              className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-            >
-              Cancel subscription
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Cancel Modal */}
-      {showCancelModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 max-w-md w-full">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cancel Subscription</h3>
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Are you sure? You&apos;ll immediately lose access to:
-            </p>
-            <ul className="space-y-2 mb-6">
-              {[
-                'All flows beyond your first 2',
-                'Steps beyond 2 per flow',
-                'Email notifications',
-                'White-label branding',
-                'Priority support',
-              ].map((feature, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCancelModal(false)}
-                className="flex-1 py-2 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800"
-              >
-                Keep My Plan
-              </button>
-              <button
-                onClick={handleCancel}
-                disabled={cancelLoading}
-                className="flex-1 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50"
-              >
-                {cancelLoading ? 'Cancelling...' : 'Yes, Cancel'}
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -321,7 +220,6 @@ export default function BillingPage() {
           </div>
         </div>
       </div>
-
     </div>
   )
 }
