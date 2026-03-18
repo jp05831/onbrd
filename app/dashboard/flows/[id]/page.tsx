@@ -416,6 +416,8 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       uploaded_file_name: null,
       position: steps.length,
       completed: false,
+      expire_days: null,
+      expire_at: null,
     }
     setSteps([...steps, newStep])
 
