@@ -22,6 +22,17 @@ export async function POST(
     const body = await request.json()
     const { stepIds } = body
 
+    if (!Array.isArray(stepIds) || stepIds.some((id: any) => typeof id !== 'string')) {
+      return NextResponse.json({ error: 'stepIds must be an array of strings' }, { status: 400 })
+    }
+
+    // Verify all stepIds belong to this flow
+    const existingSteps = await database.getStepsByFlowId(flowId)
+    const validIds = new Set(existingSteps.map(s => s.id))
+    if (stepIds.some((id: string) => !validIds.has(id))) {
+      return NextResponse.json({ error: 'Invalid step IDs' }, { status: 400 })
+    }
+
     await database.reorderSteps(flowId, stepIds)
 
     return NextResponse.json({ success: true })

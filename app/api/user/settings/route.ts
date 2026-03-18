@@ -48,6 +48,17 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
+    if (updates.logo_url !== undefined && updates.logo_url !== null && updates.logo_url !== '') {
+      try {
+        const parsed = new URL(updates.logo_url)
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          return NextResponse.json({ error: 'Invalid logo URL' }, { status: 400 })
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid logo URL' }, { status: 400 })
+      }
+    }
+
     await database.updateUser(session.user.id, updates as any)
 
     return NextResponse.json({ success: true })

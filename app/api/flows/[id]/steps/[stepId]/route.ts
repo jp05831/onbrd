@@ -19,8 +19,21 @@ export async function PATCH(
       return NextResponse.json({ error: 'Flow not found' }, { status: 404 })
     }
 
+    const step = await database.getStepById(stepId)
+    if (!step || step.flow_id !== flowId) {
+      return NextResponse.json({ error: 'Step not found' }, { status: 404 })
+    }
+
     const body = await request.json()
-    await database.updateStep(stepId, body)
+    const allowedFields = ['title', 'description', 'url', 'step_type', 'file_id', 'file_name', 'position'] as const
+    const updates: Record<string, any> = {}
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) updates[field] = body[field]
+    }
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    }
+    await database.updateStep(stepId, updates)
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -44,6 +57,11 @@ export async function DELETE(
 
     if (!flow || flow.user_id !== session.user.id) {
       return NextResponse.json({ error: 'Flow not found' }, { status: 404 })
+    }
+
+    const step = await database.getStepById(stepId)
+    if (!step || step.flow_id !== flowId) {
+      return NextResponse.json({ error: 'Step not found' }, { status: 404 })
     }
 
     await database.deleteStep(stepId)

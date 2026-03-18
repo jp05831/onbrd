@@ -18,6 +18,7 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
     <ClientPortal
       flow={{
         id: flow.id,
+        slug: flow.slug,
         client_name: flow.client_name,
         welcome_message: flow.welcome_message,
         logo_url: flow.logo_url,

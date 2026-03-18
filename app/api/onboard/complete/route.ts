@@ -3,10 +3,20 @@ import database from '../../../lib/db'
 
 export async function POST(request: NextRequest) {
   try {
-    const { stepId } = await request.json()
+    const { stepId, flowSlug } = await request.json()
 
-    if (!stepId) {
-      return NextResponse.json({ error: 'Step ID required' }, { status: 400 })
+    if (!stepId || !flowSlug) {
+      return NextResponse.json({ error: 'stepId and flowSlug required' }, { status: 400 })
+    }
+
+    // Verify step belongs to this flow slug
+    const step = await database.getStepById(stepId)
+    if (!step) {
+      return NextResponse.json({ error: 'Step not found' }, { status: 404 })
+    }
+    const flow = await database.getFlowBySlug(flowSlug)
+    if (!flow || flow.id !== step.flow_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     await database.completeStep(stepId)

@@ -54,7 +54,15 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    await database.updateFlow(id, body)
+    const allowedFields = ['client_name', 'client_email', 'welcome_message', 'status', 'logo_url'] as const
+    const updates: Record<string, any> = {}
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) updates[field] = body[field]
+    }
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    }
+    await database.updateFlow(id, updates)
 
     return NextResponse.json({ success: true })
   } catch (error) {

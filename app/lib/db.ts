@@ -2,9 +2,6 @@ import { Pool } from 'pg'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
-// Fix SSL issues with Supabase
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-
 // Pro tier overrides (emails that get pro for free)
 const PRO_OVERRIDES = [
   'info@movescout.net',
@@ -12,6 +9,7 @@ const PRO_OVERRIDES = [
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 })
 
 let dbInitialized = false
@@ -507,9 +505,9 @@ export const database = {
       JOIN flows f ON s.flow_id = f.id
       WHERE s.expire_at IS NOT NULL
         AND s.expire_at > NOW()
-        AND s.expire_at <= NOW() + INTERVAL '${withinHours} hours'
+        AND s.expire_at <= NOW() + ($1 * INTERVAL '1 hour')
         AND s.uploaded_file_id IS NOT NULL
-    `)
+    `, [withinHours])
     return result.rows as (Step & { flow_user_id: string; flow_id_ref: string; client_name: string })[]
   },
 

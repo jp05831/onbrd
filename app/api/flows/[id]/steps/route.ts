@@ -31,6 +31,19 @@ export async function POST(
     const body = await request.json()
     const { title, description, url, position, file_id, file_name } = body
 
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return NextResponse.json({ error: 'Step title is required' }, { status: 400 })
+    }
+    if (title.length > 300) {
+      return NextResponse.json({ error: 'Step title too long (max 300 chars)' }, { status: 400 })
+    }
+    if (description && description.length > 2000) {
+      return NextResponse.json({ error: 'Description too long (max 2000 chars)' }, { status: 400 })
+    }
+    if (url && url.length > 2000) {
+      return NextResponse.json({ error: 'URL too long' }, { status: 400 })
+    }
+
     const stepId = await database.createStep(flowId, title, description, url || null, position, file_id, file_name)
 
     return NextResponse.json({ id: stepId })

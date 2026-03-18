@@ -50,6 +50,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Client name is required' }, { status: 400 })
     }
 
+    if (client_name.length > 200) {
+      return NextResponse.json({ error: 'Client name too long (max 200 chars)' }, { status: 400 })
+    }
+    if (welcome_message && welcome_message.length > 2000) {
+      return NextResponse.json({ error: 'Welcome message too long (max 2000 chars)' }, { status: 400 })
+    }
+
     const { id, slug } = await database.createFlow(session.user.id, client_name, client_email, welcome_message, is_template)
 
     return NextResponse.json({ id, slug })

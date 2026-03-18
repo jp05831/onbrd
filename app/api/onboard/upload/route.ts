@@ -7,9 +7,20 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File
     const stepId = formData.get('stepId') as string
+    const flowSlug = formData.get('flowSlug') as string
 
-    if (!file || !stepId) {
-      return NextResponse.json({ error: 'File and stepId required' }, { status: 400 })
+    if (!file || !stepId || !flowSlug) {
+      return NextResponse.json({ error: 'file, stepId, and flowSlug required' }, { status: 400 })
+    }
+
+    // Verify step belongs to this flow slug
+    const step = await database.getStepById(stepId)
+    if (!step) {
+      return NextResponse.json({ error: 'Step not found' }, { status: 404 })
+    }
+    const flow = await database.getFlowBySlug(flowSlug)
+    if (!flow || flow.id !== step.flow_id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     // Validate file size (10MB max)
@@ -27,41 +38,39 @@ export async function POST(request: NextRequest) {
       'image/heic',
       'image/heif'
     ]
-    
+
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
     }
 
+    // Sanitize filename
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200)
+
     // Upload to Vercel Blob
-    const blob = await put(`uploads/client/${stepId}-${Date.now()}-${file.name}`, file, {
+    const blob = await put(`uploads/client/${stepId}-${Date.now()}-${safeName}`, file, {
       access: 'public',
     })
 
-    // Update the step with the uploaded file info and mark as complete
     await database.updateStep(stepId, {
       uploaded_file_id: blob.url,
-      uploaded_file_name: file.name,
+      uploaded_file_name: file.name.slice(0, 500),
       completed: true,
       completed_at: new Date().toISOString()
     } as any)
 
-    // Check if all steps are complete and update flow status
-    const step = await database.getStepById?.(stepId)
-    if (step) {
-      const allSteps = await database.getStepsByFlowId(step.flow_id)
-      const allComplete = allSteps.every(s => s.completed || s.id === stepId)
-      if (allComplete) {
-        await database.updateFlow(step.flow_id, { 
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        } as any)
-      }
+    const allSteps = await database.getStepsByFlowId(step.flow_id)
+    const allComplete = allSteps.every(s => s.completed || s.id === stepId)
+    if (allComplete) {
+      await database.updateFlow(step.flow_id, {
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      } as any)
     }
 
-    return NextResponse.json({ 
-      url: blob.url, 
+    return NextResponse.json({
+      url: blob.url,
       name: file.name,
-      success: true 
+      success: true
     })
   } catch (error) {
     console.error('Upload error:', error)

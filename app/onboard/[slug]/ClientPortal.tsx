@@ -22,6 +22,7 @@ interface Step {
 interface ClientPortalProps {
   flow: {
     id: string
+    slug: string
     client_name: string
     welcome_message: string | null
     logo_url: string | null
@@ -60,7 +61,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
       const res = await fetch(`/api/onboard/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stepId }),
+        body: JSON.stringify({ stepId, flowSlug: flow.slug }),
       })
       if (res.ok) {
         setSteps(prev => prev.map(s => 
@@ -80,7 +81,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
       const res = await fetch(`/api/onboard/uncomplete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stepId }),
+        body: JSON.stringify({ stepId, flowSlug: flow.slug }),
       })
       if (res.ok) {
         setSteps(prev => prev.map(s => 
@@ -100,6 +101,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
       const formData = new FormData()
       formData.append('file', file)
       formData.append('stepId', stepId)
+      formData.append('flowSlug', flow.slug)
 
       const res = await fetch('/api/onboard/upload', {
         method: 'POST',
