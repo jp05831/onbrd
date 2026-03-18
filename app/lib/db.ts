@@ -2,6 +2,10 @@ import { Pool } from 'pg'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
+// Supabase uses a self-signed cert on the Postgres connection — disable verification for this process
+// (safe in Vercel serverless: each function invocation is an isolated process)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
 // Pro tier overrides (emails that get pro for free)
 const PRO_OVERRIDES = [
   'info@movescout.net',
@@ -9,7 +13,6 @@ const PRO_OVERRIDES = [
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
 })
 
 let dbInitialized = false
