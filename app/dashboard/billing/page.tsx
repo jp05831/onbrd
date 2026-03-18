@@ -322,28 +322,6 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {/* FAQ */}
-      <div className="mt-8">
-        <h3 className="font-medium text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h3>
-        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
-          <div className="p-4">
-            <h4 className="font-medium text-gray-900 dark:text-white text-sm">Do you offer a money-back guarantee?</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Yes — if you&apos;re not satisfied within 7 days of upgrading, we&apos;ll refund you in full, no questions asked.</p>
-          </div>
-          <div className="p-4">
-            <h4 className="font-medium text-gray-900 dark:text-white text-sm">Can I cancel anytime?</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Yes, cancel whenever you want. You keep Pro access until the end of your billing period.</p>
-          </div>
-          <div className="p-4">
-            <h4 className="font-medium text-gray-900 dark:text-white text-sm">What happens to my flows if I downgrade?</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Your existing flows are preserved, but you won&apos;t be able to create new ones beyond the free limit (2 flows, 2 steps each).</p>
-          </div>
-          <div className="p-4">
-            <h4 className="font-medium text-gray-900 dark:text-white text-sm">What does &quot;unlimited clients&quot; mean?</h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Any number of clients can access and complete your onboarding flows — there are no per-user or per-seat charges on Pro.</p>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
