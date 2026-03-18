@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText, Users, 
@@ -53,6 +54,19 @@ export default function DashboardPage() {
   const [filesModal, setFilesModal] = useState<{ flowId: string; flowName: string } | null>(null)
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [loadingFiles, setLoadingFiles] = useState(false)
+
+  const searchParams = useSearchParams()
+
+  // Fire Meta Pixel Lead event for Google signups
+  useEffect(() => {
+    if (searchParams.get('signup') === '1') {
+      if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+        (window as any).fbq('track', 'Lead')
+      }
+      // Clean up URL
+      window.history.replaceState({}, '', '/dashboard')
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetchFlows()

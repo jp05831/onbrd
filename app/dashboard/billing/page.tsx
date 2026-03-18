@@ -2,15 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { Check, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react'
 
 export default function BillingPage() {
   const { data: session, update } = useSession()
+  const searchParams = useSearchParams()
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('year')
   const [loading, setLoading] = useState(false)
   const [cancelLoading, setCancelLoading] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
+
+  // Fire Meta Pixel Purchase event after successful Stripe checkout
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+        (window as any).fbq('track', 'Purchase', { currency: 'USD', value: 15.00 })
+      }
+      // Clean up URL
+      window.history.replaceState({}, '', '/dashboard/billing')
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (session?.user && (session.user as any)?.plan) {

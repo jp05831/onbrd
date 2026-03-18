@@ -33,6 +33,11 @@ export default function SignupPage() {
         throw new Error(data.error || 'Signup failed')
       }
 
+      // Fire Meta Pixel Lead event on successful signup
+      if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+        (window as any).fbq('track', 'Lead')
+      }
+
       // Redirect to verify-email page — don't auto sign in
       router.push('/verify-email')
     } catch (err) {
@@ -45,7 +50,7 @@ export default function SignupPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true)
     try {
-      await signIn('google', { callbackUrl: '/dashboard' })
+      await signIn('google', { callbackUrl: '/dashboard?signup=1' })
     } catch (err) {
       setError('Google sign-in failed')
       setGoogleLoading(false)
