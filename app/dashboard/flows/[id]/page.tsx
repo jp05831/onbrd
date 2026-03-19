@@ -609,6 +609,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({ status: 'published' }),
       })
       setFlow(prev => prev ? { ...prev, status: 'published' } : null)
+      router.push('/dashboard')
     } catch (error) {
       console.error('Failed to publish:', error)
     } finally {
@@ -704,55 +705,6 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg p-4 mb-6 transition-colors">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Settings</h2>
         <div className="space-y-4">
-          {/* Logo Upload */}
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Company logo (optional)</label>
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) handleLogoUpload(file)
-              }}
-              className="hidden"
-            />
-            {flow.logo_url ? (
-              <div className="flex items-center gap-3">
-                <img 
-                  src={flow.logo_url} 
-                  alt="Company logo" 
-                  className="h-12 max-w-[200px] object-contain rounded border border-gray-200 dark:border-neutral-700 bg-white p-1"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => logoInputRef.current?.click()}
-                    disabled={uploadingLogo}
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50"
-                  >
-                    {uploadingLogo ? 'Uploading...' : 'Change'}
-                  </button>
-                  <button
-                    onClick={removeLogo}
-                    className="text-xs text-red-600 dark:text-red-400 hover:underline"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => logoInputRef.current?.click()}
-                disabled={uploadingLogo}
-                className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-neutral-700 border-dashed rounded-md text-sm text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
-              >
-                <Upload className="w-4 h-4" />
-                {uploadingLogo ? 'Uploading...' : 'Upload logo'}
-              </button>
-            )}
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Displays at the top of the client form</p>
-          </div>
-
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portal accent color</label>
             <div className="flex items-center gap-3">
