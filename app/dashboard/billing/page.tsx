@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
-import { Check, Sparkles, ShieldCheck, Clock } from 'lucide-react'
+import { Check, Sparkles, ShieldCheck, Clock, PartyPopper } from 'lucide-react'
 
 export default function BillingPage() {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const searchParams = useSearchParams()
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('year')
@@ -14,44 +14,60 @@ export default function BillingPage() {
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null)
   const [countdown, setCountdown] = useState('')
+  const [justUpgraded, setJustUpgraded] = useState(false)
 
+  // Countdown timer
   useEffect(() => {
     if (!cancelAtPeriodEnd || !currentPeriodEnd) return
-    const update = () => {
-      const end = new Date(currentPeriodEnd).getTime()
-      const now = Date.now()
-      const diff = end - now
+    const tick = () => {
+      const diff = new Date(currentPeriodEnd).getTime() - Date.now()
       if (diff <= 0) { setCountdown('Expired'); return }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-      const secs = Math.floor((diff % (1000 * 60)) / 1000)
-      if (days > 0) setCountdown(`${days}d ${hours}h ${mins}m ${secs}s`)
-      else if (hours > 0) setCountdown(`${hours}h ${mins}m ${secs}s`)
-      else setCountdown(`${mins}m ${secs}s`)
+      const d = Math.floor(diff / 86400000)
+      const h = Math.floor((diff % 86400000) / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setCountdown(d > 0 ? `${d}d ${h}h ${m}m ${s}s` : h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`)
     }
-    update()
-    const interval = setInterval(update, 1000)
-    return () => clearInterval(interval)
+    tick()
+    const t = setInterval(tick, 1000)
+    return () => clearInterval(t)
   }, [cancelAtPeriodEnd, currentPeriodEnd])
 
-  // Fire Meta Pixel Purchase event after successful Stripe checkout
+  // Handle successful Stripe checkout redirect
   useEffect(() => {
-    if (searchParams.get('success') === 'true') {
-      if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
-        (window as any).fbq('track', 'Purchase', { currency: 'USD', value: 15.00 })
-      }
-      // Clean up URL
-      window.history.replaceState({}, '', '/dashboard/billing')
+    if (searchParams.get('success') !== 'true') return
+
+    // Fire Meta Pixel
+    if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'Purchase', { currency: 'USD', value: 15.00 })
     }
+
+    setJustUpgraded(true)
+    window.history.replaceState({}, '', '/dashboard/billing')
+
+    // Poll until the session reflects Pro (webhook may take a few seconds)
+    let attempts = 0
+    const poll = setInterval(async () => {
+      attempts++
+      await update() // force NextAuth to re-fetch from DB
+      if (attempts >= 10) clearInterval(poll) // give up after ~10s
+    }, 1000)
+
+    return () => clearInterval(poll)
   }, [searchParams])
 
+  // Sync plan from session
   useEffect(() => {
     if (session?.user && (session.user as any)?.plan) {
-      setCurrentPlan((session.user as any).plan)
+      const plan = (session.user as any).plan as 'free' | 'pro'
+      setCurrentPlan(plan)
+      if (plan === 'pro' && justUpgraded) {
+        setJustUpgraded(false) // webhook confirmed, dismiss success screen
+      }
     }
   }, [session])
 
+  // Fetch billing status for Pro users
   useEffect(() => {
     if (currentPlan === 'pro' && session) {
       fetch('/api/billing/status')
@@ -73,9 +89,7 @@ export default function BillingPage() {
         body: JSON.stringify({ interval: billingInterval }),
       })
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      }
+      if (data.url) window.location.href = data.url
     } catch (error) {
       console.error('Checkout error:', error)
     } finally {
@@ -89,6 +103,31 @@ export default function BillingPage() {
   }
 
   const selectedPrice = pricing[billingInterval]
+
+  // Success screen shown right after Stripe checkout while we wait for webhook
+  if (justUpgraded) {
+    return (
+      <div className="max-w-md mx-auto text-center py-20">
+        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-6">
+          <PartyPopper className="w-8 h-8 text-green-600 dark:text-green-400" />
+        </div>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">Welcome to Pro! 🎉</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-8">
+          Your payment was successful. We&apos;re activating your account now — this usually takes just a few seconds.
+        </p>
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
+          Activating your Pro account...
+        </div>
+        <p className="text-xs text-gray-400 mt-4">
+          Taking longer than expected? Try refreshing the page or signing out and back in.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -179,30 +218,16 @@ export default function BillingPage() {
           </div>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Try it out, no card needed</p>
           <ul className="space-y-3 mb-6">
-            {[
-              '2 flows',
-              '2 steps per flow',
-              'Progress tracking',
-              'Shareable client links',
-            ].map((feature, i) => (
+            {['2 flows', '2 steps per flow', 'Progress tracking', 'Shareable client links'].map((f, i) => (
               <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Check className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                {feature}
+                {f}
               </li>
             ))}
           </ul>
-          {currentPlan === 'free' ? (
-            <button
-              disabled
-              className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
-            >
-              Current Plan
-            </button>
-          ) : (
-            <button className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800">
-              Downgrade
-            </button>
-          )}
+          <button disabled className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed">
+            {currentPlan === 'free' ? 'Current Plan' : 'Downgrade'}
+          </button>
         </div>
 
         {/* Pro Plan */}
@@ -234,18 +259,15 @@ export default function BillingPage() {
               'Email notifications on completion',
               'White-label — remove Onbrd branding',
               'Priority support',
-            ].map((feature, i) => (
+            ].map((f, i) => (
               <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                {feature}
+                {f}
               </li>
             ))}
           </ul>
           {currentPlan === 'pro' ? (
-            <button
-              disabled
-              className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
-            >
+            <button disabled className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed">
               {cancelAtPeriodEnd ? 'Cancellation Scheduled' : 'Current Plan'}
             </button>
           ) : (
