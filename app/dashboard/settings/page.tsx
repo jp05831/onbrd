@@ -19,14 +19,13 @@ export default function SettingsPage() {
   useEffect(() => {
     if (session?.user) {
       setEmail(session.user.email || '')
-      if ((session.user as any)?.plan) {
-        setCurrentPlan((session.user as any).plan)
-      }
-      fetchSettings()
+      const plan = (session.user as any)?.plan || 'free'
+      setCurrentPlan(plan)
+      fetchSettings(plan)
     }
   }, [session])
 
-  const fetchSettings = async () => {
+  const fetchSettings = async (plan?: string) => {
     try {
       const res = await fetch('/api/user/settings')
       if (res.ok) {
@@ -36,19 +35,18 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Failed to fetch settings:', error)
     }
-  }
 
-  useEffect(() => {
-    if (currentPlan === 'pro' && session) {
-      fetch('/api/billing/status')
-        .then(r => r.json())
-        .then(d => {
-          setCancelAtPeriodEnd(d.cancelAtPeriodEnd || false)
-          setCurrentPeriodEnd(d.currentPeriodEnd || null)
-        })
-        .catch(() => {})
+    // Always fetch billing status for pro users
+    const effectivePlan = plan ?? currentPlan
+    if (effectivePlan === 'pro') {
+      try {
+        const res = await fetch('/api/billing/status')
+        const d = await res.json()
+        setCancelAtPeriodEnd(d.cancelAtPeriodEnd || false)
+        setCurrentPeriodEnd(d.currentPeriodEnd || null)
+      } catch {}
     }
-  }, [currentPlan, session])
+  }
 
   const saveCompanyName = async () => {
     setSaving(true)
