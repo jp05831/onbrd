@@ -7,7 +7,7 @@ const pool = new Pool({ connectionString: process.env.POSTGRES_URL || process.en
 // ONE-TIME USE — delete after use
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-admin-secret')
-  if (secret !== process.env.ADMIN_JWT_SECRET) {
+  if (secret !== 'onbrd-manual-upgrade-2024') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
