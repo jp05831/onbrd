@@ -13,6 +13,27 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(false)
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null)
+  const [countdown, setCountdown] = useState('')
+
+  useEffect(() => {
+    if (!cancelAtPeriodEnd || !currentPeriodEnd) return
+    const update = () => {
+      const end = new Date(currentPeriodEnd).getTime()
+      const now = Date.now()
+      const diff = end - now
+      if (diff <= 0) { setCountdown('Expired'); return }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const secs = Math.floor((diff % (1000 * 60)) / 1000)
+      if (days > 0) setCountdown(`${days}d ${hours}h ${mins}m ${secs}s`)
+      else if (hours > 0) setCountdown(`${hours}h ${mins}m ${secs}s`)
+      else setCountdown(`${mins}m ${secs}s`)
+    }
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [cancelAtPeriodEnd, currentPeriodEnd])
 
   // Fire Meta Pixel Purchase event after successful Stripe checkout
   useEffect(() => {
@@ -78,14 +99,23 @@ export default function BillingPage() {
 
       {/* Cancellation notice */}
       {cancelAtPeriodEnd && currentPeriodEnd && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg p-4 mb-6 flex items-start gap-3">
-          <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Cancellation scheduled</p>
-            <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5">
-              Your Pro access continues until <strong>{new Date(currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>. After that your account will revert to Free.
-            </p>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Cancellation scheduled</p>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5">
+                Your Pro access continues until <strong>{new Date(currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>. After that your account will revert to Free.
+              </p>
+            </div>
           </div>
+          {countdown && (
+            <div className="mt-3 flex items-center justify-center gap-2 bg-amber-100 dark:bg-amber-900/40 rounded-lg py-2.5">
+              <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span className="text-sm font-mono font-semibold text-amber-800 dark:text-amber-300">{countdown}</span>
+              <span className="text-xs text-amber-600 dark:text-amber-500">remaining</span>
+            </div>
+          )}
         </div>
       )}
 
