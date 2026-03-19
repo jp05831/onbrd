@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { AlertTriangle, Clock } from 'lucide-react'
+import { AlertTriangle, Clock, Upload, X } from 'lucide-react'
 
 export default function SettingsPage() {
   const { data: session, update } = useSession()
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
@@ -31,6 +34,7 @@ export default function SettingsPage() {
       if (res.ok) {
         const data = await res.json()
         setCompanyName(data.company_name || '')
+        setLogoUrl(data.logo_url || null)
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error)
@@ -65,6 +69,40 @@ export default function SettingsPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleLogoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) return alert('Please upload an image file')
+    setUploadingLogo(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/files/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        const url = data.url || `/api/files/${data.id}`
+        setLogoUrl(url)
+        await fetch('/api/user/settings', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ logo_url: url }),
+        })
+      } else {
+        alert('Upload failed')
+      }
+    } catch { alert('Upload failed') } finally {
+      setUploadingLogo(false)
+      if (logoInputRef.current) logoInputRef.current.value = ''
+    }
+  }
+
+  const removeLogo = async () => {
+    setLogoUrl(null)
+    await fetch('/api/user/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ logo_url: null }),
+    })
   }
 
   const saveEmail = async () => {
@@ -159,6 +197,63 @@ export default function SettingsPage() {
                 </button>
               </div>
               <p className="text-xs text-gray-400 mt-1.5">Max 32 characters</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Company Logo */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <div>
+              <h3 className="font-medium text-gray-900 dark:text-white">Company Logo</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Shown on all your client portals by default. You can override per-flow in the flow editor.
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f) }}
+                className="hidden"
+              />
+              {logoUrl ? (
+                <div className="flex items-center gap-4">
+                  <img
+                    src={logoUrl}
+                    alt="Company logo"
+                    className="h-14 max-w-[200px] object-contain rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-2"
+                  />
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-neutral-700 text-sm text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      {uploadingLogo ? 'Uploading...' : 'Change'}
+                    </button>
+                    <button
+                      onClick={removeLogo}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={uploadingLogo}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-dashed border-gray-300 dark:border-neutral-600 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-neutral-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+                >
+                  <Upload className="w-4 h-4" />
+                  {uploadingLogo ? 'Uploading...' : 'Upload logo'}
+                </button>
+              )}
+              <p className="text-xs text-gray-400 mt-2">PNG, JPG, SVG — recommended height 40–80px</p>
             </div>
           </div>
         </div>
