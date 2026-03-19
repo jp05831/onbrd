@@ -54,7 +54,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const allowedFields = ['client_name', 'client_email', 'welcome_message', 'status', 'logo_url'] as const
+    const allowedFields = ['client_name', 'client_email', 'welcome_message', 'completion_message', 'accent_color', 'status', 'logo_url'] as const
     const updates: Record<string, any> = {}
     for (const field of allowedFields) {
       if (body[field] !== undefined) updates[field] = body[field]
