@@ -290,7 +290,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
                     const val = e.target.value
                     onSetExpiry(step.id, val === 'never' ? null : parseInt(val))
                   }}
-                  className="flex-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer"
+                  className="flex-1 text-xs bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer rounded"
                 >
                   <option value="never">Never</option>
                   <option value="7">After 7 days</option>
@@ -316,7 +316,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
                     const val = e.target.value
                     onSetExpiry(step.id, val === 'never' ? null : parseInt(val))
                   }}
-                  className="flex-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer"
+                  className="flex-1 text-xs bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-none outline-none cursor-pointer rounded"
                 >
                   <option value="never">Never</option>
                   <option value="7">After 7 days</option>
@@ -433,6 +433,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       completed: false,
       expire_days: null,
       expire_at: null,
+      due_date: null,
     }
     setSteps([...steps, newStep])
 
