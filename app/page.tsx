@@ -339,6 +339,9 @@ export default function LandingPage() {
             <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
               Blog
             </Link>
+            <Link href="/support" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
+              Support
+            </Link>
             <Link href="/login" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
               Log in
             </Link>
