@@ -94,10 +94,12 @@ export default function SettingsPage() {
       const res = await fetch('/api/billing/cancel', { method: 'POST' })
       const data = await res.json()
       if (data.success) {
-        setCurrentPlan('free')
         setShowCancelModal(false)
-        await update()
-        alert('Your subscription has been cancelled.')
+        setCancelAtPeriodEnd(true)
+        // Fetch the period end date
+        fetch('/api/billing/status').then(r => r.json()).then(d => {
+          setCurrentPeriodEnd(d.currentPeriodEnd || null)
+        }).catch(() => {})
       } else {
         alert(data.error || 'Failed to cancel subscription')
       }
