@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Check, Lock, ArrowUpRight, Sparkles, FileText, Upload, Camera, FileUp, RotateCcw } from 'lucide-react'
 import ExpiryBadge from '../../components/ExpiryBadge'
 
@@ -17,6 +17,7 @@ interface Step {
   position: number
   completed: boolean
   expire_at: string | null
+  due_date: string | null
 }
 
 interface ClientPortalProps {
@@ -25,6 +26,8 @@ interface ClientPortalProps {
     slug: string
     client_name: string
     welcome_message: string | null
+    completion_message: string | null
+    accent_color: string | null
     logo_url: string | null
     status: string
   }
@@ -43,6 +46,10 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
   const [uncompleting, setUncompleting] = useState<string | null>(null)
   const [uploading, setUploading] = useState<string | null>(null)
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
+
+  useEffect(() => {
+    fetch('/api/onboard/ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flowSlug: flow.slug }) }).catch(() => {})
+  }, [])
 
   const completedCount = steps.filter(s => s.completed).length
   const progress = steps.length > 0 ? (completedCount / steps.length) * 100 : 0
@@ -138,24 +145,20 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-white" strokeWidth={3} />
           </div>
-          <h1 className="text-2xl font-semibold text-white mb-2">All done!</h1>
-          <p className="text-gray-400 mb-8">
-            You&apos;ve completed all steps. {owner.company_name || owner.name} will be in touch.
+          <h1 className="text-2xl font-semibold text-white mb-3">You&apos;re all done! 🎉</h1>
+          <p className="text-gray-400 mb-8 leading-relaxed">
+            {flow.completion_message || `You've completed all ${steps.length} steps. ${owner.company_name || owner.name} will be in touch soon.`}
           </p>
-          <p className="text-sm text-gray-600">{steps.length} steps completed</p>
-          
-          {/* Undo last step */}
+          <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl mb-6">
+            <p className="text-sm text-gray-500">{steps.length} steps completed</p>
+          </div>
           <button
-            onClick={() => {
-              const lastCompleted = [...steps].reverse().find(s => s.completed)
-              if (lastCompleted) uncompleteStep(lastCompleted.id)
-            }}
-            className="inline-flex items-center gap-1.5 mt-6 px-4 py-2 text-sm text-gray-500 hover:text-gray-300 border border-neutral-800 rounded-lg hover:bg-neutral-900 transition-colors"
+            onClick={() => { const lastCompleted = [...steps].reverse().find(s => s.completed); if (lastCompleted) uncompleteStep(lastCompleted.id) }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-gray-500 hover:text-gray-300 border border-neutral-800 rounded-lg hover:bg-neutral-900 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Undo last step
           </button>
-          
           {owner.plan === 'free' && (
             <div className="mt-12">
               <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-500">
@@ -258,6 +261,9 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
                       <p className={`text-sm mt-0.5 ${status === 'locked' ? 'text-neutral-700' : 'text-gray-500'}`}>
                         {step.description}
                       </p>
+                    )}
+                    {step.due_date && status !== 'completed' && (
+                      <p className="text-xs text-amber-400 mt-1">Due {new Date(step.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                     )}
 
                     {status === 'active' && (

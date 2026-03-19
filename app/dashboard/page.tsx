@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText, Users, 
-  Repeat, CheckCircle2, Search, Paperclip, X, Image, FileUp
+  Repeat, CheckCircle2, Search, Paperclip, X, Image, FileUp, Download
 } from 'lucide-react'
 
 interface Flow {
@@ -270,6 +270,10 @@ export default function DashboardPage() {
                   className="pl-9 pr-4 py-2 w-48 border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+              <a href="/api/flows/export" download className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors" title="Export CSV">
+                <Download className="w-4 h-4" />
+                Export
+              </a>
               <button
                 onClick={() => { if (canCreateFlow) { setNewFlowType('client'); setNewFlow({ client_name: '', client_email: '', welcome_message: '', is_template: false }); setSelectedTemplateId(''); setShowNewModal(true) } else { window.location.href = '/dashboard/billing' } }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"

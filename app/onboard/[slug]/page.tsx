@@ -21,6 +21,8 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
         slug: flow.slug,
         client_name: flow.client_name,
         welcome_message: flow.welcome_message,
+        completion_message: flow.completion_message,
+        accent_color: flow.accent_color,
         logo_url: flow.logo_url,
         status: flow.status,
       }}
@@ -37,6 +39,7 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
         position: s.position,
         completed: s.completed,
         expire_at: s.expire_at ?? null,
+        due_date: s.due_date ?? null,
       }))}
       owner={{
         name: user?.name || 'Unknown',

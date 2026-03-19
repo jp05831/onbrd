@@ -143,6 +143,12 @@ async function runMigrations(client: any) {
     { table: 'users', column: 'is_banned', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE' },
     { table: 'users', column: 'is_email_verified', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE' },
     { table: 'users', column: 'verification_token', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT' },
+
+    // new feature migrations
+    { table: 'steps', column: 'due_date', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS due_date DATE' },
+    { table: 'flows', column: 'completion_message', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS completion_message TEXT' },
+    { table: 'flows', column: 'accent_color', sql: "ALTER TABLE flows ADD COLUMN IF NOT EXISTS accent_color TEXT DEFAULT '#2563eb'" },
+    { table: 'flow_activity', column: 'id', sql: `CREATE TABLE IF NOT EXISTS flow_activity (id TEXT PRIMARY KEY, flow_id TEXT NOT NULL, event TEXT NOT NULL, detail TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)` },
   ]
   
   for (const migration of migrations) {
@@ -193,6 +199,8 @@ export interface Flow {
   client_name: string
   client_email: string | null
   welcome_message: string | null
+  completion_message: string | null
+  accent_color: string | null
   logo_url: string | null
   slug: string
   status: 'draft' | 'published' | 'completed'
@@ -217,6 +225,7 @@ export interface Step {
   completed_at: string | null
   expire_days: number | null
   expire_at: string | null
+  due_date: string | null
 }
 
 export interface FileRecord {
@@ -558,6 +567,18 @@ export const database = {
     }
 
     return { id: newId, slug: newSlug }
+  },
+
+  logActivity: async (flowId: string, event: string, detail?: string) => {
+    await initDb()
+    const id = uuid()
+    await pool.query('INSERT INTO flow_activity (id, flow_id, event, detail, created_at) VALUES ($1, $2, $3, $4, NOW())', [id, flowId, event, detail || null])
+  },
+
+  getActivityByFlowId: async (flowId: string) => {
+    await initDb()
+    const result = await pool.query('SELECT * FROM flow_activity WHERE flow_id = $1 ORDER BY created_at DESC LIMIT 50', [flowId])
+    return result.rows as { id: string; flow_id: string; event: string; detail: string | null; created_at: string }[]
   },
 
   deleteAccount: async (userId: string) => {

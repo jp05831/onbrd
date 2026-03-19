@@ -21,6 +21,22 @@ export async function POST(request: NextRequest) {
 
     await database.completeStep(stepId)
 
+    await database.logActivity(flow.id, 'step_completed', step.title).catch(console.error)
+
+    const allSteps = await database.getStepsByFlowId(flow.id)
+    const allDone = allSteps.every(s => s.id === stepId ? true : s.completed)
+    if (allDone) {
+      const owner = await database.getUserById(flow.user_id)
+      if (flow.client_email) {
+        const { sendClientCompletionEmail } = await import('../../../lib/email')
+        await sendClientCompletionEmail(flow.client_email, flow.client_name, owner?.company_name || owner?.name || 'Your provider', flow.completion_message).catch(console.error)
+      }
+      if (owner && (owner.plan === 'pro' || owner.is_pro)) {
+        const { sendFlowCompletionToOwner } = await import('../../../lib/email')
+        await sendFlowCompletionToOwner(owner.email, flow.client_name).catch(console.error)
+      }
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Complete step error:', error)

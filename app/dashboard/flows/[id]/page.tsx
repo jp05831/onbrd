@@ -53,6 +53,7 @@ interface Step {
   completed: boolean
   expire_days: number | null
   expire_at: string | null
+  due_date: string | null
 }
 
 interface Flow {
@@ -60,6 +61,8 @@ interface Flow {
   client_name: string
   client_email: string | null
   welcome_message: string | null
+  completion_message: string | null
+  accent_color: string | null
   logo_url: string | null
   slug: string
   status: 'draft' | 'published' | 'completed'
@@ -171,6 +174,15 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
             onChange={(e) => onUpdate(step.id, { description: e.target.value })}
             className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             placeholder="Brief instructions"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Due date (optional)</label>
+          <input
+            type="date"
+            value={step.due_date || ''}
+            onChange={(e) => onUpdate(step.id, { due_date: e.target.value || null })}
+            className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
           />
         </div>
         
@@ -351,6 +363,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [activity, setActivity] = useState<{ id: string; event: string; detail: string | null; created_at: string }[]>([])
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   const sensors = useSensors(
@@ -372,6 +385,8 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         if (data.userPlan) {
           setUserPlan(data.userPlan)
         }
+        const actRes = await fetch(`/api/flows/${id}/activity`)
+        if (actRes.ok) { const actData = await actRes.json(); setActivity(actData.activity || []) }
       } else {
         router.push('/dashboard')
       }
@@ -738,6 +753,21 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portal accent color</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={flow.accent_color || '#2563eb'}
+                onChange={(e) => updateFlow({ accent_color: e.target.value })}
+                className="w-10 h-10 rounded-lg border border-gray-200 dark:border-neutral-700 cursor-pointer bg-transparent p-0.5"
+              />
+              <span className="text-sm text-gray-500 dark:text-gray-400">{flow.accent_color || '#2563eb'}</span>
+              <button onClick={() => updateFlow({ accent_color: '#2563eb' })} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">Reset</button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Used for buttons and progress bar in your client portal</p>
+          </div>
+
+          <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Client email (optional)</label>
             <input
               type="email"
@@ -756,6 +786,17 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               rows={2}
               placeholder="Welcome! Complete the steps below..."
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Completion message (optional)</label>
+            <textarea
+              value={flow.completion_message || ''}
+              onChange={(e) => updateFlow({ completion_message: e.target.value || null })}
+              className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              rows={2}
+              placeholder="You're all set! We'll be in touch within 24 hours..."
+            />
+            <p className="text-xs text-gray-400 mt-1">Shown to clients after they complete all steps</p>
           </div>
           {flow.status === 'published' && (
             <div>
@@ -854,6 +895,31 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
           </button>
         </div>
       )}
+
+      {/* Activity */}
+      <div className="mt-8">
+        <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Activity</h2>
+        <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg divide-y divide-gray-100 dark:divide-neutral-800">
+          {activity.length === 0 ? (
+            <div className="p-6 text-center text-sm text-gray-400">No activity yet — share the portal link to get started.</div>
+          ) : (
+            activity.map((item) => (
+              <div key={item.id} className="flex items-center gap-3 px-4 py-3">
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.event === 'step_completed' || item.event === 'file_uploaded' ? 'bg-green-500' : 'bg-blue-500'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {item.event === 'step_completed' && `Completed: ${item.detail}`}
+                    {item.event === 'file_uploaded' && `Uploaded file for: ${item.detail}`}
+                    {item.event === 'portal_opened' && 'Client opened the portal'}
+                    {!['step_completed','file_uploaded','portal_opened'].includes(item.event) && item.event}
+                  </p>
+                </div>
+                <p className="text-xs text-gray-400 flex-shrink-0">{new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   )
 }

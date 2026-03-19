@@ -59,6 +59,27 @@ export async function sendVerificationEmail(email: string, token: string) {
   })
 }
 
+export async function sendClientCompletionEmail(clientEmail: string, clientName: string, ownerName: string, completionMessage?: string | null) {
+  await resend.emails.send({
+    from: 'Onbrd <noreply@onbrd.net>',
+    to: clientEmail,
+    subject: `You're all done, ${clientName}! ✅`,
+    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;text-align:center;"><p style="margin:0;font-size:22px;font-weight:600;color:#111827;">You're all done, ${clientName}! ✅</p></td></tr><tr><td style="padding:16px 40px 32px;text-align:center;"><p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.7;">${completionMessage || `You've completed your onboarding with ${ownerName}. They'll be in touch soon.`}</p></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
+    text: `You're all done, ${clientName}!\n\n${completionMessage || `You've completed your onboarding with ${ownerName}. They'll be in touch soon.`}`,
+  })
+}
+
+export async function sendFlowCompletionToOwner(ownerEmail: string, clientName: string) {
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.onbrd.net'
+  await resend.emails.send({
+    from: 'Onbrd <noreply@onbrd.net>',
+    to: ownerEmail,
+    subject: `${clientName} completed their onboarding ✅`,
+    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">🎉 ${clientName} is all done!</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.6;">${clientName} has completed all steps in their onboarding portal.</p><a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">View Dashboard →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
+    text: `${clientName} completed their onboarding!\n\nView dashboard: ${APP_URL}/dashboard`,
+  })
+}
+
 export async function sendExpiryWarningEmail(
   ownerEmail: string,
   ownerName: string,
