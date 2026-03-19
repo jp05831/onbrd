@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Check, Lock, ArrowUpRight, Sparkles, FileText, Upload, Camera, FileUp, RotateCcw } from 'lucide-react'
+import { Check, Lock, ArrowUpRight, Sparkles, FileText, Camera, FileUp, RotateCcw, ChevronRight } from 'lucide-react'
 import ExpiryBadge from '../../components/ExpiryBadge'
 
 interface Step {
@@ -47,8 +47,14 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
   const [uploading, setUploading] = useState<string | null>(null)
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
 
+  const accent = flow.accent_color || '#2563eb'
+
   useEffect(() => {
-    fetch('/api/onboard/ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flowSlug: flow.slug }) }).catch(() => {})
+    fetch('/api/onboard/ping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ flowSlug: flow.slug }),
+    }).catch(() => {})
   }, [])
 
   const completedCount = steps.filter(s => s.completed).length
@@ -65,41 +71,25 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
   const completeStep = async (stepId: string) => {
     setCompleting(stepId)
     try {
-      const res = await fetch(`/api/onboard/complete`, {
+      const res = await fetch('/api/onboard/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stepId, flowSlug: flow.slug }),
       })
-      if (res.ok) {
-        setSteps(prev => prev.map(s => 
-          s.id === stepId ? { ...s, completed: true } : s
-        ))
-      }
-    } catch (error) {
-      console.error('Failed to complete step:', error)
-    } finally {
-      setCompleting(null)
-    }
+      if (res.ok) setSteps(prev => prev.map(s => s.id === stepId ? { ...s, completed: true } : s))
+    } catch (e) { console.error(e) } finally { setCompleting(null) }
   }
 
   const uncompleteStep = async (stepId: string) => {
     setUncompleting(stepId)
     try {
-      const res = await fetch(`/api/onboard/uncomplete`, {
+      const res = await fetch('/api/onboard/uncomplete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stepId, flowSlug: flow.slug }),
       })
-      if (res.ok) {
-        setSteps(prev => prev.map(s => 
-          s.id === stepId ? { ...s, completed: false, uploaded_file_id: null, uploaded_file_name: null } : s
-        ))
-      }
-    } catch (error) {
-      console.error('Failed to uncomplete step:', error)
-    } finally {
-      setUncompleting(null)
-    }
+      if (res.ok) setSteps(prev => prev.map(s => s.id === stepId ? { ...s, completed: false, uploaded_file_id: null, uploaded_file_name: null } : s))
+    } catch (e) { console.error(e) } finally { setUncompleting(null) }
   }
 
   const handleFileUpload = async (stepId: string, file: File) => {
@@ -109,59 +99,91 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
       formData.append('file', file)
       formData.append('stepId', stepId)
       formData.append('flowSlug', flow.slug)
-
-      const res = await fetch('/api/onboard/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
+      const res = await fetch('/api/onboard/upload', { method: 'POST', body: formData })
       if (res.ok) {
         const data = await res.json()
-        setSteps(prev => prev.map(s => 
-          s.id === stepId 
-            ? { ...s, uploaded_file_id: data.url, uploaded_file_name: data.name, completed: true } 
-            : s
-        ))
+        setSteps(prev => prev.map(s => s.id === stepId ? { ...s, uploaded_file_id: data.url, uploaded_file_name: data.name, completed: true } : s))
       } else {
         const error = await res.json()
         alert(error.error || 'Upload failed')
       }
-    } catch (error) {
-      console.error('Upload failed:', error)
-      alert('Upload failed')
-    } finally {
-      setUploading(null)
-    }
+    } catch (e) { alert('Upload failed') } finally { setUploading(null) }
   }
 
-  const triggerFileInput = (stepId: string) => {
-    fileInputRefs.current[stepId]?.click()
-  }
-
+  // ── Completion screen ───────────────────────────────────────────────────────
   if (allComplete) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-8 h-8 text-white" strokeWidth={3} />
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6">
+        {/* Subtle radial glow using accent color */}
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{ background: `radial-gradient(600px circle at 50% 40%, ${accent}, transparent)` }}
+        />
+
+        <div className="relative max-w-md w-full">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            {(flow.logo_url || owner.logo_url) ? (
+              <img src={flow.logo_url || owner.logo_url!} alt="" className="h-10 object-contain opacity-80" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
+                <span className="text-white font-bold text-sm">{(owner.company_name || owner.name).charAt(0)}</span>
+              </div>
+            )}
           </div>
-          <h1 className="text-2xl font-semibold text-white mb-3">You&apos;re all done! 🎉</h1>
-          <p className="text-gray-400 mb-8 leading-relaxed">
-            {flow.completion_message || `You've completed all ${steps.length} steps. ${owner.company_name || owner.name} will be in touch soon.`}
-          </p>
-          <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl mb-6">
-            <p className="text-sm text-gray-500">{steps.length} steps completed</p>
+
+          {/* Card */}
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
+            {/* Check circle */}
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ backgroundColor: accent }}
+            >
+              <Check className="w-8 h-8 text-white" strokeWidth={2.5} />
+            </div>
+
+            <h1 className="text-2xl font-semibold text-white mb-3">You&apos;re all done! 🎉</h1>
+
+            <p className="text-gray-400 leading-relaxed mb-6">
+              {flow.completion_message || `You've completed all ${steps.length} steps. ${owner.company_name || owner.name} will be in touch with you soon.`}
+            </p>
+
+            {/* Steps summary */}
+            <div className="border border-neutral-800 rounded-xl p-4 mb-6 bg-neutral-950/50">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-gray-500">All steps completed</span>
+                <span className="text-xs font-medium text-white">{steps.length}/{steps.length}</span>
+              </div>
+              <div className="h-1.5 bg-neutral-800 rounded-full">
+                <div className="h-full rounded-full w-full" style={{ backgroundColor: accent }} />
+              </div>
+              <div className="mt-3 space-y-1.5">
+                {steps.map(step => (
+                  <div key={step.id} className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accent }}>
+                      <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                    </div>
+                    <span className="text-xs text-gray-400 text-left">{step.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                const lastCompleted = [...steps].reverse().find(s => s.completed)
+                if (lastCompleted) uncompleteStep(lastCompleted.id)
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-gray-500 hover:text-gray-300 border border-neutral-800 rounded-lg hover:bg-neutral-800 transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Undo last step
+            </button>
           </div>
-          <button
-            onClick={() => { const lastCompleted = [...steps].reverse().find(s => s.completed); if (lastCompleted) uncompleteStep(lastCompleted.id) }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-gray-500 hover:text-gray-300 border border-neutral-800 rounded-lg hover:bg-neutral-900 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Undo last step
-          </button>
+
           {owner.plan === 'free' && (
-            <div className="mt-12">
-              <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-500">
+            <div className="text-center mt-6">
+              <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-gray-500 transition-colors">
                 <Sparkles className="w-3 h-3" />
                 Powered by Onbrd
               </a>
@@ -172,48 +194,53 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
     )
   }
 
+  // ── Main portal ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-black">
-      <div className="max-w-xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-neutral-950">
+      {/* Top accent bar */}
+      <div className="h-1 w-full" style={{ backgroundColor: accent }} />
+
+      <div className="max-w-xl mx-auto px-5 py-10">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-10">
           {(flow.logo_url || owner.logo_url) ? (
-            <img src={flow.logo_url || owner.logo_url!} alt="" className="h-10 object-contain" />
+            <img src={flow.logo_url || owner.logo_url!} alt="" className="h-9 object-contain" />
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-semibold">
-                {(owner.company_name || owner.name).charAt(0)}
-              </span>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accent }}>
+              <span className="text-white font-semibold text-sm">{(owner.company_name || owner.name).charAt(0)}</span>
             </div>
           )}
           <div>
-            <p className="font-medium text-white">{owner.company_name || owner.name}</p>
-            <p className="text-sm text-gray-500">Client Onboarding</p>
+            <p className="font-semibold text-white text-sm">{owner.company_name || owner.name}</p>
+            <p className="text-xs text-gray-500">Client Onboarding</p>
           </div>
         </div>
 
         {/* Welcome */}
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-white mb-1">
-            Welcome, {flow.client_name}
+          <h1 className="text-2xl font-semibold text-white mb-2">
+            Welcome, {flow.client_name} 👋
           </h1>
-          <p className="text-gray-400">
-            {flow.welcome_message || 'Complete the steps below to get started.'}
+          <p className="text-gray-400 text-sm leading-relaxed">
+            {flow.welcome_message || 'Complete the steps below to get started. Click each step to open it, then mark it done.'}
           </p>
         </div>
 
         {/* Progress */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-500">Progress</span>
-            <span className="font-medium text-white">{completedCount}/{steps.length}</span>
+        <div className="mb-8 p-4 bg-neutral-900 border border-neutral-800 rounded-xl">
+          <div className="flex justify-between text-sm mb-3">
+            <span className="text-gray-400">Your progress</span>
+            <span className="font-semibold text-white">{completedCount} of {steps.length} done</span>
           </div>
-          <div className="h-1.5 bg-neutral-800 rounded-full">
+          <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-600 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full transition-all duration-700 ease-out"
+              style={{ width: `${progress}%`, backgroundColor: accent }}
             />
           </div>
+          {completedCount > 0 && completedCount < steps.length && (
+            <p className="text-xs text-gray-600 mt-2">{steps.length - completedCount} step{steps.length - completedCount > 1 ? 's' : ''} remaining</p>
+          )}
         </div>
 
         {/* Steps */}
@@ -222,151 +249,152 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
             const status = getStepStatus(step, index)
             const stepType = step.step_type || 'link'
             const isUploadType = stepType === 'request_pdf' || stepType === 'request_photo'
-            
+
             return (
               <div
                 key={step.id}
-                className={`bg-neutral-900 border rounded-xl p-4 transition-all ${
-                  status === 'active' 
-                    ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-600/5' 
+                className={`rounded-xl border transition-all duration-200 ${
+                  status === 'active'
+                    ? 'border-neutral-700 bg-neutral-900'
                     : status === 'completed'
-                    ? 'border-neutral-800'
-                    : 'border-neutral-800 opacity-50'
+                    ? 'border-neutral-800/60 bg-neutral-900/40'
+                    : 'border-neutral-800/40 bg-neutral-900/20 opacity-50'
                 }`}
+                style={status === 'active' ? { boxShadow: `0 0 0 1px ${accent}33, 0 0 20px ${accent}0d` } : undefined}
               >
-                <div className="flex items-start gap-3">
-                  {/* Status Icon */}
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                    status === 'completed'
-                      ? 'bg-blue-600'
-                      : status === 'active'
-                      ? 'border-2 border-blue-500'
-                      : 'border-2 border-neutral-600'
-                  }`}>
-                    {status === 'completed' ? (
-                      <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-                    ) : status === 'locked' ? (
-                      <Lock className="w-3 h-3 text-neutral-500" />
-                    ) : (
-                      <span className="w-2 h-2 bg-blue-500 rounded-full" />
-                    )}
-                  </div>
+                <div className="p-4">
+                  <div className="flex items-start gap-3">
+                    {/* Step number / status icon */}
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+                      style={
+                        status === 'completed'
+                          ? { backgroundColor: accent }
+                          : status === 'active'
+                          ? { border: `2px solid ${accent}`, backgroundColor: `${accent}15` }
+                          : { border: '2px solid #404040' }
+                      }
+                    >
+                      {status === 'completed' ? (
+                        <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                      ) : status === 'locked' ? (
+                        <Lock className="w-3 h-3 text-neutral-600" />
+                      ) : (
+                        <span className="text-xs font-bold" style={{ color: accent }}>{index + 1}</span>
+                      )}
+                    </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-medium ${status === 'locked' ? 'text-neutral-600' : 'text-white'}`}>
-                      {step.title}
-                    </p>
-                    {step.description && (
-                      <p className={`text-sm mt-0.5 ${status === 'locked' ? 'text-neutral-700' : 'text-gray-500'}`}>
-                        {step.description}
-                      </p>
-                    )}
-                    {step.due_date && status !== 'completed' && (
-                      <p className="text-xs text-amber-400 mt-1">Due {new Date(step.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                    )}
-
-                    {status === 'active' && (
-                      <div className="mt-3">
-                        {/* Link/File step types */}
-                        {!isUploadType && (
-                          <div className="flex gap-2">
-                            {step.file_id ? (
-                              <a
-                                href={step.file_id.startsWith('http') ? step.file_id : `/api/files/${step.file_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-sm font-medium rounded-md hover:bg-gray-100 transition-colors"
-                              >
-                                <FileText className="w-3.5 h-3.5" />
-                                View PDF
-                              </a>
-                            ) : step.url ? (
-                              <a
-                                href={step.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-sm font-medium rounded-md hover:bg-gray-100 transition-colors"
-                              >
-                                Open
-                                <ArrowUpRight className="w-3.5 h-3.5" />
-                              </a>
-                            ) : null}
-                            <button
-                              onClick={() => completeStep(step.id)}
-                              disabled={completing === step.id}
-                              className="px-3 py-1.5 border border-neutral-700 text-gray-300 text-sm font-medium rounded-md hover:bg-neutral-800 hover:border-neutral-600 transition-colors disabled:opacity-50"
-                            >
-                              {completing === step.id ? 'Saving...' : 'Mark done'}
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Upload step types */}
-                        {isUploadType && (
-                          <div>
-                            <input
-                              ref={el => { fileInputRefs.current[step.id] = el }}
-                              type="file"
-                              accept={stepType === 'request_photo' ? 'image/*' : '.pdf,application/pdf'}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0]
-                                if (file) handleFileUpload(step.id, file)
-                              }}
-                              className="hidden"
-                            />
-                            <button
-                              onClick={() => triggerFileInput(step.id)}
-                              disabled={uploading === step.id}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-                            >
-                              {uploading === step.id ? (
-                                'Uploading...'
-                              ) : stepType === 'request_photo' ? (
-                                <>
-                                  <Camera className="w-4 h-4" />
-                                  Upload Photo
-                                </>
-                              ) : (
-                                <>
-                                  <FileUp className="w-4 h-4" />
-                                  Upload PDF
-                                </>
-                              )}
-                            </button>
-                            <p className="text-xs text-gray-600 mt-2">
-                              {stepType === 'request_photo' 
-                                ? 'Accepts JPG, PNG, or other image formats'
-                                : 'Accepts PDF files only'}
-                            </p>
-                          </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`font-medium text-sm ${status === 'locked' ? 'text-neutral-600' : 'text-white'}`}>
+                          {step.title}
+                        </p>
+                        {status === 'completed' && (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0" style={{ backgroundColor: `${accent}20`, color: accent }}>
+                            Done
+                          </span>
                         )}
                       </div>
-                    )}
 
-                    {status === 'completed' && (
-                      <div className="mt-2 flex items-center gap-3 flex-wrap">
-                        {isUploadType && step.uploaded_file_name ? (
-                          <p className="text-sm text-blue-400">
-                            ✓ Uploaded: {step.uploaded_file_name}
-                          </p>
-                        ) : (
-                          <p className="text-sm text-blue-400">Completed</p>
-                        )}
-                        {step.expire_at && (
-                          <ExpiryBadge expireAt={step.expire_at} />
-                        )}
-                        <button
-                          onClick={() => uncompleteStep(step.id)}
-                          disabled={uncompleting === step.id}
-                          className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-400 transition-colors disabled:opacity-50"
-                          title="Mark as not done"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          {uncompleting === step.id ? 'Undoing...' : 'Undo'}
-                        </button>
-                      </div>
-                    )}
+                      {step.description && (
+                        <p className={`text-xs mt-0.5 leading-relaxed ${status === 'locked' ? 'text-neutral-700' : 'text-gray-500'}`}>
+                          {step.description}
+                        </p>
+                      )}
+
+                      {step.due_date && status !== 'completed' && (
+                        <p className="text-xs text-amber-400 mt-1 font-medium">
+                          📅 Due {new Date(step.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
+                      )}
+
+                      {/* Active step actions */}
+                      {status === 'active' && (
+                        <div className="mt-3">
+                          {!isUploadType && (
+                            <div className="flex flex-wrap gap-2">
+                              {step.file_id ? (
+                                <a
+                                  href={step.file_id.startsWith('http') ? step.file_id : `/api/files/${step.file_id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg text-white transition-opacity hover:opacity-90"
+                                  style={{ backgroundColor: accent }}
+                                >
+                                  <FileText className="w-3.5 h-3.5" />
+                                  View Document
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                </a>
+                              ) : step.url ? (
+                                <a
+                                  href={step.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg text-white transition-opacity hover:opacity-90"
+                                  style={{ backgroundColor: accent }}
+                                >
+                                  Open
+                                  <ArrowUpRight className="w-3.5 h-3.5" />
+                                </a>
+                              ) : null}
+                              <button
+                                onClick={() => completeStep(step.id)}
+                                disabled={completing === step.id}
+                                className="px-4 py-2 border border-neutral-700 text-gray-300 text-sm font-medium rounded-lg hover:bg-neutral-800 hover:border-neutral-600 transition-colors disabled:opacity-50"
+                              >
+                                {completing === step.id ? 'Saving...' : 'Mark done ✓'}
+                              </button>
+                            </div>
+                          )}
+
+                          {isUploadType && (
+                            <div>
+                              <input
+                                ref={el => { fileInputRefs.current[step.id] = el }}
+                                type="file"
+                                accept={stepType === 'request_photo' ? 'image/*' : '.pdf,application/pdf'}
+                                onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(step.id, f) }}
+                                className="hidden"
+                              />
+                              <button
+                                onClick={() => fileInputRefs.current[step.id]?.click()}
+                                disabled={uploading === step.id}
+                                className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-opacity hover:opacity-90 disabled:opacity-50"
+                                style={{ backgroundColor: accent }}
+                              >
+                                {uploading === step.id ? 'Uploading...' : stepType === 'request_photo' ? (
+                                  <><Camera className="w-4 h-4" />Upload Photo</>
+                                ) : (
+                                  <><FileUp className="w-4 h-4" />Upload PDF</>
+                                )}
+                              </button>
+                              <p className="text-xs text-gray-600 mt-2">
+                                {stepType === 'request_photo' ? 'JPG, PNG, or other image formats' : 'PDF files only'}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Completed state */}
+                      {status === 'completed' && (
+                        <div className="mt-2 flex items-center gap-3 flex-wrap">
+                          {isUploadType && step.uploaded_file_name ? (
+                            <p className="text-xs text-gray-500">↑ {step.uploaded_file_name}</p>
+                          ) : null}
+                          {step.expire_at && <ExpiryBadge expireAt={step.expire_at} />}
+                          <button
+                            onClick={() => uncompleteStep(step.id)}
+                            disabled={uncompleting === step.id}
+                            className="inline-flex items-center gap-1 text-xs text-neutral-700 hover:text-gray-400 transition-colors disabled:opacity-50"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            {uncompleting === step.id ? 'Undoing...' : 'Undo'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -377,7 +405,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
         {/* Footer */}
         {owner.plan === 'free' && (
           <div className="text-center mt-12">
-            <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-500">
+            <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-gray-500 transition-colors">
               <Sparkles className="w-3 h-3" />
               Powered by Onbrd
             </a>
