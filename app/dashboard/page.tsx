@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Plus, ExternalLink, Trash2, Copy, Check, Globe, FileText, Users, 
-  Repeat, CheckCircle2, Search, Paperclip, X, Image, FileUp, Download
+  Repeat, CheckCircle2, Search, Paperclip, X, Image, FileUp, Download, Link2
 } from 'lucide-react'
 
 interface Flow {
@@ -54,6 +54,7 @@ export default function DashboardPage() {
   const [filesModal, setFilesModal] = useState<{ flowId: string; flowName: string } | null>(null)
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [loadingFiles, setLoadingFiles] = useState(false)
+  const [publishedToast, setPublishedToast] = useState(false)
 
   const searchParams = useSearchParams()
 
@@ -63,8 +64,12 @@ export default function DashboardPage() {
       if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
         (window as any).fbq('track', 'Lead')
       }
-      // Clean up URL
       window.history.replaceState({}, '', '/dashboard')
+    }
+    if (searchParams.get('published') === '1') {
+      setPublishedToast(true)
+      window.history.replaceState({}, '', '/dashboard')
+      setTimeout(() => setPublishedToast(false), 5000)
     }
   }, [searchParams])
 
@@ -199,6 +204,22 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Published toast */}
+      {publishedToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-neutral-900 border border-green-500/30 rounded-xl shadow-2xl shadow-black/40 animate-in fade-in slide-in-from-top-2">
+          <div className="w-7 h-7 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <Link2 className="w-3.5 h-3.5 text-green-400" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-white">Flow published! 🎉</p>
+            <p className="text-xs text-gray-400">Portal link copied to clipboard</p>
+          </div>
+          <button onClick={() => setPublishedToast(false)} className="ml-2 text-gray-600 hover:text-gray-400">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
