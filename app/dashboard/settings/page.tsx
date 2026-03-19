@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Clock } from 'lucide-react'
 
 export default function SettingsPage() {
   const { data: session, update } = useSession()
@@ -13,6 +13,8 @@ export default function SettingsPage() {
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [cancelLoading, setCancelLoading] = useState(false)
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null)
 
   useEffect(() => {
     if (session?.user) {
@@ -35,6 +37,18 @@ export default function SettingsPage() {
       console.error('Failed to fetch settings:', error)
     }
   }
+
+  useEffect(() => {
+    if (currentPlan === 'pro') {
+      fetch('/api/billing/status')
+        .then(r => r.json())
+        .then(d => {
+          setCancelAtPeriodEnd(d.cancelAtPeriodEnd || false)
+          setCurrentPeriodEnd(d.currentPeriodEnd || null)
+        })
+        .catch(() => {})
+    }
+  }, [currentPlan])
 
   const saveCompanyName = async () => {
     setSaving(true)
@@ -206,28 +220,37 @@ export default function SettingsPage() {
                 Your current subscription.
               </p>
             </div>
-            <div className="md:col-span-2 flex items-center gap-3">
-              <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                currentPlan === 'pro'
-                  ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
-                  : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
-              }`}>
-                {currentPlan === 'pro' ? 'Pro' : 'Free'}
-              </span>
-              {currentPlan === 'pro' ? (
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  className="text-sm text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
-                >
-                  Cancel subscription
-                </button>
-              ) : (
-                <a
-                  href="/dashboard/billing"
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                >
-                  Upgrade to Pro →
-                </a>
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-3">
+                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                  currentPlan === 'pro'
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
+                }`}>
+                  {currentPlan === 'pro' ? 'Pro' : 'Free'}
+                </span>
+                {currentPlan === 'pro' && !cancelAtPeriodEnd && (
+                  <button
+                    onClick={() => setShowCancelModal(true)}
+                    className="text-sm text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
+                  >
+                    Cancel subscription
+                  </button>
+                )}
+                {currentPlan === 'free' && (
+                  <a
+                    href="/dashboard/billing"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    Upgrade to Pro →
+                  </a>
+                )}
+              </div>
+              {cancelAtPeriodEnd && currentPeriodEnd && (
+                <div className="mt-2 flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400">
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                  Cancellation scheduled — Pro access until {new Date(currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </div>
               )}
             </div>
           </div>

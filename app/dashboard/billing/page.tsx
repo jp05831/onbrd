@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
-import { Check, Sparkles, ShieldCheck } from 'lucide-react'
+import { Check, Sparkles, ShieldCheck, Clock } from 'lucide-react'
 
 export default function BillingPage() {
   const { data: session } = useSession()
@@ -11,6 +11,8 @@ export default function BillingPage() {
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free')
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('year')
   const [loading, setLoading] = useState(false)
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null)
 
   // Fire Meta Pixel Purchase event after successful Stripe checkout
   useEffect(() => {
@@ -28,6 +30,18 @@ export default function BillingPage() {
       setCurrentPlan((session.user as any).plan)
     }
   }, [session])
+
+  useEffect(() => {
+    if (currentPlan === 'pro') {
+      fetch('/api/billing/status')
+        .then(r => r.json())
+        .then(d => {
+          setCancelAtPeriodEnd(d.cancelAtPeriodEnd || false)
+          setCurrentPeriodEnd(d.currentPeriodEnd || null)
+        })
+        .catch(() => {})
+    }
+  }, [currentPlan])
 
   const handleUpgrade = async () => {
     setLoading(true)
@@ -61,6 +75,19 @@ export default function BillingPage() {
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Billing</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your subscription and billing details.</p>
       </div>
+
+      {/* Cancellation notice */}
+      {cancelAtPeriodEnd && currentPeriodEnd && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg p-4 mb-6 flex items-start gap-3">
+          <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">Cancellation scheduled</p>
+            <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5">
+              Your Pro access continues until <strong>{new Date(currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>. After that your account will revert to Free.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Value nudge for free users */}
       {currentPlan === 'free' && (
@@ -189,7 +216,7 @@ export default function BillingPage() {
               disabled
               className="w-full py-2 border border-gray-200 dark:border-neutral-700 text-gray-400 dark:text-gray-500 text-sm font-medium rounded-md cursor-not-allowed"
             >
-              Current Plan
+              {cancelAtPeriodEnd ? 'Cancellation Scheduled' : 'Current Plan'}
             </button>
           ) : (
             <>
