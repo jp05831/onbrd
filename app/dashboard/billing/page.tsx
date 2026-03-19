@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
-import { Check, Sparkles, ShieldCheck, Clock, PartyPopper } from 'lucide-react'
+import { Check, Sparkles, ShieldCheck, Clock, PartyPopper, Mail } from 'lucide-react'
 
 export default function BillingPage() {
   const { data: session, update } = useSession()
@@ -297,6 +297,25 @@ export default function BillingPage() {
           <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             No billing history yet.
           </div>
+        </div>
+      </div>
+
+      {/* Refund & Support */}
+      <div className="mt-6 p-4 bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg flex items-start gap-3">
+        <Mail className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">
+            7-day money-back guarantee
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            Not happy? Email us within 7 days of your purchase and we'll refund you — no questions asked.{' '}
+            <a
+              href="mailto:Onbrd1@gmail.com?subject=Refund Request"
+              className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            >
+              Contact support →
+            </a>
+          </p>
         </div>
       </div>
     </div>
