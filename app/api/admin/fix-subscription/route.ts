@@ -14,12 +14,20 @@ export async function POST(req: NextRequest) {
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-  // List all recent customers and subscriptions
-  const customers = await stripe.customers.list({ limit: 20 })
-  const subs = await stripe.subscriptions.list({ limit: 20, status: 'all' })
+  // Known values from Stripe
+  const customerId = 'cus_UAq6hZu1OkXJTw'
+  const subscriptionId = 'sub_1TCUQL2LWdEL3A7uQodvWSJW'
+  const email = 'ChrisLeo665@gmail.com'
 
-  return NextResponse.json({
-    customers: customers.data.map(c => ({ id: c.id, email: c.email, created: new Date(c.created * 1000).toISOString() })),
-    subscriptions: subs.data.map(s => ({ id: s.id, status: s.status, customer: s.customer, created: new Date(s.created * 1000).toISOString() }))
-  })
+  await pool.query(
+    'UPDATE users SET stripe_customer_id = $1, stripe_subscription_id = $2, plan = $3, is_pro = TRUE WHERE LOWER(email) = LOWER($4)',
+    [customerId, subscriptionId, 'pro', email]
+  )
+
+  const updated = await pool.query(
+    'SELECT id, email, plan, is_pro, stripe_customer_id, stripe_subscription_id FROM users WHERE LOWER(email) = LOWER($1)',
+    [email]
+  )
+
+  return NextResponse.json({ success: true, user: updated.rows[0] })
 }
