@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Check, ArrowRight, Zap, Link2, BarChart3, ShieldCheck } from 'lucide-react'
+import { getAllPosts, formatDate } from './lib/blog'
 
 export default function LandingPage() {
+  const recentPosts = getAllPosts().slice(0, 3)
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
@@ -259,6 +261,51 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Blog */}
+      <section className="py-24 px-6 border-t border-neutral-800">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-2xl font-semibold text-white mb-2">From the blog</h2>
+              <p className="text-gray-500">Client onboarding tips and guides</p>
+            </div>
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium"
+            >
+              All posts <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="space-y-8">
+            {recentPosts.map((post) => (
+              <article key={post.slug} className="flex gap-6 group">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xs font-medium text-blue-400 bg-blue-400/10 px-2.5 py-1 rounded-full">
+                      {post.category}
+                    </span>
+                    <span className="text-xs text-gray-500">{formatDate(post.date)}</span>
+                    <span className="text-xs text-gray-600">·</span>
+                    <span className="text-xs text-gray-500">{post.readTime}</span>
+                  </div>
+                  <h3 className="font-medium text-white mb-1 group-hover:text-blue-400 transition-colors leading-snug">
+                    <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">
+                    {post.description}
+                  </p>
+                </div>
+                <div className="flex-shrink-0 flex items-center">
+                  <Link href={`/blog/${post.slug}`} className="text-gray-600 group-hover:text-blue-400 transition-colors">
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24 px-6 border-t border-neutral-800">
         <div className="max-w-xl mx-auto text-center">
@@ -288,7 +335,15 @@ export default function LandingPage() {
             height={50}
             className="h-8 w-auto opacity-60"
           />
-          <p className="text-sm text-gray-600">© {new Date().getFullYear()} Onbrd</p>
+          <div className="flex items-center gap-6">
+            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
+              Blog
+            </Link>
+            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
+              Log in
+            </Link>
+            <p className="text-sm text-gray-600">© {new Date().getFullYear()} Onbrd</p>
+          </div>
         </div>
       </footer>
     </div>
