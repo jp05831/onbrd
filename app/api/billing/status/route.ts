@@ -21,7 +21,7 @@ export async function GET() {
     }
 
     const stripe = new Stripe(stripeKey)
-    const sub = await stripe.subscriptions.retrieve(user.stripe_subscription_id)
+    const sub = await stripe.subscriptions.retrieve(user.stripe_subscription_id) as any
 
     return NextResponse.json({
       cancelAtPeriodEnd: sub.cancel_at_period_end,
