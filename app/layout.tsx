@@ -4,8 +4,97 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'Onbrd - Client Onboarding Portal Builder',
-  description: 'Create beautiful, step-by-step client onboarding experiences',
+  title: {
+    default: 'Onbrd – Client Onboarding Portal Builder',
+    template: '%s | Onbrd',
+  },
+  description:
+    'Build beautiful client onboarding portals in minutes. Create step-by-step flows, share one link, and track your clients through every step — no friction, no confusion.',
+  metadataBase: new URL('https://www.onbrd.net'),
+  alternates: {
+    canonical: '/',
+  },
+  keywords: [
+    'client onboarding portal',
+    'client onboarding software',
+    'onboarding portal builder',
+    'client portal',
+    'client onboarding tool',
+    'onboarding workflow',
+    'client onboarding checklist',
+    'customer onboarding software',
+  ],
+  openGraph: {
+    title: 'Onbrd – Client Onboarding Portal Builder',
+    description:
+      'Build beautiful client onboarding portals in minutes. Create step-by-step flows, share one link, and track your clients through every step.',
+    url: 'https://www.onbrd.net',
+    siteName: 'Onbrd',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Onbrd – Client Onboarding Portal Builder',
+      },
+    ],
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Onbrd – Client Onboarding Portal Builder',
+    description:
+      'Build beautiful client onboarding portals in minutes. One link, no confusion, no friction.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Onbrd',
+  url: 'https://www.onbrd.net',
+  description:
+    'Client onboarding portal builder. Create professional step-by-step onboarding flows, share one link with your clients, and track progress — all in one place.',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Free',
+      price: '0',
+      priceCurrency: 'USD',
+      url: 'https://www.onbrd.net/signup',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Pro',
+      price: '15',
+      priceCurrency: 'USD',
+      url: 'https://www.onbrd.net/signup',
+    },
+  ],
+  publisher: {
+    '@type': 'Organization',
+    name: 'Onbrd',
+    url: 'https://www.onbrd.net',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://www.onbrd.net/logo-dark.png',
+    },
+  },
 }
 
 export default function RootLayout({
@@ -16,6 +105,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Script id="meta-pixel" strategy="afterInteractive">{`
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
