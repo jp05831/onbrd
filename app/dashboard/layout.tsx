@@ -18,6 +18,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { theme, toggleTheme } = useTheme()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [accountName, setAccountName] = useState<string | null>(null)
+  const [accountLogo, setAccountLogo] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -29,6 +31,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     setMobileMenuOpen(false)
   }, [pathname])
+
+  // Fetch company name + logo from settings
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetch('/api/user/settings')
+        .then(r => r.json())
+        .then(d => {
+          if (d.company_name) setAccountName(d.company_name)
+          if (d.logo_url) setAccountLogo(d.logo_url)
+        })
+        .catch(() => {})
+    }
+  }, [status])
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' })
@@ -141,14 +156,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* User */}
         {sidebarOpen ? (
           <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
-            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {session.user?.name?.charAt(0).toUpperCase() || 'U'}
-              </span>
-            </div>
+            {accountLogo ? (
+              <img
+                src={accountLogo}
+                alt="Logo"
+                className="w-8 h-8 rounded-md object-contain bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 p-0.5 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {(accountName || session.user?.name)?.charAt(0).toUpperCase() || 'U'}
+                </span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {session.user?.name}
+                {accountName || session.user?.name}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {session.user?.email}
