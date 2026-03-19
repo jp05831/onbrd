@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Check, ArrowRight, Zap, Link2, BarChart3, ShieldCheck } from 'lucide-react'
+import { Check, ArrowRight, Zap, Link2, BarChart3, ShieldCheck, Star } from 'lucide-react'
 import { getAllPosts, formatDate } from './lib/blog'
 
 export default function LandingPage() {
@@ -261,6 +261,55 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-24 px-6 border-t border-neutral-800">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-semibold text-white text-center mb-3">
+            Loved by freelancers &amp; agencies
+          </h2>
+          <p className="text-gray-500 text-center mb-14">
+            Here's what people are saying about Onbrd.
+          </p>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                name: 'Sarah M.',
+                role: 'Brand Designer',
+                quote: 'I used to spend hours chasing clients for contracts and forms. Onbrd cut that down to nothing. I send one link and everything just gets done.',
+              },
+              {
+                name: 'James T.',
+                role: 'Marketing Agency Owner',
+                quote: 'Our onboarding used to be 10 emails back and forth. Now it\'s one link. Clients actually comment on how professional it looks.',
+              },
+              {
+                name: 'Priya K.',
+                role: 'Web Developer',
+                quote: 'Simple, clean, and it works. Doesn\'t try to do too much. I had my first portal live in under 10 minutes.',
+              },
+            ].map((t, i) => (
+              <div key={i} className="p-6 border border-neutral-800 rounded-xl bg-neutral-900/50">
+                <div className="flex gap-0.5 mb-4">
+                  {[...Array(5)].map((_, s) => (
+                    <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-gray-400 leading-relaxed mb-5">"{t.quote}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs font-semibold">{t.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{t.name}</p>
+                    <p className="text-xs text-gray-500">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Blog */}
       <section className="py-24 px-6 border-t border-neutral-800">
         <div className="max-w-3xl mx-auto">
@@ -326,26 +375,41 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-neutral-800 py-8 px-6">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Image
-            src="/logo-dark.png"
-            alt="Onbrd"
-            width={100}
-            height={50}
-            className="h-8 w-auto opacity-60"
-          />
-          <div className="flex items-center gap-6">
-            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
-              Blog
-            </Link>
-            <Link href="/support" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
-              Support
-            </Link>
-            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-400 transition-colors">
-              Log in
-            </Link>
-            <p className="text-sm text-gray-600">© {new Date().getFullYear()} Onbrd</p>
+      <footer className="border-t border-neutral-800 py-12 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+            <div>
+              <Image src="/logo-dark.png" alt="Onbrd" width={100} height={50} className="h-8 w-auto opacity-70 mb-4" />
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Client onboarding portals that just work.
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Product</p>
+              <div className="space-y-2.5">
+                <Link href="/signup" className="block text-sm text-gray-600 hover:text-gray-300 transition-colors">Get started</Link>
+                <Link href="/#pricing" className="block text-sm text-gray-600 hover:text-gray-300 transition-colors">Pricing</Link>
+                <Link href="/changelog" className="block text-sm text-gray-600 hover:text-gray-300 transition-colors">Changelog</Link>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Resources</p>
+              <div className="space-y-2.5">
+                <Link href="/blog" className="block text-sm text-gray-600 hover:text-gray-300 transition-colors">Blog</Link>
+                <Link href="/support" className="block text-sm text-gray-600 hover:text-gray-300 transition-colors">Support</Link>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Legal</p>
+              <div className="space-y-2.5">
+                <Link href="/privacy" className="block text-sm text-gray-600 hover:text-gray-300 transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="block text-sm text-gray-600 hover:text-gray-300 transition-colors">Terms of Service</Link>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-neutral-800 pt-6 flex items-center justify-between">
+            <p className="text-xs text-gray-700">© {new Date().getFullYear()} Onbrd. All rights reserved.</p>
+            <Link href="/login" className="text-xs text-gray-700 hover:text-gray-400 transition-colors">Log in</Link>
           </div>
         </div>
       </footer>
