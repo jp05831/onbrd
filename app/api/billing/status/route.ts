@@ -21,11 +21,18 @@ export async function GET() {
     }
 
     const stripe = new Stripe(stripeKey)
-    const sub = await stripe.subscriptions.retrieve(user.stripe_subscription_id) as any
+    const sub = await stripe.subscriptions.retrieve(user.stripe_subscription_id, {
+      expand: ['items.data']
+    }) as any
+
+    // current_period_end may be on the subscription or on the first item (newer Stripe API)
+    const periodEnd = sub.current_period_end
+      ?? sub.cancel_at
+      ?? sub.items?.data?.[0]?.current_period_end
 
     return NextResponse.json({
       cancelAtPeriodEnd: sub.cancel_at_period_end,
-      currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+      currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       status: sub.status,
     })
   } catch (error) {
