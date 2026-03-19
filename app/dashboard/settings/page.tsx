@@ -39,7 +39,7 @@ export default function SettingsPage() {
   }
 
   useEffect(() => {
-    if (currentPlan === 'pro') {
+    if (currentPlan === 'pro' && session) {
       fetch('/api/billing/status')
         .then(r => r.json())
         .then(d => {
@@ -48,7 +48,7 @@ export default function SettingsPage() {
         })
         .catch(() => {})
     }
-  }, [currentPlan])
+  }, [currentPlan, session])
 
   const saveCompanyName = async () => {
     setSaving(true)
@@ -289,13 +289,13 @@ export default function SettingsPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cancel Subscription</h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Are you sure? You&apos;ll immediately lose access to:
+            <p className="text-gray-600 dark:text-gray-300 mb-2">
+              You&apos;ll keep Pro access until the end of your current billing period. After that you&apos;ll lose access to:
             </p>
             <ul className="space-y-2 mb-6">
               {[
-                'All flows beyond your first 2',
-                'Steps beyond 2 per flow',
+                'Unlimited flows & steps',
+                'Unlimited clients',
                 'Email notifications',
                 'White-label branding',
                 'Priority support',

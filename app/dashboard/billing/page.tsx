@@ -53,7 +53,7 @@ export default function BillingPage() {
   }, [session])
 
   useEffect(() => {
-    if (currentPlan === 'pro') {
+    if (currentPlan === 'pro' && session) {
       fetch('/api/billing/status')
         .then(r => r.json())
         .then(d => {
@@ -62,7 +62,7 @@ export default function BillingPage() {
         })
         .catch(() => {})
     }
-  }, [currentPlan])
+  }, [currentPlan, session])
 
   const handleUpgrade = async () => {
     setLoading(true)
