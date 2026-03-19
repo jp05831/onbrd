@@ -124,10 +124,10 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
           {/* Logo */}
           <div className="flex justify-center mb-8">
             {(flow.logo_url || owner.logo_url) ? (
-              <img src={flow.logo_url || owner.logo_url!} alt="" className="h-10 object-contain opacity-80" />
+              <img src={flow.logo_url || owner.logo_url!} alt="" className="h-16 object-contain" />
             ) : (
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
-                <span className="text-white font-bold text-sm">{(owner.company_name || owner.name).charAt(0)}</span>
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ backgroundColor: accent }}>
+                <span className="text-white font-bold text-xl">{(owner.company_name || owner.name).charAt(0)}</span>
               </div>
             )}
           </div>
@@ -210,10 +210,7 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
               <span className="text-white font-semibold text-sm">{(owner.company_name || owner.name).charAt(0)}</span>
             </div>
           )}
-          <div>
-            <p className="font-semibold text-white text-sm">{owner.company_name || owner.name}</p>
-            <p className="text-xs text-gray-500">Client Onboarding</p>
-          </div>
+          <p className="font-semibold text-white text-sm">{owner.company_name || owner.name}</p>
         </div>
 
         {/* Welcome */}
