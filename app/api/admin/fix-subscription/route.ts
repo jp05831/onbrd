@@ -12,45 +12,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { email } = await req.json()
-  if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 })
-
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-  // Find customer in Stripe by email
-  const customers = await stripe.customers.list({ email: email.toLowerCase(), limit: 5 })
-  if (!customers.data.length) {
-    return NextResponse.json({ error: 'No Stripe customer found for this email', customers: [] })
-  }
+  // List all recent customers and subscriptions
+  const customers = await stripe.customers.list({ limit: 20 })
+  const subs = await stripe.subscriptions.list({ limit: 20, status: 'all' })
 
-  const customer = customers.data[0]
-
-  // Get their subscriptions
-  const subs = await stripe.subscriptions.list({ customer: customer.id, limit: 5 })
-
-  if (!subs.data.length) {
-    return NextResponse.json({ 
-      error: 'No subscriptions found', 
-      customer_id: customer.id,
-      customer_email: customer.email 
-    })
-  }
-
-  const sub = subs.data[0]
-  const isActive = sub.status === 'active' || sub.status === 'trialing'
-
-  // Update DB with stripe IDs
-  await pool.query(
-    'UPDATE users SET stripe_customer_id = $1, stripe_subscription_id = $2, plan = $3, is_pro = $4 WHERE LOWER(email) = LOWER($5)',
-    [customer.id, sub.id, isActive ? 'pro' : 'free', isActive, email]
-  )
-
-  const updated = await pool.query('SELECT id, email, plan, is_pro, stripe_customer_id, stripe_subscription_id FROM users WHERE LOWER(email) = LOWER($1)', [email])
-
-  return NextResponse.json({ 
-    success: true, 
-    subscription: { id: sub.id, status: sub.status },
-    customer: { id: customer.id, email: customer.email },
-    user: updated.rows[0]
+  return NextResponse.json({
+    customers: customers.data.map(c => ({ id: c.id, email: c.email, created: new Date(c.created * 1000).toISOString() })),
+    subscriptions: subs.data.map(s => ({ id: s.id, status: s.status, customer: s.customer, created: new Date(s.created * 1000).toISOString() }))
   })
 }
