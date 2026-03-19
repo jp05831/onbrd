@@ -111,7 +111,7 @@ export default function DashboardPage() {
         setNewFlow({ client_name: '', client_email: '', welcome_message: '', is_template: false })
         setSelectedTemplateId('')
         setNewFlowType('client')
-        window.location.href = `/dashboard/flows/${data.id}`
+        window.location.href = '/dashboard'
       }
     } catch (error) {
       console.error('Failed to create flow:', error)
@@ -150,7 +150,7 @@ export default function DashboardPage() {
         setUseTemplateModal(null)
         setTemplateClientName('')
         setTemplateClientEmail('')
-        window.location.href = `/dashboard/flows/${data.id}`
+        window.location.href = '/dashboard'
       }
     } catch (error) {
       console.error('Failed to clone template:', error)
