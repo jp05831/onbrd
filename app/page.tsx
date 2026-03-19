@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Check, ArrowRight, Zap, Link2, BarChart3, ShieldCheck, Star } from 'lucide-react'
+import { Check, ArrowRight, Zap, Link2, BarChart3, ShieldCheck } from 'lucide-react'
 import { getAllPosts, formatDate } from './lib/blog'
+import { TestimonialsSection } from '../components/ui/testimonial-v2'
 
 export default function LandingPage() {
   const recentPosts = getAllPosts().slice(0, 3)
@@ -262,53 +263,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 px-6 border-t border-neutral-800">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold text-white text-center mb-3">
-            Loved by freelancers &amp; agencies
-          </h2>
-          <p className="text-gray-500 text-center mb-14">
-            Here's what people are saying about Onbrd.
-          </p>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              {
-                name: 'Sarah M.',
-                role: 'Brand Designer',
-                quote: 'I used to spend hours chasing clients for contracts and forms. Onbrd cut that down to nothing. I send one link and everything just gets done.',
-              },
-              {
-                name: 'James T.',
-                role: 'Marketing Agency Owner',
-                quote: 'Our onboarding used to be 10 emails back and forth. Now it\'s one link. Clients actually comment on how professional it looks.',
-              },
-              {
-                name: 'Priya K.',
-                role: 'Web Developer',
-                quote: 'Simple, clean, and it works. Doesn\'t try to do too much. I had my first portal live in under 10 minutes.',
-              },
-            ].map((t, i) => (
-              <div key={i} className="p-6 border border-neutral-800 rounded-xl bg-neutral-900/50">
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(5)].map((_, s) => (
-                    <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-400 leading-relaxed mb-5">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-semibold">{t.name.charAt(0)}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{t.name}</p>
-                    <p className="text-xs text-gray-500">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TestimonialsSection />
 
       {/* Blog */}
       <section className="py-24 px-6 border-t border-neutral-800">
