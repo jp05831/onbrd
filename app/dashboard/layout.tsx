@@ -105,12 +105,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {mainNavItems.map((item) => {
-          const isActive = pathname === item.href || 
-            (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          const isExternal = item.href === '/support'
+          const isActive = !isExternal && (pathname === item.href ||
+            (item.href !== '/dashboard' && pathname.startsWith(item.href)))
           return (
             <Link
               key={item.href}
               href={item.href}
+              target={isExternal ? '_blank' : undefined}
+              rel={isExternal ? 'noopener noreferrer' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                 isActive
                   ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
