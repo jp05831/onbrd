@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/dashboard', icon: LayoutDashboard, label: 'Flows' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
     { href: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
-    { href: '/support', icon: LifeBuoy, label: 'Help & Support' },
+    { href: '/dashboard/support', icon: LifeBuoy, label: 'Help & Support' },
   ]
 
   const SidebarContent = () => (
@@ -105,7 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {mainNavItems.map((item) => {
-          const isExternal = item.href === '/support'
+          const isExternal = false
           const isActive = !isExternal && (pathname === item.href ||
             (item.href !== '/dashboard' && pathname.startsWith(item.href)))
           return (
