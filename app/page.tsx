@@ -83,7 +83,7 @@ export default function LandingPage() {
                 <div className="w-3 h-3 rounded-full bg-neutral-700" />
               </div>
               <div className="flex-1 text-center text-xs text-gray-500 font-mono">
-                onbrd.com/onboard/acme-corp
+                onbrd.net/onboard/riverside-studio
               </div>
             </div>
             
@@ -91,7 +91,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg" />
                 <div>
-                  <div className="font-medium text-white">Acme Corp</div>
+                  <div className="font-medium text-white">Riverside Studio</div>
                   <div className="text-sm text-gray-500">Client Onboarding</div>
                 </div>
               </div>

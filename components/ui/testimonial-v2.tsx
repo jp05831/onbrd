@@ -11,61 +11,61 @@ interface Testimonial {
   role: string
 }
 
-// --- Data — swap these for real quotes when you have them ---
+// --- Data ---
 const testimonials: Testimonial[] = [
   {
-    text: "I used to spend hours chasing clients for contracts and forms. Onbrd cut that down to nothing. I send one link and everything just gets done.",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Sarah M.",
-    role: "Brand Designer",
+    text: "Honestly just glad I don't have to send 'hey did you get my email?' anymore. Client gets the link, does the steps, done.",
+    image: "",
+    name: "Matt D.",
+    role: "Freelance copywriter",
   },
   {
-    text: "Our onboarding used to be 10 emails back and forth. Now it's one link. Clients actually comment on how professional it looks.",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "James T.",
-    role: "Marketing Agency Owner",
+    text: "I tried building something like this in Notion. It worked okay until it didn't. Onbrd is just cleaner and my clients don't get confused by it.",
+    image: "",
+    name: "Kira B.",
+    role: "Brand designer",
   },
   {
-    text: "Simple, clean, and it works. Doesn't try to do too much. I had my first portal live in under 10 minutes.",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Priya K.",
-    role: "Web Developer",
+    text: "One of my clients specifically mentioned the onboarding portal in a review. Said it made the whole process feel smooth. That's not something I expected.",
+    image: "",
+    name: "Tom R.",
+    role: "Web developer",
   },
   {
-    text: "My clients feel so taken care of from day one. The portal looks way more polished than anything I could have built myself.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Marcus R.",
-    role: "Video Producer",
+    text: "I run a small video production company. Every new client used to mean a week of email chaos before we even started. That's mostly gone now.",
+    image: "",
+    name: "Chris V.",
+    role: "Video producer",
   },
   {
-    text: "Switching to Onbrd saved me at least 3 hours a week. No more back-and-forth emails just to collect a signed contract.",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Zoe H.",
-    role: "UX Consultant",
+    text: "The white-label option is what got me to upgrade. I don't want my clients seeing 'powered by X' on something that's supposed to represent my business.",
+    image: "",
+    name: "Leila M.",
+    role: "UX consultant",
   },
   {
-    text: "The free plan was enough to convince me. Upgraded to Pro within a week — the white-label alone is worth it.",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Alicia B.",
-    role: "Copywriter",
+    text: "It's not trying to be everything. It does one thing — get clients through a checklist — and it does it well. That's what I needed.",
+    image: "",
+    name: "Jake S.",
+    role: "SEO freelancer",
   },
   {
-    text: "Every new client I onboard with Onbrd starts the relationship on the right foot. It signals that I'm organized and professional.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Derek F.",
-    role: "SEO Specialist",
+    text: "Setup was maybe 15 minutes for my first flow. I was expecting it to take longer based on other tools I've tried.",
+    image: "",
+    name: "Priya N.",
+    role: "Social media manager",
   },
   {
-    text: "I was skeptical about another SaaS tool. But Onbrd genuinely made my onboarding process 10x smoother. Clients love it.",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Nina S.",
-    role: "Social Media Manager",
+    text: "My retainer clients go through the same steps every time. Templates made that basically automatic. I just clone it, change the name, send the link.",
+    image: "",
+    name: "Dana K.",
+    role: "Marketing consultant",
   },
   {
-    text: "Setup took me 5 minutes. My first client said it was the most professional onboarding experience they'd ever had.",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=150&h=150",
-    name: "Ryan C.",
-    role: "Freelance Developer",
+    text: "Not much to say — it works and it's cheap. Two things I care about.",
+    image: "",
+    name: "Ryan O.",
+    role: "Freelance developer",
   },
 ]
 
@@ -78,11 +78,11 @@ const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => (
   <li className="p-6 rounded-xl border border-neutral-800 bg-neutral-900/60 mb-4">
     <p className="text-sm text-gray-400 leading-relaxed mb-4">"{testimonial.text}"</p>
     <div className="flex items-center gap-3">
-      <img
-        src={testimonial.image}
-        alt={testimonial.name}
-        className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-      />
+      <div className="w-9 h-9 rounded-full bg-neutral-700 flex items-center justify-center flex-shrink-0">
+        <span className="text-sm font-semibold text-neutral-300">
+          {testimonial.name.charAt(0)}
+        </span>
+      </div>
       <div>
         <p className="text-sm font-medium text-white">{testimonial.name}</p>
         <p className="text-xs text-gray-500">{testimonial.role}</p>
@@ -127,9 +127,9 @@ export const TestimonialsSection = () => {
     <section className="py-24 px-6 border-t border-neutral-800 overflow-hidden">
       <div className="max-w-3xl mx-auto text-center mb-14">
         <h2 className="text-2xl font-semibold text-white mb-3">
-          Loved by freelancers &amp; agencies
+          What people are saying
         </h2>
-        <p className="text-gray-500">Here's what people are saying about Onbrd.</p>
+        <p className="text-gray-500">From freelancers and small agencies who use Onbrd day to day.</p>
       </div>
 
       <div
