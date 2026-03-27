@@ -4,6 +4,10 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
+  icons: {
+  icon: '/favicon.ico?v=2',
+  apple: '/apple-touch-icon.png?v=2',
+},
   title: {
     default: 'Onbrd – Client Onboarding Portal Builder',
     template: '%s | Onbrd',
