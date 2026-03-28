@@ -337,7 +337,7 @@ export const database = {
   resetPassword: async (userId: string, newPasswordHash: string) => {
     await initDb()
     await pool.query(
-      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL, is_email_verified = TRUE WHERE id = $2',
       [newPasswordHash, userId]
     )
   },
