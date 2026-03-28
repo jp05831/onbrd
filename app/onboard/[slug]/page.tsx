@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
+import { unstable_noStore as noStore } from 'next/cache'
 import database from '../../lib/db'
 import ClientPortal from './ClientPortal'
 
 export default async function OnboardPage({ params }: { params: Promise<{ slug: string }> }) {
+  noStore()
   const { slug } = await params
   
   const flow = await database.getFlowBySlug(slug)
@@ -50,3 +52,4 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
     />
   )
 }
+
