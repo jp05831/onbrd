@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [publishedToast, setPublishedToast] = useState(false)
   const [toastUrl, setToastUrl] = useState<string | null>(null)
+  const [toastCopied, setToastCopied] = useState(false)
 
   const searchParams = useSearchParams()
 
@@ -70,12 +71,11 @@ export default function DashboardPage() {
     if (searchParams.get('published') === '1') {
       setPublishedToast(true)
       window.history.replaceState({}, '', '/dashboard')
-      setTimeout(() => setPublishedToast(false), 5000)
+      setTimeout(() => setPublishedToast(false), 15000)
       const portalUrl = sessionStorage.getItem('publishedSlug')
       sessionStorage.removeItem('publishedSlug')
       if (portalUrl) {
         setToastUrl(portalUrl)
-        navigator.clipboard.writeText(portalUrl).catch(() => {})
       }
     }
   }, [searchParams])
@@ -229,12 +229,16 @@ export default function DashboardPage() {
           {toastUrl && (
             <button
               onClick={() => {
-                navigator.clipboard.writeText(toastUrl).catch(() => {})
+                navigator.clipboard.writeText(toastUrl).then(() => {
+                  setToastCopied(true)
+                  setTimeout(() => setToastCopied(false), 2000)
+                }).catch(() => {})
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 bg-neutral-800 active:bg-neutral-600 hover:bg-neutral-700 rounded-lg transition-colors text-left"
             >
-              <Copy className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-              <span className="text-xs text-gray-300 truncate">{toastUrl}</span>
+              {toastCopied ? <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" /> : <Copy className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
+              <span className="text-xs text-gray-300 truncate flex-1">{toastUrl}</span>
+              <span className="text-xs text-gray-500 flex-shrink-0">{toastCopied ? 'Copied!' : 'Tap to copy'}</span>
             </button>
           )}
         </div>
