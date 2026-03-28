@@ -143,6 +143,8 @@ async function runMigrations(client: any) {
     { table: 'users', column: 'is_banned', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE' },
     { table: 'users', column: 'is_email_verified', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE' },
     { table: 'users', column: 'verification_token', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT' },
+    { table: 'users', column: 'reset_token', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT' },
+    { table: 'users', column: 'reset_token_expires', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ' },
 
     // new feature migrations
     { table: 'steps', column: 'due_date', sql: 'ALTER TABLE steps ADD COLUMN IF NOT EXISTS due_date DATE' },
@@ -310,6 +312,33 @@ export const database = {
     const result = await pool.query(
       'UPDATE users SET is_email_verified = TRUE, verification_token = NULL WHERE verification_token = $1 RETURNING id, email',
       [token]
+    )
+    return result.rows[0] as { id: string; email: string } | undefined
+  },
+
+  setResetToken: async (userId: string, token: string) => {
+    await initDb()
+    const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+    await pool.query(
+      'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+      [token, expires, userId]
+    )
+  },
+
+  verifyResetToken: async (token: string) => {
+    await initDb()
+    const result = await pool.query(
+      'SELECT id, email FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()',
+      [token]
+    )
+    return result.rows[0] as { id: string; email: string } | undefined
+  },
+
+  resetPassword: async (token: string, newPasswordHash: string) => {
+    await initDb()
+    const result = await pool.query(
+      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE reset_token = $2 AND reset_token_expires > NOW() RETURNING id, email',
+      [newPasswordHash, token]
     )
     return result.rows[0] as { id: string; email: string } | undefined
   },
