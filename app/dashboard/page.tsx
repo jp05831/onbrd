@@ -72,9 +72,7 @@ export default function DashboardPage() {
       window.history.replaceState({}, '', '/dashboard')
       setTimeout(() => setPublishedToast(false), 5000)
       if (slug) {
-        try {
-          await navigator.clipboard.writeText(`${window.location.origin}/onboard/${slug}`)
-        } catch {}
+        navigator.clipboard.writeText(`${window.location.origin}/onboard/${slug}`).catch(() => {})
       }
     }
   }, [searchParams])
