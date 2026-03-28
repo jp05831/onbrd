@@ -70,6 +70,19 @@ export default function DashboardPage() {
       setPublishedToast(true)
       window.history.replaceState({}, '', '/dashboard')
       setTimeout(() => setPublishedToast(false), 5000)
+      // Auto-copy the link of the most recently published flow
+      try {
+        const res = await fetch('/api/flows')
+        if (res.ok) {
+          const data = await res.json()
+          const latest = (data.flows as Flow[])
+            .filter((f: Flow) => f.status === 'published' && !f.is_template)
+            .sort((a: Flow, b: Flow) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+          if (latest) {
+            await navigator.clipboard.writeText(`${window.location.origin}/onboard/${latest.slug}`)
+          }
+        }
+      } catch {}
     }
   }, [searchParams])
 
@@ -221,10 +234,10 @@ export default function DashboardPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Flows</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">Flows</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             {userPlan.plan === 'free' 
               ? `${userPlan.activeFlows} of ${userPlan.maxFlows} flows used`
               : `${clientFlows.length} flows`}
@@ -235,73 +248,50 @@ export default function DashboardPage() {
       {/* Flows Section */}
       <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl">
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+        <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-neutral-800">
+          <div className="flex flex-col gap-3">
+            {/* Row 1: filters + New Flow button */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+                {(['all', 'active', 'completed', 'templates'] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                      filter === f
+                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
+                    }`}
+                  >
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </div>
               <button
-                onClick={() => setFilter('all')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  filter === 'all' 
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
-                }`}
+                onClick={() => { if (canCreateFlow) { setNewFlowType('client'); setNewFlow({ client_name: '', client_email: '', welcome_message: '', is_template: false }); setSelectedTemplateId(''); setShowNewModal(true) } else { window.location.href = '/dashboard/billing' } }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
               >
-                All
-              </button>
-              <button
-                onClick={() => setFilter('active')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  filter === 'active' 
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
-                }`}
-              >
-                Active
-              </button>
-              <button
-                onClick={() => setFilter('completed')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  filter === 'completed' 
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
-                }`}
-              >
-                Completed
-              </button>
-              <button
-                onClick={() => setFilter('templates')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                  filter === 'templates' 
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' 
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
-                }`}
-              >
-                Templates
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">New Flow</span>
+                <span className="sm:hidden">New</span>
               </button>
             </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="relative">
+            {/* Row 2: search + export */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search flows..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 w-48 border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-9 pr-4 py-2 w-full border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              <a href="/api/flows/export" download className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors" title="Export CSV">
+              <a href="/api/flows/export" download className="inline-flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors flex-shrink-0" title="Export CSV">
                 <Download className="w-4 h-4" />
-                Export
+                <span className="hidden sm:inline">Export</span>
               </a>
-              <button
-                onClick={() => { if (canCreateFlow) { setNewFlowType('client'); setNewFlow({ client_name: '', client_email: '', welcome_message: '', is_template: false }); setSelectedTemplateId(''); setShowNewModal(true) } else { window.location.href = '/dashboard/billing' } }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                New Flow
-              </button>
             </div>
           </div>
         </div>
@@ -626,9 +616,9 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
   const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
 
   return (
-    <div className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
+    <div className="flex items-center gap-3 p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
       {/* Icon */}
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
         flow.is_template 
           ? 'bg-purple-100 dark:bg-purple-900/30' 
           : flow.status === 'completed'
@@ -636,9 +626,9 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
           : 'bg-blue-100 dark:bg-blue-900/30'
       }`}>
         {flow.is_template ? (
-          <Repeat className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <Repeat className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
         ) : flow.status === 'completed' ? (
-          <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
         ) : (
           <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
             {flow.client_name.charAt(0).toUpperCase()}
@@ -648,7 +638,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Link 
             href={`/dashboard/flows/${flow.id}`}
             className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
@@ -661,7 +651,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3 mt-1">
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
           {flow.status === 'published' ? (
             <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
               <Globe className="w-3 h-3" /> Live
@@ -675,40 +665,26 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
               <FileText className="w-3 h-3" /> Draft
             </span>
           )}
-          <span className="text-xs text-gray-400">•</span>
+          <span className="text-xs text-gray-400">·</span>
           <span className="text-xs text-gray-400">{flow.total_steps} steps</span>
-          {flow.uploaded_files_count > 0 && (
+          {flow.status === 'published' && flow.total_steps > 0 && !flow.is_template && (
             <>
-              <span className="text-xs text-gray-400">•</span>
-              <span className="inline-flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
-                <Paperclip className="w-3 h-3" /> {flow.uploaded_files_count} file{flow.uploaded_files_count > 1 ? 's' : ''}
-              </span>
+              <span className="text-xs text-gray-400">·</span>
+              <span className="text-xs text-gray-400">{flow.completed_steps}/{flow.total_steps}</span>
+              <div className="w-16 h-1.5 bg-gray-100 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${progress}%` }} />
+              </div>
             </>
           )}
         </div>
       </div>
 
-      {/* Progress (for active flows) */}
-      {flow.status === 'published' && flow.total_steps > 0 && !flow.is_template && (
-        <div className="hidden sm:block w-32">
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-gray-400">{flow.completed_steps}/{flow.total_steps}</span>
-          </div>
-          <div className="h-1.5 bg-gray-100 dark:bg-gray-600 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-600 rounded-full transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Actions */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
         {flow.uploaded_files_count > 0 && (
           <button
             onClick={() => onViewFiles(flow.id)}
-            className="p-2 text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
+            className="p-1.5 sm:p-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
             title="View uploaded files"
           >
             <Paperclip className="w-4 h-4" />
@@ -717,16 +693,16 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
         {flow.is_template ? (
           <button
             onClick={() => onUseTemplate(flow.id, flow.client_name)}
-            className="px-3 py-1.5 text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors border border-purple-200 dark:border-purple-800"
+            className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors border border-purple-200 dark:border-purple-800 whitespace-nowrap"
           >
-            Use Template
+            Use
           </button>
         ) : (
           flow.status === 'published' && (
             <>
               <button
                 onClick={() => onCopy(flow.slug, flow.id)}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
                 title="Copy link"
               >
                 {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -734,7 +710,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
               <a
                 href={`/onboard/${flow.slug}`}
                 target="_blank"
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
                 title="Preview"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -744,13 +720,13 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
         )}
         <Link
           href={`/dashboard/flows/${flow.id}`}
-          className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+          className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
         >
           Edit
         </Link>
         <button
           onClick={() => onDelete(flow.id)}
-          className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+          className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
           title="Delete"
         >
           <Trash2 className="w-4 h-4" />

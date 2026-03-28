@@ -609,12 +609,6 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({ status: 'published' }),
       })
       setFlow(prev => prev ? { ...prev, status: 'published' } : null)
-      // Auto-copy portal link
-      if (flow) {
-        try {
-          await navigator.clipboard.writeText(`${window.location.origin}/onboard/${flow.slug}`)
-        } catch {}
-      }
       router.push('/dashboard?published=1')
     } catch (error) {
       console.error('Failed to publish:', error)
@@ -882,3 +876,4 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
     </div>
   )
 }
+
