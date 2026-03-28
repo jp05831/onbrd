@@ -603,16 +603,20 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
 
     setSaving(true)
     try {
+      // Fetch fresh flow data to get the definitive slug from DB
+      const freshRes = await fetch(`/api/flows/${id}`)
+      const freshData = await freshRes.json()
+      const freshSlug = freshData?.flow?.slug
+
       await fetch(`/api/flows/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'published' }),
       })
       setFlow(prev => prev ? { ...prev, status: 'published' } : null)
-      const slug = flow?.slug
-      if (slug) {
-        const origin = window.location.origin.includes('localhost') ? window.location.origin : 'https://www.onbrd.net'
-        sessionStorage.setItem('publishedSlug', `${origin}/onboard/${slug}`)
+      if (freshSlug) {
+        const origin = 'https://www.onbrd.net'
+        sessionStorage.setItem('publishedSlug', `${origin}/onboard/${freshSlug}`)
       }
       router.push('/dashboard?published=1')
     } catch (error) {
