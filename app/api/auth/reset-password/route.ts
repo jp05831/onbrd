@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const hash = bcrypt.hashSync(password, 10)
-    await database.resetPassword(token, hash)
+    await database.resetPassword(user.id, hash)
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

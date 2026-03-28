@@ -334,13 +334,12 @@ export const database = {
     return result.rows[0] as { id: string; email: string } | undefined
   },
 
-  resetPassword: async (token: string, newPasswordHash: string) => {
+  resetPassword: async (userId: string, newPasswordHash: string) => {
     await initDb()
-    const result = await pool.query(
-      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE reset_token = $2 AND reset_token_expires > NOW() RETURNING id, email',
-      [newPasswordHash, token]
+    await pool.query(
+      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+      [newPasswordHash, userId]
     )
-    return result.rows[0] as { id: string; email: string } | undefined
   },
 
   // Sessions
