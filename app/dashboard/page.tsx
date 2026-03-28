@@ -607,7 +607,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
   const progress = flow.total_steps > 0 ? (flow.completed_steps / flow.total_steps) * 100 : 0
 
   return (
-    <div className="flex items-center gap-3 p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
+    <div className="flex items-center gap-3 p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors min-w-0">
       {/* Icon */}
       <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
         flow.is_template 
@@ -670,12 +670,12 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+      {/* Actions — icon-only on mobile, labeled on sm+ */}
+      <div className="flex items-center gap-0.5 flex-shrink-0">
         {flow.uploaded_files_count > 0 && (
           <button
             onClick={() => onViewFiles(flow.id)}
-            className="p-1.5 sm:p-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
+            className="p-1.5 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
             title="View uploaded files"
           >
             <Paperclip className="w-4 h-4" />
@@ -684,16 +684,17 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
         {flow.is_template ? (
           <button
             onClick={() => onUseTemplate(flow.id, flow.client_name)}
-            className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors border border-purple-200 dark:border-purple-800 whitespace-nowrap"
+            className="p-1.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+            title="Use template"
           >
-            Use
+            <Repeat className="w-4 h-4" />
           </button>
         ) : (
           flow.status === 'published' && (
             <>
               <button
                 onClick={() => onCopy(flow.slug, flow.id)}
-                className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
                 title="Copy link"
               >
                 {copiedId === flow.id ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -701,7 +702,7 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
               <a
                 href={`/onboard/${flow.slug}`}
                 target="_blank"
-                className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
                 title="Preview"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -711,13 +712,14 @@ function FlowRow({ flow, copiedId, onCopy, onDelete, onViewFiles, onUseTemplate 
         )}
         <Link
           href={`/dashboard/flows/${flow.id}`}
-          className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+          className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+          title="Edit"
         >
-          Edit
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </Link>
         <button
           onClick={() => onDelete(flow.id)}
-          className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+          className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
           title="Delete"
         >
           <Trash2 className="w-4 h-4" />

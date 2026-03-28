@@ -202,7 +202,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black flex overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-black flex">
       {/* Desktop Sidebar */}
       <aside 
         className={`hidden lg:flex flex-col fixed inset-y-0 left-0 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transition-all duration-300 z-30 ${
@@ -266,9 +266,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content */}
-      <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-60' : 'lg:ml-16'}`}>
+      <main className={`flex-1 min-w-0 transition-all duration-300 ${sidebarOpen ? 'lg:ml-60' : 'lg:ml-16'}`}>
         <div className="lg:hidden h-14" /> {/* Spacer for mobile header */}
-        <div className="p-3 sm:p-6 lg:p-8 max-w-6xl mx-auto overflow-x-hidden">
+        <div className="p-3 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full min-w-0">
           {children}
         </div>
       </main>
