@@ -231,14 +231,22 @@ export default function DashboardPage() {
               onClick={() => {
                 navigator.clipboard.writeText(toastUrl).then(() => {
                   setToastCopied(true)
-                  setTimeout(() => setToastCopied(false), 2000)
+                  setTimeout(() => setToastCopied(false), 3000)
                 }).catch(() => {})
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 bg-neutral-800 active:bg-neutral-600 hover:bg-neutral-700 rounded-lg transition-colors text-left"
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-left ${
+                toastCopied
+                  ? 'bg-green-500/20 border border-green-500/40'
+                  : 'bg-neutral-800 hover:bg-neutral-700 active:bg-neutral-600 border border-transparent'
+              }`}
             >
-              {toastCopied ? <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" /> : <Copy className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
-              <span className="text-xs text-gray-300 truncate flex-1">{toastUrl}</span>
-              <span className="text-xs text-gray-500 flex-shrink-0">{toastCopied ? 'Copied!' : 'Tap to copy'}</span>
+              {toastCopied
+                ? <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                : <Copy className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
+              <span className={`text-xs truncate flex-1 ${toastCopied ? 'text-green-300' : 'text-gray-300'}`}>
+                {toastCopied ? 'Link copied!' : toastUrl}
+              </span>
+              {!toastCopied && <span className="text-xs text-gray-500 flex-shrink-0">Tap to copy</span>}
             </button>
           )}
         </div>
