@@ -68,21 +68,14 @@ export default function DashboardPage() {
     }
     if (searchParams.get('published') === '1') {
       setPublishedToast(true)
+      const slug = searchParams.get('slug')
       window.history.replaceState({}, '', '/dashboard')
       setTimeout(() => setPublishedToast(false), 5000)
-      // Auto-copy the link of the most recently published flow
-      try {
-        const res = await fetch('/api/flows')
-        if (res.ok) {
-          const data = await res.json()
-          const latest = (data.flows as Flow[])
-            .filter((f: Flow) => f.status === 'published' && !f.is_template)
-            .sort((a: Flow, b: Flow) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
-          if (latest) {
-            await navigator.clipboard.writeText(`${window.location.origin}/onboard/${latest.slug}`)
-          }
-        }
-      } catch {}
+      if (slug) {
+        try {
+          await navigator.clipboard.writeText(`${window.location.origin}/onboard/${slug}`)
+        } catch {}
+      }
     }
   }, [searchParams])
 

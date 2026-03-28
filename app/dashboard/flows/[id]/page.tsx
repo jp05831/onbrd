@@ -609,7 +609,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({ status: 'published' }),
       })
       setFlow(prev => prev ? { ...prev, status: 'published' } : null)
-      router.push('/dashboard?published=1')
+      router.push(`/dashboard?published=1&slug=${flow.slug}`)
     } catch (error) {
       console.error('Failed to publish:', error)
     } finally {
