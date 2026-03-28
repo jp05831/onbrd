@@ -609,7 +609,12 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({ status: 'published' }),
       })
       setFlow(prev => prev ? { ...prev, status: 'published' } : null)
-      router.push(`/dashboard?published=1${flow ? `&slug=${flow.slug}` : ''}`)
+      const slug = flow?.slug
+      if (slug) {
+        const origin = window.location.origin.includes('localhost') ? window.location.origin : 'https://www.onbrd.net'
+        sessionStorage.setItem('publishedSlug', `${origin}/onboard/${slug}`)
+      }
+      router.push('/dashboard?published=1')
     } catch (error) {
       console.error('Failed to publish:', error)
     } finally {

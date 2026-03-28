@@ -69,15 +69,11 @@ export default function DashboardPage() {
     }
     if (searchParams.get('published') === '1') {
       setPublishedToast(true)
-      const slug = searchParams.get('slug')
       window.history.replaceState({}, '', '/dashboard')
       setTimeout(() => setPublishedToast(false), 5000)
-      if (slug) {
-        const origin = window.location.origin.includes('localhost') 
-          ? window.location.origin 
-          : 'https://www.onbrd.net'
-        const portalUrl = `${origin}/onboard/${slug}`
-        // Show the URL in the toast so user can always see/copy it
+      const portalUrl = sessionStorage.getItem('publishedSlug')
+      sessionStorage.removeItem('publishedSlug')
+      if (portalUrl) {
         setToastUrl(portalUrl)
         navigator.clipboard.writeText(portalUrl).catch(() => {})
       }
