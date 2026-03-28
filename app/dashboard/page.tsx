@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [publishedToast, setPublishedToast] = useState(false)
+  const [toastUrl, setToastUrl] = useState<string | null>(null)
 
   const searchParams = useSearchParams()
 
@@ -75,7 +76,10 @@ export default function DashboardPage() {
         const origin = window.location.origin.includes('localhost') 
           ? window.location.origin 
           : 'https://www.onbrd.net'
-        navigator.clipboard.writeText(`${origin}/onboard/${slug}`).catch(() => {})
+        const portalUrl = `${origin}/onboard/${slug}`
+        // Show the URL in the toast so user can always see/copy it
+        setToastUrl(portalUrl)
+        navigator.clipboard.writeText(portalUrl).catch(() => {})
       }
     }
   }, [searchParams])
@@ -214,17 +218,29 @@ export default function DashboardPage() {
     <div className="max-w-6xl mx-auto">
       {/* Published toast */}
       {publishedToast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-neutral-900 border border-green-500/30 rounded-xl shadow-2xl shadow-black/40 animate-in fade-in slide-in-from-top-2">
-          <div className="w-7 h-7 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-            <Link2 className="w-3.5 h-3.5 text-green-400" />
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm px-4 py-3 bg-neutral-900 border border-green-500/30 rounded-xl shadow-2xl shadow-black/40">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <Link2 className="w-3 h-3 text-green-400" />
+              </div>
+              <p className="text-sm font-medium text-white">Flow published! 🎉</p>
+            </div>
+            <button onClick={() => setPublishedToast(false)} className="text-gray-600 hover:text-gray-400">
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <div>
-            <p className="text-sm font-medium text-white">Flow published! 🎉</p>
-            <p className="text-xs text-gray-400">Portal link copied to clipboard</p>
-          </div>
-          <button onClick={() => setPublishedToast(false)} className="ml-2 text-gray-600 hover:text-gray-400">
-            <X className="w-4 h-4" />
-          </button>
+          {toastUrl && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(toastUrl).catch(() => {})
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors text-left"
+            >
+              <Copy className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+              <span className="text-xs text-gray-300 truncate">{toastUrl}</span>
+            </button>
+          )}
         </div>
       )}
 
