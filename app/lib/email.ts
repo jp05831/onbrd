@@ -1,11 +1,12 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const getResend = () => new Resend(process.env.RESEND_API_KEY)
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 const FROM_EMAIL = 'Onbrd <noreply@onbrd.net>'
 
 export async function sendVerificationEmail(email: string, token: string) {
+  const resend = getResend()
   const verifyUrl = `${APP_URL}/verify-email?token=${token}`
 
   await resend.emails.send({
@@ -60,6 +61,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
+  const resend = getResend()
   const resetUrl = `${APP_URL}/reset-password?token=${token}`
 
   await resend.emails.send({
@@ -114,6 +116,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 }
 
 export async function sendClientCompletionEmail(clientEmail: string, clientName: string, ownerName: string, completionMessage?: string | null) {
+  const resend = getResend()
   await resend.emails.send({
     from: 'Onbrd <noreply@onbrd.net>',
     to: clientEmail,
@@ -124,6 +127,7 @@ export async function sendClientCompletionEmail(clientEmail: string, clientName:
 }
 
 export async function sendFlowCompletionToOwner(ownerEmail: string, clientName: string) {
+  const resend = getResend()
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.onbrd.net'
   await resend.emails.send({
     from: 'Onbrd <noreply@onbrd.net>',
@@ -150,6 +154,7 @@ export async function sendExpiryWarningEmail(
     </tr>`
   }).join('')
 
+  const resend = getResend()
   await resend.emails.send({
     from: FROM_EMAIL,
     to: ownerEmail,
