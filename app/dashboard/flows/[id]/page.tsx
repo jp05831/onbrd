@@ -619,7 +619,8 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
 
   const copyLink = () => {
     if (!flow) return
-    navigator.clipboard.writeText(`${window.location.origin}/onboard/${flow.slug}`)
+    const origin = window.location.origin.includes('localhost') ? window.location.origin : 'https://www.onbrd.net'
+    navigator.clipboard.writeText(`${origin}/onboard/${flow.slug}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -757,7 +758,7 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/onboard/${flow.slug}`}
+                  value={`${typeof window !== 'undefined' ? (window.location.origin.includes('localhost') ? window.location.origin : 'https://www.onbrd.net') : 'https://www.onbrd.net'}/onboard/${flow.slug}`}
                   readOnly
                   className="flex-1 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md text-sm font-mono text-gray-600 dark:text-gray-300 transition-colors"
                 />

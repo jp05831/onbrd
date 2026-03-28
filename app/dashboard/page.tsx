@@ -72,7 +72,10 @@ export default function DashboardPage() {
       window.history.replaceState({}, '', '/dashboard')
       setTimeout(() => setPublishedToast(false), 5000)
       if (slug) {
-        navigator.clipboard.writeText(`${window.location.origin}/onboard/${slug}`).catch(() => {})
+        const origin = window.location.origin.includes('localhost') 
+          ? window.location.origin 
+          : 'https://www.onbrd.net'
+        navigator.clipboard.writeText(`${origin}/onboard/${slug}`).catch(() => {})
       }
     }
   }, [searchParams])
@@ -140,7 +143,8 @@ export default function DashboardPage() {
   }
 
   const copyLink = (slug: string, id: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/onboard/${slug}`)
+    const origin = window.location.origin.includes('localhost') ? window.location.origin : 'https://www.onbrd.net'
+    navigator.clipboard.writeText(`${origin}/onboard/${slug}`)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
   }
