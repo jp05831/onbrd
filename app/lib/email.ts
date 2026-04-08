@@ -126,6 +126,19 @@ export async function sendClientCompletionEmail(clientEmail: string, clientName:
   })
 }
 
+export async function sendStepCompletedToOwner(ownerEmail: string, clientName: string, stepTitle: string, flowSlug: string) {
+  const resend = getResend()
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.onbrd.net'
+  const flowUrl = `${APP_URL}/dashboard/flows/${flowSlug}`
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: ownerEmail,
+    subject: `${clientName} completed a step: ${stepTitle}`,
+    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">Step completed ✅</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.6;"><strong style="color:#111827;">${clientName}</strong> just completed a step in their onboarding portal:</p><div style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-radius:6px;font-size:14px;font-weight:500;color:#111827;">${stepTitle}</div><a href="${flowUrl}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">View Flow →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd · <a href="https://onbrd.net" style="color:#6b7280;text-decoration:none;">onbrd.net</a></p></td></tr></table></td></tr></table></body></html>`,
+    text: `${clientName} completed a step: "${stepTitle}"\n\nView their flow: ${flowUrl}`,
+  })
+}
+
 export async function sendFlowCompletionToOwner(ownerEmail: string, clientName: string) {
   const resend = getResend()
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.onbrd.net'
