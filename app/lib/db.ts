@@ -97,6 +97,25 @@ async function initDb() {
         deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         reason TEXT DEFAULT 'expired'
       );
+
+      CREATE TABLE IF NOT EXISTS client_accounts (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT,
+        name TEXT NOT NULL,
+        is_email_verified BOOLEAN DEFAULT FALSE,
+        verification_token TEXT,
+        reset_token TEXT,
+        reset_token_expires TIMESTAMPTZ,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS client_sessions (
+        id TEXT PRIMARY KEY,
+        client_id TEXT NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL
+      );
     `)
     
     // Run migrations to add any missing columns to existing tables
@@ -151,6 +170,9 @@ async function runMigrations(client: any) {
     { table: 'flows', column: 'completion_message', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS completion_message TEXT' },
     { table: 'flows', column: 'accent_color', sql: "ALTER TABLE flows ADD COLUMN IF NOT EXISTS accent_color TEXT DEFAULT '#2563eb'" },
     { table: 'flow_activity', column: 'id', sql: `CREATE TABLE IF NOT EXISTS flow_activity (id TEXT PRIMARY KEY, flow_id TEXT NOT NULL, event TEXT NOT NULL, detail TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)` },
+
+    // client account migrations
+    { table: 'flows', column: 'client_account_id', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS client_account_id TEXT' },
   ]
   
   for (const migration of migrations) {
@@ -209,6 +231,19 @@ export interface Flow {
   is_template: boolean
   created_at: string
   completed_at: string | null
+  client_account_id: string | null
+}
+
+export interface ClientAccount {
+  id: string
+  email: string
+  password_hash: string | null
+  name: string
+  is_email_verified: boolean
+  verification_token: string | null
+  reset_token: string | null
+  reset_token_expires: string | null
+  created_at: string
 }
 
 export interface Step {
@@ -625,6 +660,117 @@ export const database = {
     await pool.query('DELETE FROM sessions WHERE user_id = $1', [userId])
     // Delete the user
     await pool.query('DELETE FROM users WHERE id = $1', [userId])
+  },
+
+  // Client Accounts
+  createClientAccount: async (email: string, password: string, name: string) => {
+    await initDb()
+    const id = uuid()
+    const password_hash = bcrypt.hashSync(password, 10)
+    await pool.query(
+      'INSERT INTO client_accounts (id, email, password_hash, name) VALUES ($1, $2, $3, $4)',
+      [id, email, password_hash, name]
+    )
+    return id
+  },
+
+  getClientAccountByEmail: async (email: string) => {
+    await initDb()
+    const result = await pool.query('SELECT * FROM client_accounts WHERE email = $1', [email])
+    return result.rows[0] as ClientAccount | undefined
+  },
+
+  getClientAccountById: async (id: string) => {
+    await initDb()
+    const result = await pool.query('SELECT * FROM client_accounts WHERE id = $1', [id])
+    return result.rows[0] as ClientAccount | undefined
+  },
+
+  createClientSession: async (clientId: string) => {
+    await initDb()
+    const id = uuid()
+    const token = crypto.randomBytes(32).toString('hex')
+    const expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    await pool.query(
+      'INSERT INTO client_sessions (id, client_id, token, expires_at) VALUES ($1, $2, $3, $4)',
+      [id, clientId, token, expires_at]
+    )
+    return token
+  },
+
+  getClientSession: async (token: string) => {
+    await initDb()
+    const result = await pool.query(`
+      SELECT ca.*, cs.token as session_token FROM client_sessions cs
+      JOIN client_accounts ca ON cs.client_id = ca.id
+      WHERE cs.token = $1 AND cs.expires_at > NOW()
+    `, [token])
+    if (!result.rows[0]) return undefined
+    const row = result.rows[0]
+    return { ...row, token: row.session_token } as ClientAccount & { token: string }
+  },
+
+  deleteClientSession: async (token: string) => {
+    await initDb()
+    await pool.query('DELETE FROM client_sessions WHERE token = $1', [token])
+  },
+
+  linkFlowToClientAccount: async (flowId: string, clientAccountId: string) => {
+    await initDb()
+    await pool.query('UPDATE flows SET client_account_id = $1 WHERE id = $2', [clientAccountId, flowId])
+  },
+
+  getFlowsByClientAccountId: async (clientAccountId: string) => {
+    await initDb()
+    const result = await pool.query(`
+      SELECT f.*,
+        (SELECT COUNT(*) FROM steps WHERE flow_id = f.id) as total_steps,
+        (SELECT COUNT(*) FROM steps WHERE flow_id = f.id AND completed = true) as completed_steps
+      FROM flows f
+      WHERE f.client_account_id = $1
+      ORDER BY f.created_at DESC
+    `, [clientAccountId])
+    return result.rows as (Flow & { total_steps: number; completed_steps: number })[]
+  },
+
+  setClientVerificationToken: async (clientId: string, token: string) => {
+    await initDb()
+    await pool.query('UPDATE client_accounts SET verification_token = $1, is_email_verified = FALSE WHERE id = $2', [token, clientId])
+  },
+
+  verifyClientEmail: async (token: string) => {
+    await initDb()
+    const result = await pool.query(
+      'UPDATE client_accounts SET is_email_verified = TRUE, verification_token = NULL WHERE verification_token = $1 RETURNING id, email',
+      [token]
+    )
+    return result.rows[0] as { id: string; email: string } | undefined
+  },
+
+  setClientResetToken: async (clientId: string, token: string) => {
+    await initDb()
+    const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+    await pool.query(
+      'UPDATE client_accounts SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+      [token, expires, clientId]
+    )
+  },
+
+  verifyClientResetToken: async (token: string) => {
+    await initDb()
+    const result = await pool.query(
+      'SELECT id, email FROM client_accounts WHERE reset_token = $1 AND reset_token_expires > NOW()',
+      [token]
+    )
+    return result.rows[0] as { id: string; email: string } | undefined
+  },
+
+  resetClientPassword: async (clientId: string, newPasswordHash: string) => {
+    await initDb()
+    await pool.query(
+      'UPDATE client_accounts SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+      [newPasswordHash, clientId]
+    )
   },
 
   reorderSteps: async (flowId: string, stepIds: string[]) => {

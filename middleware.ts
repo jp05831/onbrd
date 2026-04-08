@@ -11,9 +11,16 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  if (pathname.startsWith('/client/dashboard')) {
+    const clientToken = request.cookies.get('client_token')?.value
+    if (!clientToken) {
+      return NextResponse.redirect(new URL('/client/login', request.url))
+    }
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/client/dashboard', '/client/dashboard/:path*'],
 }

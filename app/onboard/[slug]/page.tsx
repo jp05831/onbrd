@@ -1,20 +1,33 @@
 import { notFound } from 'next/navigation'
 import { unstable_noStore as noStore } from 'next/cache'
+import { cookies } from 'next/headers'
 import database from '../../lib/db'
 import ClientPortal from './ClientPortal'
 
 export default async function OnboardPage({ params }: { params: Promise<{ slug: string }> }) {
   noStore()
   const { slug } = await params
-  
+
   const flow = await database.getFlowBySlug(slug)
-  
+
   if (!flow || flow.status === 'draft') {
     notFound()
   }
 
   const steps = await database.getStepsByFlowId(flow.id)
   const user = await database.getUserById(flow.user_id)
+
+  // Check for logged-in client account
+  const cookieStore = await cookies()
+  const clientToken = cookieStore.get('client_token')?.value
+  let clientAccount: { id: string; name: string; email: string } | null = null
+
+  if (clientToken) {
+    const session = await database.getClientSession(clientToken)
+    if (session) {
+      clientAccount = { id: session.id, name: session.name, email: session.email }
+    }
+  }
 
   return (
     <ClientPortal
@@ -49,6 +62,7 @@ export default async function OnboardPage({ params }: { params: Promise<{ slug: 
         logo_url: user?.logo_url ?? null,
         plan: user?.plan || 'free',
       }}
+      clientAccount={clientAccount}
     />
   )
 }

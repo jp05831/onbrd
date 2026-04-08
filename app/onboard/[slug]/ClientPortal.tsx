@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Check, Lock, ArrowUpRight, Sparkles, FileText, Camera, FileUp, RotateCcw, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Check, Lock, ArrowUpRight, Sparkles, FileText, Camera, FileUp, RotateCcw, ChevronRight, LayoutDashboard, LogOut } from 'lucide-react'
 import ExpiryBadge from '../../components/ExpiryBadge'
 
 interface Step {
@@ -38,14 +39,27 @@ interface ClientPortalProps {
     logo_url: string | null
     plan: string
   }
+  clientAccount: { id: string; name: string; email: string } | null
 }
 
-export default function ClientPortal({ flow, steps: initialSteps, owner }: ClientPortalProps) {
+export default function ClientPortal({ flow, steps: initialSteps, owner, clientAccount }: ClientPortalProps) {
+  const router = useRouter()
   const [steps, setSteps] = useState(initialSteps)
   const [completing, setCompleting] = useState<string | null>(null)
   const [uncompleting, setUncompleting] = useState<string | null>(null)
   const [uploading, setUploading] = useState<string | null>(null)
+  const [loggingOut, setLoggingOut] = useState(false)
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
+
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    try {
+      await fetch('/api/client-auth/logout', { method: 'POST' })
+      router.refresh()
+    } catch {
+      setLoggingOut(false)
+    }
+  }
 
   const accent = flow.accent_color || '#2563eb'
 
@@ -199,6 +213,55 @@ export default function ClientPortal({ flow, steps: initialSteps, owner }: Clien
     <div className="min-h-screen bg-neutral-950">
       {/* Top accent bar */}
       <div className="h-1 w-full" style={{ backgroundColor: accent }} />
+
+      {/* Client account bar */}
+      {clientAccount ? (
+        <div className="bg-neutral-900/80 border-b border-neutral-800/60 px-5 py-2">
+          <div className="max-w-xl mx-auto flex items-center justify-between gap-3 text-xs">
+            <span className="text-gray-400">
+              Logged in as <span className="text-gray-200 font-medium">{clientAccount.name}</span>
+            </span>
+            <div className="flex items-center gap-3">
+              <a
+                href="/client/dashboard"
+                className="inline-flex items-center gap-1 text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                <LayoutDashboard className="w-3 h-3" />
+                Dashboard
+              </a>
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors disabled:opacity-50"
+              >
+                <LogOut className="w-3 h-3" />
+                {loggingOut ? 'Signing out...' : 'Log out'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-neutral-900/60 border-b border-neutral-800/40 px-5 py-2.5">
+          <div className="max-w-xl mx-auto flex items-center justify-between gap-3 text-xs">
+            <span className="text-gray-500">Want to save your progress?</span>
+            <div className="flex items-center gap-3">
+              <a
+                href={`/client/signup?flow=${flow.slug}`}
+                className="text-gray-300 hover:text-white font-medium transition-colors"
+              >
+                Create account
+              </a>
+              <span className="text-gray-700">·</span>
+              <a
+                href={`/client/login?flow=${flow.slug}`}
+                className="text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                Log in
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-xl mx-auto px-5 py-10">
         {/* Header */}
