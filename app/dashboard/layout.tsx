@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { 
   LayoutDashboard, Settings, LogOut, CreditCard, Sun, Moon, 
-  ChevronLeft, ChevronRight, Sparkles, Menu, X, LifeBuoy
+  ChevronLeft, ChevronRight, Sparkles, Menu, X, LifeBuoy, Users
 } from 'lucide-react'
 import { useTheme } from '../lib/theme'
 
@@ -138,6 +138,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {sidebarOpen && <span>Upgrade</span>}
           </Link>
         )}
+
+        {/* Client Portal Link */}
+        <Link
+          href="/client/dashboard"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors ${!sidebarOpen ? 'justify-center' : ''}`}
+          title={!sidebarOpen ? 'Client Portal' : undefined}
+        >
+          <Users className="w-5 h-5 flex-shrink-0" />
+          {sidebarOpen && <span>Client Portal</span>}
+        </Link>
       </nav>
 
       {/* Bottom Section */}

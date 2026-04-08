@@ -22,6 +22,9 @@ export default function LandingPage() {
             />
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/client/login" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+              Client login
+            </Link>
             <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
               Log in
             </Link>
@@ -364,7 +367,10 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-neutral-800 pt-6 flex items-center justify-between">
             <p className="text-xs text-gray-700">© {new Date().getFullYear()} Onbrd. All rights reserved.</p>
-            <Link href="/login" className="text-xs text-gray-700 hover:text-gray-400 transition-colors">Log in</Link>
+            <div className="flex items-center gap-4">
+              <Link href="/client/login" className="text-xs text-gray-700 hover:text-gray-400 transition-colors">Client login</Link>
+              <Link href="/login" className="text-xs text-gray-700 hover:text-gray-400 transition-colors">Log in</Link>
+            </div>
           </div>
         </div>
       </footer>
