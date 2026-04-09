@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import database from '../../../lib/db'
-import { loginRateLimit, getIP } from '../../lib/ratelimit'
+import { loginRateLimit, getIP } from '@/app/lib/ratelimit'
 
 export async function POST(request: NextRequest) {
   if (await loginRateLimit(getIP(request))) {

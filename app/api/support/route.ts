@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { supportRateLimit, getIP } from '../../lib/ratelimit'
+import { supportRateLimit, getIP } from '@/app/lib/ratelimit'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET as string
 if (!ADMIN_JWT_SECRET) {
   throw new Error('ADMIN_JWT_SECRET environment variable is not set')
 }

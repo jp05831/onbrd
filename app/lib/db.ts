@@ -219,6 +219,11 @@ export interface User {
   created_at: string
   is_email_verified: boolean
   verification_token: string | null
+  is_banned: boolean
+  reset_token: string | null
+  reset_token_expires: string | null
+  failed_login_attempts: number
+  locked_until: string | null
 }
 
 export interface Flow {
@@ -248,6 +253,8 @@ export interface ClientAccount {
   reset_token: string | null
   reset_token_expires: string | null
   created_at: string
+  failed_login_attempts: number
+  locked_until: string | null
 }
 
 export interface Step {

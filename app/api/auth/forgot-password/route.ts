@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import database from '../../../lib/db'
 import { sendPasswordResetEmail } from '../../../lib/email'
-import { forgotPasswordRateLimit, getIP } from '../../lib/ratelimit'
+import { forgotPasswordRateLimit, getIP } from '@/app/lib/ratelimit'
 
 export async function POST(request: NextRequest) {
   if (await forgotPasswordRateLimit(getIP(request))) {

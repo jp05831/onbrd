@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import database from '../../../lib/db'
-import { onboardRateLimit, getIP } from '../../lib/ratelimit'
+import { onboardRateLimit, getIP } from '@/app/lib/ratelimit'
 
 export async function POST(request: NextRequest) {
   if (await onboardRateLimit(getIP(request))) {

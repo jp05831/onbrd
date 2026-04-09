@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import database from '../../../lib/db'
 import { sendVerificationEmail } from '../../../lib/email'
-import { signupRateLimit, getIP } from '../../lib/ratelimit'
+import { signupRateLimit, getIP } from '@/app/lib/ratelimit'
 
 export async function POST(request: NextRequest) {
   if (await signupRateLimit(getIP(request))) {

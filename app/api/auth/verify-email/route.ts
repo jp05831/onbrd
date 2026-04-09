@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import database from '../../../lib/db'
-import { forgotPasswordRateLimit, getIP } from '../../lib/ratelimit'
+import { forgotPasswordRateLimit, getIP } from '@/app/lib/ratelimit'
 
 export async function GET(request: NextRequest) {
   // Rate limit token verification attempts (prevents enumeration)
