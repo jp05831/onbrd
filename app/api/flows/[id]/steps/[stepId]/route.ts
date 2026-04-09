@@ -33,6 +33,21 @@ export async function PATCH(
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
+    // Validate step_type enum
+    if (updates.step_type !== undefined && !['link', 'request_pdf', 'request_photo'].includes(updates.step_type)) {
+      return NextResponse.json({ error: 'Invalid step_type' }, { status: 400 })
+    }
+    // Block dangerous URL protocols
+    if (updates.url) {
+      try {
+        const proto = new URL(updates.url).protocol
+        if (!['http:', 'https:', 'mailto:'].includes(proto)) {
+          return NextResponse.json({ error: 'URL must use http, https, or mailto' }, { status: 400 })
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
+      }
+    }
     await database.updateStep(stepId, updates)
 
     return NextResponse.json({ success: true })

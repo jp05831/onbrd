@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // Update user plan (they keep Pro until period ends, webhook will handle final downgrade)
     // For immediate feedback, we can note the cancellation
-    console.log(`User ${user.email} cancelled subscription (will end at period end)`)
+    // Subscription scheduled for cancellation at period end
 
     return NextResponse.json({ success: true })
   } catch (error) {

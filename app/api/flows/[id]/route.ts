@@ -62,6 +62,17 @@ export async function PATCH(
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
+    // Validate status is one of the allowed values
+    if (updates.status !== undefined && !['draft', 'published', 'completed'].includes(updates.status)) {
+      return NextResponse.json({ error: 'Invalid status value' }, { status: 400 })
+    }
+    // Validate logo_url protocol
+    if (updates.logo_url) {
+      try {
+        const p = new URL(updates.logo_url).protocol
+        if (!['http:', 'https:'].includes(p)) return NextResponse.json({ error: 'Invalid logo URL' }, { status: 400 })
+      } catch { return NextResponse.json({ error: 'Invalid logo URL' }, { status: 400 }) }
+    }
     await database.updateFlow(id, updates)
 
     return NextResponse.json({ success: true })

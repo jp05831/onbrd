@@ -487,7 +487,11 @@ export const database = {
 
   updateFlow: async (id: string, data: Partial<Flow>) => {
     await initDb()
-    const fields = Object.keys(data).filter(k => k !== 'id')
+    const UPDATABLE_FLOW_FIELDS = new Set([
+      'client_name', 'client_email', 'welcome_message', 'completion_message',
+      'accent_color', 'status', 'logo_url', 'completed_at', 'client_account_id',
+    ])
+    const fields = Object.keys(data).filter(k => UPDATABLE_FLOW_FIELDS.has(k))
     if (fields.length === 0) return
     
     const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
@@ -535,7 +539,12 @@ export const database = {
 
   updateStep: async (id: string, data: Partial<Step>) => {
     await initDb()
-    const fields = Object.keys(data).filter(k => k !== 'id')
+    const UPDATABLE_STEP_FIELDS = new Set([
+      'title', 'description', 'url', 'file_id', 'file_name', 'step_type',
+      'uploaded_file_id', 'uploaded_file_name', 'position',
+      'completed', 'completed_at', 'expire_days', 'expire_at', 'due_date',
+    ])
+    const fields = Object.keys(data).filter(k => UPDATABLE_STEP_FIELDS.has(k))
     if (fields.length === 0) return
     
     const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')

@@ -18,6 +18,9 @@ export async function POST(request: NextRequest) {
     if (!flow || flow.id !== step.flow_id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
+    if (flow.status !== 'published') {
+      return NextResponse.json({ error: 'Flow is not active' }, { status: 403 })
+    }
 
     await database.completeStep(stepId)
 

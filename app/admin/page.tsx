@@ -11,8 +11,7 @@ const pool = new Pool({
 })
 
 async function getStats() {
-  await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE')
-
+  // Note: is_banned column is managed by db.ts migrations — no DDL needed here
   const [total, last7, last30, banned, signups] = await Promise.all([
     pool.query('SELECT COUNT(*) FROM users'),
     pool.query("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '7 days'"),

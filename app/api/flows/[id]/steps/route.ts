@@ -43,6 +43,17 @@ export async function POST(
     if (url && url.length > 2000) {
       return NextResponse.json({ error: 'URL too long' }, { status: 400 })
     }
+    // Block dangerous URL protocols (XSS via javascript:/data: links)
+    if (url) {
+      try {
+        const proto = new URL(url).protocol
+        if (!['http:', 'https:', 'mailto:'].includes(proto)) {
+          return NextResponse.json({ error: 'URL must use http, https, or mailto' }, { status: 400 })
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
+      }
+    }
 
     const stepId = await database.createStep(flowId, title, description, url || null, position, file_id, file_name)
 

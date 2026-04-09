@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
             plan: 'pro',
             is_pro: true,
           })
-          console.log(`User ${user.email} upgraded to Pro`)
         }
       }
       break
@@ -65,7 +64,6 @@ export async function POST(req: NextRequest) {
             is_pro: isActive,
             stripe_subscription_id: sub.id,
           })
-          console.log(`User ${user.email} subscription ${isActive ? 'activated' : 'deactivated'}`)
         }
       }
       break
@@ -85,7 +83,6 @@ export async function POST(req: NextRequest) {
             is_pro: false,
             stripe_subscription_id: null,
           })
-          console.log(`User ${user.email} subscription cancelled`)
         }
       }
       break
