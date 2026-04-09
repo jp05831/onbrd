@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
 
     if (flowSlug) {
       const flow = await database.getFlowBySlug(flowSlug)
-      if (flow && (!flow.client_email || flow.client_email.toLowerCase() === email.toLowerCase())) {
+      // Only link the flow if the owner explicitly set this email on it — never link flows with no email set
+      if (flow && flow.client_email && flow.client_email.toLowerCase() === email.toLowerCase()) {
         await database.linkFlowToClientAccount(flow.id, clientId)
       }
     }

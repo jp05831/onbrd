@@ -15,16 +15,13 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await database.verifyResetToken(token)
-    console.log('[reset-password] verifyResetToken result:', user)
 
     if (!user) {
       return NextResponse.json({ error: 'invalid' }, { status: 400 })
     }
 
     const hash = bcrypt.hashSync(password, 10)
-    console.log('[reset-password] updating password for userId:', user.id)
     await database.resetPassword(user.id, hash)
-    console.log('[reset-password] password updated successfully')
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

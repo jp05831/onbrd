@@ -33,12 +33,17 @@ export async function GET(req: NextRequest) {
     for (const flow of result.rows) {
       try {
         const senderName = flow.company_name || flow.owner_name
+        // Escape user-controlled values before embedding in HTML
+        const esc = (s: string) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;')
+        const safeClientName = esc(flow.client_name)
+        const safeSenderName = esc(senderName)
+        const stepsText = `${flow.incomplete_steps} step${flow.incomplete_steps > 1 ? 's' : ''}`
         await resend.emails.send({
           from: 'Onbrd <noreply@onbrd.net>',
           to: flow.client_email,
-          subject: `Reminder: you have ${flow.incomplete_steps} step${flow.incomplete_steps > 1 ? 's' : ''} left to complete`,
-          html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">Just a friendly reminder 👋</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 16px;font-size:14px;color:#6b7280;line-height:1.6;">Hi ${flow.client_name}, you still have <strong>${flow.incomplete_steps} step${flow.incomplete_steps > 1 ? 's' : ''}</strong> left to complete your onboarding with <strong>${senderName}</strong>.</p><a href="${APP_URL}/onboard/${flow.slug}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">Continue Onboarding →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
-          text: `Hi ${flow.client_name},\n\nYou have ${flow.incomplete_steps} step(s) left.\n\nContinue: ${APP_URL}/onboard/${flow.slug}`,
+          subject: `Reminder: you have ${stepsText} left to complete`,
+          html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">Just a friendly reminder 👋</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 16px;font-size:14px;color:#6b7280;line-height:1.6;">Hi ${safeClientName}, you still have <strong>${stepsText}</strong> left to complete your onboarding with <strong>${safeSenderName}</strong>.</p><a href="${APP_URL}/onboard/${flow.slug}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">Continue Onboarding →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
+          text: `Hi ${flow.client_name},\n\nYou have ${stepsText} left.\n\nContinue: ${APP_URL}/onboard/${flow.slug}`,
         })
         sent++
       } catch (e) { console.error('Reminder failed', e) }

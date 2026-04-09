@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import * as jose from 'jose'
 
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'admin-secret-change-me'
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || ''
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

@@ -83,7 +83,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         try {
           const dbUser = await database.getUserByEmail(user.email!)
-          if (dbUser) {
+          // getUserByEmail returns undefined for banned users — don't issue a token
+          if (dbUser && !dbUser.is_banned) {
             token.userId = dbUser.id
             token.plan = dbUser.plan
           }
@@ -94,9 +95,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (trigger === 'update' && token.userId) {
         try {
           const dbUser = await database.getUserById(token.userId as string)
-          if (dbUser) {
-            token.plan = dbUser.plan
+          // If user is banned or deleted, invalidate the token
+          if (!dbUser || dbUser.is_banned) {
+            return {} // Clears the token — forces sign-out on next request
           }
+          token.plan = dbUser.plan
         } catch (error) {
           console.error('JWT refresh error:', error)
         }

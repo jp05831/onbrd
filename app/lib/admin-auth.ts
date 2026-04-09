@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'admin-secret-change-me'
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET
+if (!ADMIN_JWT_SECRET) {
+  throw new Error('ADMIN_JWT_SECRET environment variable is not set')
+}
 
 export async function verifyAdminSession(): Promise<{ email: string } | null> {
   try {

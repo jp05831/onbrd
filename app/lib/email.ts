@@ -2,6 +2,17 @@ import { Resend } from 'resend'
 
 const getResend = () => new Resend(process.env.RESEND_API_KEY)
 
+/** Escape user-controlled strings before embedding in HTML email bodies */
+function esc(str: string | null | undefined): string {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 const FROM_EMAIL = 'Onbrd <noreply@onbrd.net>'
 
@@ -117,11 +128,14 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
 export async function sendClientCompletionEmail(clientEmail: string, clientName: string, ownerName: string, completionMessage?: string | null) {
   const resend = getResend()
+  const safeClientName = esc(clientName)
+  const safeOwnerName = esc(ownerName)
+  const safeMessage = esc(completionMessage) || `You&#x27;ve completed your onboarding with ${safeOwnerName}. They&#x27;ll be in touch soon.`
   await resend.emails.send({
     from: 'Onbrd <noreply@onbrd.net>',
     to: clientEmail,
     subject: `You're all done, ${clientName}! ✅`,
-    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;text-align:center;"><p style="margin:0;font-size:22px;font-weight:600;color:#111827;">You're all done, ${clientName}! ✅</p></td></tr><tr><td style="padding:16px 40px 32px;text-align:center;"><p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.7;">${completionMessage || `You've completed your onboarding with ${ownerName}. They'll be in touch soon.`}</p></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
+    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;text-align:center;"><p style="margin:0;font-size:22px;font-weight:600;color:#111827;">You&#x27;re all done, ${safeClientName}! ✅</p></td></tr><tr><td style="padding:16px 40px 32px;text-align:center;"><p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.7;">${safeMessage}</p></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
     text: `You're all done, ${clientName}!\n\n${completionMessage || `You've completed your onboarding with ${ownerName}. They'll be in touch soon.`}`,
   })
 }
@@ -130,11 +144,13 @@ export async function sendStepCompletedToOwner(ownerEmail: string, clientName: s
   const resend = getResend()
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.onbrd.net'
   const flowUrl = `${APP_URL}/dashboard/flows/${flowSlug}`
+  const safeClientName = esc(clientName)
+  const safeStepTitle = esc(stepTitle)
   await resend.emails.send({
     from: FROM_EMAIL,
     to: ownerEmail,
     subject: `${clientName} completed a step: ${stepTitle}`,
-    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">Step completed ✅</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.6;"><strong style="color:#111827;">${clientName}</strong> just completed a step in their onboarding portal:</p><div style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-radius:6px;font-size:14px;font-weight:500;color:#111827;">${stepTitle}</div><a href="${flowUrl}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">View Flow →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd · <a href="https://onbrd.net" style="color:#6b7280;text-decoration:none;">onbrd.net</a></p></td></tr></table></td></tr></table></body></html>`,
+    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">Step completed ✅</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 8px;font-size:14px;color:#6b7280;line-height:1.6;"><strong style="color:#111827;">${safeClientName}</strong> just completed a step in their onboarding portal:</p><div style="margin:16px 0;padding:12px 16px;background:#f3f4f6;border-radius:6px;font-size:14px;font-weight:500;color:#111827;">${safeStepTitle}</div><a href="${flowUrl}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">View Flow →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd · <a href="https://onbrd.net" style="color:#6b7280;text-decoration:none;">onbrd.net</a></p></td></tr></table></td></tr></table></body></html>`,
     text: `${clientName} completed a step: "${stepTitle}"\n\nView their flow: ${flowUrl}`,
   })
 }
@@ -142,11 +158,12 @@ export async function sendStepCompletedToOwner(ownerEmail: string, clientName: s
 export async function sendFlowCompletionToOwner(ownerEmail: string, clientName: string) {
   const resend = getResend()
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.onbrd.net'
+  const safeClientName = esc(clientName)
   await resend.emails.send({
     from: 'Onbrd <noreply@onbrd.net>',
     to: ownerEmail,
     subject: `${clientName} completed their onboarding ✅`,
-    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">🎉 ${clientName} is all done!</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.6;">${clientName} has completed all steps in their onboarding portal.</p><a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">View Dashboard →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
+    html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;max-width:520px;"><tr><td style="padding:32px 40px 8px;"><p style="margin:0;font-size:20px;font-weight:600;color:#111827;">🎉 ${safeClientName} is all done!</p></td></tr><tr><td style="padding:16px 40px 32px;"><p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.6;">${safeClientName} has completed all steps in their onboarding portal.</p><a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;font-size:14px;font-weight:500;border-radius:6px;text-decoration:none;">View Dashboard →</a></td></tr><tr><td style="padding:20px 40px;border-top:1px solid #f3f4f6;"><p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Onbrd</p></td></tr></table></td></tr></table></body></html>`,
     text: `${clientName} completed their onboarding!\n\nView dashboard: ${APP_URL}/dashboard`,
   })
 }
@@ -161,9 +178,9 @@ export async function sendExpiryWarningEmail(
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     })
     return `<tr>
-      <td style="padding:8px 0;font-size:14px;color:#111827;border-bottom:1px solid #f3f4f6;">${item.stepTitle}</td>
-      <td style="padding:8px 0;font-size:14px;color:#6b7280;border-bottom:1px solid #f3f4f6;">${item.clientName}</td>
-      <td style="padding:8px 0;font-size:14px;color:#dc2626;border-bottom:1px solid #f3f4f6;">${expireDate}</td>
+      <td style="padding:8px 0;font-size:14px;color:#111827;border-bottom:1px solid #f3f4f6;">${esc(item.stepTitle)}</td>
+      <td style="padding:8px 0;font-size:14px;color:#6b7280;border-bottom:1px solid #f3f4f6;">${esc(item.clientName)}</td>
+      <td style="padding:8px 0;font-size:14px;color:#dc2626;border-bottom:1px solid #f3f4f6;">${esc(expireDate)}</td>
     </tr>`
   }).join('')
 
