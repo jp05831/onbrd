@@ -365,8 +365,21 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="border-t border-neutral-800 pt-6 flex items-center justify-between">
+          <div className="border-t border-neutral-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-gray-700">© {new Date().getFullYear()} Onbrd. All rights reserved.</p>
+            <a
+              href="https://www.producthunt.com/products/onbrd?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-onbrd"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="opacity-80 hover:opacity-100 transition-opacity"
+            >
+              <img
+                alt="Onbrd - One link. No back-and-forth. | Product Hunt"
+                width={250}
+                height={54}
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1119327&theme=dark&t=1775696690819"
+              />
+            </a>
             <div className="flex items-center gap-4">
               <Link href="/client/login" className="text-xs text-gray-700 hover:text-gray-400 transition-colors">Client login</Link>
               <Link href="/login" className="text-xs text-gray-700 hover:text-gray-400 transition-colors">Log in</Link>
