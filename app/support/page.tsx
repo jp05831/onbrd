@@ -126,6 +126,25 @@ export default function SupportPage() {
         </div>
       </section>
 
+      {/* Video Tutorial */}
+      <section className="py-16 px-6 border-b border-neutral-800">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold mb-2">Video walkthrough</h2>
+            <p className="text-gray-400 text-sm">Watch how to create your first flow in under 5 minutes.</p>
+          </div>
+          <div className="relative w-full rounded-xl overflow-hidden border border-neutral-800 bg-neutral-900" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/6umy1NqU7TM?start=18"
+              title="How to create your first Onbrd flow"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="py-16 px-6 border-b border-neutral-800">
         <div className="max-w-2xl mx-auto">
