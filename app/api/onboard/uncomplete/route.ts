@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import database from '../../../lib/db'
+import { onboardRateLimit, getIP } from '../../lib/ratelimit'
 
 export async function POST(request: NextRequest) {
+  if (await onboardRateLimit(getIP(request))) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   try {
     const { stepId, flowSlug } = await request.json()
 

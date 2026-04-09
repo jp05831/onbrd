@@ -1,32 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { supportRateLimit, getIP } from '../../lib/ratelimit'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Simple in-memory rate limiter: 3 requests per IP per 10 minutes
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 3
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return false
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return true
-  entry.count++
-  return false
-}
-
 export async function POST(req: NextRequest) {
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-
-  if (isRateLimited(ip)) {
+  if (await supportRateLimit(getIP(req))) {
     return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
   }
 

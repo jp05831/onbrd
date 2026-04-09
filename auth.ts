@@ -29,14 +29,23 @@ providers.push(
         const user = await database.getUserByEmail(credentials.email as string)
         if (!user || !user.password_hash) return null
 
+        // Check account lockout before attempting password verification
+        if (await database.isAccountLocked(user.id)) {
+          throw new Error('account_locked')
+        }
+
         const valid = database.verifyPassword(credentials.password as string, user.password_hash)
-        if (!valid) return null
+        if (!valid) {
+          await database.recordFailedLogin(user.id)
+          return null
+        }
 
         // Block sign-in if email not verified
         if (!user.is_email_verified) {
           throw new Error('email_not_verified')
         }
 
+        await database.clearFailedLogins(user.id)
         return {
           id: user.id,
           email: user.email,
@@ -44,7 +53,7 @@ providers.push(
         }
       } catch (error: any) {
         // Re-throw verification errors so NextAuth passes them through
-        if (error?.message === 'email_not_verified') {
+        if (error?.message === 'email_not_verified' || error?.message === 'account_locked') {
           throw error
         }
         console.error('Auth error:', error)

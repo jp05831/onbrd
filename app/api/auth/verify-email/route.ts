@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import database from '../../../lib/db'
+import { forgotPasswordRateLimit, getIP } from '../../lib/ratelimit'
 
 export async function GET(request: NextRequest) {
+  // Rate limit token verification attempts (prevents enumeration)
+  if (await forgotPasswordRateLimit(getIP(request))) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const token = request.nextUrl.searchParams.get('token')
 
   if (!token) {

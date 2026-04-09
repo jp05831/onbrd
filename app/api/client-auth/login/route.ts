@@ -1,24 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import database from '../../../lib/db'
-
-// Rate limit: 10 attempts per IP per 10 minutes (brute-force protection)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 10 * 60 * 1000 })
-    return false
-  }
-  if (entry.count >= 10) return true
-  entry.count++
-  return false
-}
+import { loginRateLimit, getIP } from '../../lib/ratelimit'
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown'
-  if (isRateLimited(ip)) {
+  if (await loginRateLimit(getIP(req))) {
     return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
   }
 
@@ -34,10 +20,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
+    // Check account lockout
+    if (await database.isClientAccountLocked(client.id)) {
+      return NextResponse.json({ error: 'Account temporarily locked. Try again in 15 minutes.' }, { status: 429 })
+    }
+
     const valid = database.verifyPassword(password, client.password_hash)
     if (!valid) {
+      await database.recordFailedClientLogin(client.id)
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
+
+    await database.clearFailedClientLogins(client.id)
 
     const token = await database.createClientSession(client.id)
 

@@ -134,6 +134,11 @@ async function initDb() {
 // This keeps existing databases in sync with code changes
 async function runMigrations(client: any) {
   const migrations = [
+    // account lockout columns
+    { table: 'users', column: 'failed_login_attempts', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0' },
+    { table: 'users', column: 'locked_until', sql: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ' },
+    { table: 'client_accounts', column: 'failed_login_attempts', sql: 'ALTER TABLE client_accounts ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0' },
+    { table: 'client_accounts', column: 'locked_until', sql: 'ALTER TABLE client_accounts ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ' },
     // flows table migrations
     { table: 'flows', column: 'is_template', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false' },
     { table: 'flows', column: 'completed_at', sql: 'ALTER TABLE flows ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP' },
@@ -193,7 +198,8 @@ function uuid() {
 }
 
 function generateSlug() {
-  return crypto.randomBytes(6).toString('base64url')
+  // 12 bytes = 16 chars base64url = ~10^28 combinations, brute-force infeasible
+  return crypto.randomBytes(12).toString('base64url')
 }
 
 // Types
@@ -341,6 +347,55 @@ export const database = {
 
   verifyPassword: (password: string, hash: string) => {
     return bcrypt.compareSync(password, hash)
+  },
+
+  // Account lockout: call on failed login (max 10 attempts, 15-min lockout)
+  recordFailedLogin: async (userId: string) => {
+    await initDb()
+    await pool.query(`
+      UPDATE users SET
+        failed_login_attempts = failed_login_attempts + 1,
+        locked_until = CASE WHEN failed_login_attempts + 1 >= 10
+          THEN NOW() + INTERVAL '15 minutes' ELSE locked_until END
+      WHERE id = $1
+    `, [userId])
+  },
+
+  // Reset on successful login
+  clearFailedLogins: async (userId: string) => {
+    await initDb()
+    await pool.query('UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1', [userId])
+  },
+
+  isAccountLocked: async (userId: string): Promise<boolean> => {
+    await initDb()
+    const result = await pool.query('SELECT locked_until FROM users WHERE id = $1', [userId])
+    const locked = result.rows[0]?.locked_until
+    return locked ? new Date(locked) > new Date() : false
+  },
+
+  // Same for client accounts
+  recordFailedClientLogin: async (clientId: string) => {
+    await initDb()
+    await pool.query(`
+      UPDATE client_accounts SET
+        failed_login_attempts = failed_login_attempts + 1,
+        locked_until = CASE WHEN failed_login_attempts + 1 >= 10
+          THEN NOW() + INTERVAL '15 minutes' ELSE locked_until END
+      WHERE id = $1
+    `, [clientId])
+  },
+
+  clearFailedClientLogins: async (clientId: string) => {
+    await initDb()
+    await pool.query('UPDATE client_accounts SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1', [clientId])
+  },
+
+  isClientAccountLocked: async (clientId: string): Promise<boolean> => {
+    await initDb()
+    const result = await pool.query('SELECT locked_until FROM client_accounts WHERE id = $1', [clientId])
+    const locked = result.rows[0]?.locked_until
+    return locked ? new Date(locked) > new Date() : false
   },
 
   setVerificationToken: async (userId: string, token: string) => {

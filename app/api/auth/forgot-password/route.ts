@@ -2,24 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import database from '../../../lib/db'
 import { sendPasswordResetEmail } from '../../../lib/email'
-
-// Rate limit: 5 requests per IP per 15 minutes
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 15 * 60 * 1000 })
-    return false
-  }
-  if (entry.count >= 5) return true
-  entry.count++
-  return false
-}
+import { forgotPasswordRateLimit, getIP } from '../../lib/ratelimit'
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown'
-  if (isRateLimited(ip)) {
+  if (await forgotPasswordRateLimit(getIP(request))) {
     return NextResponse.json({ success: true }) // Silent — don't reveal rate limiting to attackers
   }
 

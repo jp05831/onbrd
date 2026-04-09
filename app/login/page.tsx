@@ -34,6 +34,8 @@ function LoginForm() {
       if (result?.error) {
         if (result.error.includes('email_not_verified') || result.error.includes('not verified')) {
           setError('Please verify your email before signing in. Check your inbox.')
+        } else if (result.error.includes('account_locked')) {
+          setError('Account temporarily locked due to too many failed attempts. Try again in 15 minutes.')
         } else {
           setError('Invalid email or password')
         }
