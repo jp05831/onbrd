@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 import { Resend } from 'resend'
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-const pool = new Pool({ connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL })
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+})
 const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.onbrd.net'
 

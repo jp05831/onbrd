@@ -2,10 +2,6 @@ import { Pool } from 'pg'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
-// Supabase uses a self-signed cert on the Postgres connection — disable verification for this process
-// (safe in Vercel serverless: each function invocation is an isolated process)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-
 // Pro tier overrides (emails that get pro for free)
 const PRO_OVERRIDES = [
   'info@movescout.net',
@@ -13,6 +9,8 @@ const PRO_OVERRIDES = [
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  // Supabase uses a self-signed cert — disable only for this pg connection, not process-wide
+  ssl: { rejectUnauthorized: false },
 })
 
 let dbInitialized = false
@@ -303,6 +301,8 @@ export const database = {
     await initDb()
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email])
     const user = result.rows[0] as User | undefined
+    // Banned users are treated as non-existent for auth purposes
+    if (user?.is_banned) return undefined
     // Apply pro overrides
     if (user && PRO_OVERRIDES.includes(user.email.toLowerCase())) {
       user.plan = 'pro'
@@ -325,7 +325,13 @@ export const database = {
 
   updateUser: async (id: string, data: Partial<User>) => {
     await initDb()
-    const fields = Object.keys(data).filter(k => k !== 'id' && k !== 'password_hash')
+    // Allowlist of fields that can be updated — prevents mass assignment attacks
+    const UPDATABLE_FIELDS = new Set([
+      'name', 'company_name', 'logo_url', 'email',
+      'plan', 'is_pro', 'stripe_customer_id', 'stripe_subscription_id',
+      'is_banned', 'is_email_verified', 'verification_token',
+    ])
+    const fields = Object.keys(data).filter(k => UPDATABLE_FIELDS.has(k))
     if (fields.length === 0) return
     
     const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
@@ -397,7 +403,7 @@ export const database = {
     const result = await pool.query(`
       SELECT s.*, u.* FROM sessions s
       JOIN users u ON s.user_id = u.id
-      WHERE s.token = $1 AND s.expires_at > NOW()
+      WHERE s.token = $1 AND s.expires_at > NOW() AND u.is_banned IS NOT TRUE
     `, [token])
     return result.rows[0] as (User & { token: string }) | undefined
   },

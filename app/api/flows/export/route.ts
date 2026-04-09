@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSession } from '../../../lib/auth'
 import database from '../../../lib/db'
-import { cookies } from 'next/headers'
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('auth_token')?.value
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const session = await database.getSession(token)
+    const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const flows = await database.getFlowsByUserId(session.id)
+    const flows = await database.getFlowsByUserId(session.user.id)
     const rows = [
       ['Client Name', 'Status', 'Steps Total', 'Steps Completed', 'Created', 'Completed At'],
       ...flows.filter((f: any) => !f.is_template).map((f: any) => [

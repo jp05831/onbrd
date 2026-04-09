@@ -23,24 +23,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    // Only accept uploads for published flows
+    if (flow.status !== 'published') {
+      return NextResponse.json({ error: 'Flow is not active' }, { status: 403 })
+    }
+
+    // Don't accept re-uploads for already-completed steps
+    if (step.completed && step.uploaded_file_id) {
+      return NextResponse.json({ error: 'Step already completed' }, { status: 409 })
+    }
+
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 })
     }
 
-    // Validate file type
-    const allowedTypes = [
-      'application/pdf',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'image/heic',
-      'image/heif'
-    ]
+    // Validate file type based on step type
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif']
+    const pdfTypes = ['application/pdf']
 
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
+    if (step.step_type === 'request_photo') {
+      if (!imageTypes.includes(file.type)) {
+        return NextResponse.json({ error: 'Only image files are allowed for this step (JPG, PNG, GIF, WebP, HEIC)' }, { status: 400 })
+      }
+    } else if (step.step_type === 'request_pdf') {
+      if (!pdfTypes.includes(file.type)) {
+        return NextResponse.json({ error: 'Only PDF files are allowed for this step' }, { status: 400 })
+      }
+    } else {
+      return NextResponse.json({ error: 'This step does not accept file uploads' }, { status: 400 })
     }
 
     // Sanitize filename

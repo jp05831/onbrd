@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
 
-    // Find user
+    // Find user (getUserByEmail already returns undefined for banned users)
     const user = await database.getUserByEmail(email)
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })

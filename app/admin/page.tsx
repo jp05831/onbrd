@@ -5,8 +5,10 @@ import UsersTable from './UsersTable'
 import SignupChart from './SignupChart'
 import { Users, UserPlus, TrendingUp, Ban } from 'lucide-react'
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-const pool = new Pool({ connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL })
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+})
 
 async function getStats() {
   await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE')
