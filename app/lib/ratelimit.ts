@@ -12,10 +12,11 @@ import { Pool } from 'pg'
 let pool: Pool | null = null
 function getPool(): Pool {
   if (!pool) {
+    const rawConn = (process.env.POSTGRES_URL || process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, '')
     pool = new Pool({
-      connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+      connectionString: rawConn,
       ssl: { rejectUnauthorized: false },
-      max: 3, // Small pool — rate limit checks are fast
+      max: 3,
     })
   }
   return pool

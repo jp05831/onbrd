@@ -3,7 +3,7 @@ import { Pool } from 'pg'
 import { Resend } from 'resend'
 
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  connectionString: (process.env.POSTGRES_URL || process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, ''),
   ssl: { rejectUnauthorized: false },
 })
 const resend = new Resend(process.env.RESEND_API_KEY)

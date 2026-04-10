@@ -7,9 +7,12 @@ const PRO_OVERRIDES = [
   'info@movescout.net',
 ]
 
+// Strip sslmode from connection string so the ssl object below takes full control
+const rawConnString = (process.env.POSTGRES_URL || process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, '')
+
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
-  // Supabase uses a self-signed cert — disable only for this pg connection, not process-wide
+  connectionString: rawConnString,
+  // Supabase uses a self-signed cert on pooled connections — must disable cert validation
   ssl: { rejectUnauthorized: false },
 })
 
