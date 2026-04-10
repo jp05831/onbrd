@@ -3,7 +3,7 @@ import { verifyAdminSession } from '@/app/lib/admin-auth'
 import { Pool } from 'pg'
 
 const pool = new Pool({
-  connectionString: (process.env.POSTGRES_URL || process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, ''),
+  connectionString: (() => { const r = process.env.POSTGRES_URL || process.env.DATABASE_URL || ''; try { const u = new URL(r); u.searchParams.delete('sslmode'); return u.toString() } catch { return r } })(),
   ssl: { rejectUnauthorized: false },
 })
 

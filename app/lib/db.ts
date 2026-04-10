@@ -7,11 +7,20 @@ const PRO_OVERRIDES = [
   'info@movescout.net',
 ]
 
-// Strip sslmode from connection string so the ssl object below takes full control
-const rawConnString = (process.env.POSTGRES_URL || process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, '')
+// Remove sslmode param so the ssl:{rejectUnauthorized:false} object takes full control
+// Must use URL parsing — regex stripping breaks the connection string when sslmode is first param
+function stripSslMode(connStr: string): string {
+  try {
+    const url = new URL(connStr)
+    url.searchParams.delete('sslmode')
+    return url.toString()
+  } catch {
+    return connStr
+  }
+}
 
 const pool = new Pool({
-  connectionString: rawConnString,
+  connectionString: stripSslMode(process.env.POSTGRES_URL || process.env.DATABASE_URL || ''),
   // Supabase uses a self-signed cert on pooled connections — must disable cert validation
   ssl: { rejectUnauthorized: false },
 })

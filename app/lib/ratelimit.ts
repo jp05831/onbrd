@@ -12,7 +12,9 @@ import { Pool } from 'pg'
 let pool: Pool | null = null
 function getPool(): Pool {
   if (!pool) {
-    const rawConn = (process.env.POSTGRES_URL || process.env.DATABASE_URL || '').replace(/[?&]sslmode=[^&]*/g, '')
+    const raw = process.env.POSTGRES_URL || process.env.DATABASE_URL || ''
+    let rawConn = raw
+    try { const u = new URL(raw); u.searchParams.delete('sslmode'); rawConn = u.toString() } catch {}
     pool = new Pool({
       connectionString: rawConn,
       ssl: { rejectUnauthorized: false },
