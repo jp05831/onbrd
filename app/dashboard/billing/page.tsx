@@ -310,7 +310,7 @@ export default function BillingPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Not happy? Email us within 7 days of your purchase and we'll refund you — no questions asked.{' '}
             <a
-              href="mailto:Onbrd1@gmail.com?subject=Refund Request"
+              href="mailto:info@onbrd.net?subject=Refund Request"
               className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
             >
               Contact support →

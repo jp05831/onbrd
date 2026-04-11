@@ -85,7 +85,7 @@ export default function PrivacyPage() {
                 'Correct inaccurate data',
                 'Request deletion of your data',
                 'Export your data in a portable format',
-                'To exercise any of these rights, email us at Onbrd1@gmail.com.',
+                'To exercise any of these rights, email us at info@onbrd.net.',
               ],
             },
             {
@@ -109,7 +109,7 @@ export default function PrivacyPage() {
             {
               title: '9. Contact',
               content: [
-                'Questions about this Privacy Policy? Email us at Onbrd1@gmail.com or visit our support page.',
+                'Questions about this Privacy Policy? Email us at info@onbrd.net or visit our support page.',
               ],
             },
           ].map((section, i) => (

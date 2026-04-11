@@ -180,7 +180,7 @@ export default function DashboardSupportPage() {
             {status === 'error' && (
               <p className="text-sm text-red-500">
                 Something went wrong. Email us directly at{' '}
-                <a href="mailto:Onbrd1@gmail.com" className="underline">Onbrd1@gmail.com</a>.
+                <a href="mailto:info@onbrd.net" className="underline">info@onbrd.net</a>.
               </p>
             )}
             <button

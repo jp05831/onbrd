@@ -254,7 +254,7 @@ export default function SupportPage() {
               {status === 'error' && (
                 <p className="text-sm text-red-400">
                   Something went wrong. Try again or email us directly at{' '}
-                  <a href="mailto:Onbrd1@gmail.com" className="underline">Onbrd1@gmail.com</a>.
+                  <a href="mailto:info@onbrd.net" className="underline">info@onbrd.net</a>.
                 </p>
               )}
               <button

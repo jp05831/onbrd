@@ -120,7 +120,7 @@ export default function TermsPage() {
             {
               title: '12. Contact',
               content: [
-                'Questions about these Terms? Email us at Onbrd1@gmail.com.',
+                'Questions about these Terms? Email us at info@onbrd.net.',
               ],
             },
           ].map((section, i) => (
