@@ -83,6 +83,7 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
   flowId: string
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const stepType = step.step_type || 'link'
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -101,12 +102,14 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
   const stepTypeOptions = [
     { value: 'link', label: 'URL Link', icon: ExternalLink, color: 'text-blue-500', desc: 'Send client to a link' },
     { value: 'pdf', label: 'Upload PDF', icon: Upload, color: 'text-orange-500', desc: 'Attach a PDF for client to view' },
+    { value: 'photo', label: 'Upload Photo', icon: Camera, color: 'text-green-500', desc: 'Attach a photo for client to view' },
     { value: 'request_pdf', label: 'Request PDF', icon: FileUp, color: 'text-purple-500', desc: 'Client uploads a PDF' },
-    { value: 'request_photo', label: 'Request Photo', icon: Camera, color: 'text-pink-500', desc: 'Client uploads a photo' },
+    { value: 'request_photo', label: 'Request Photo', icon: FileUp, color: 'text-pink-500', desc: 'Client uploads a photo' },
   ]
 
+  // Determine which option is active
   const activeOption = step.file_id
-    ? stepTypeOptions[1]
+    ? (step.file_name && /\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(step.file_name) ? stepTypeOptions[2] : stepTypeOptions[1])
     : stepTypeOptions.find(o => o.value === stepType) ?? stepTypeOptions[0]
 
   const {
@@ -233,6 +236,8 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
                       setDropdownOpen(false)
                       if (opt.value === 'pdf') {
                         switchToFile()
+                      } else if (opt.value === 'photo') {
+                        photoInputRef.current?.click()
                       } else {
                         setStepType(opt.value as 'link' | 'request_pdf' | 'request_photo')
                       }
@@ -260,6 +265,13 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
             onChange={handleFileChange}
             className="hidden"
           />
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
           
           {/* URL input for link type */}
           {stepType === 'link' && !step.file_id && (
@@ -275,7 +287,11 @@ function SortableStep({ step, index, onUpdate, onDelete, onFileUpload, onSetExpi
           {/* File display */}
           {step.file_id && step.file_name && (
             <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-md">
-              <File className="w-4 h-4 text-red-500" />
+              {/\.(jpg|jpeg|png|gif|webp|avif|svg)$/i.test(step.file_name) ? (
+                <img src={step.file_id} alt={step.file_name} className="w-8 h-8 object-cover rounded flex-shrink-0" />
+              ) : (
+                <File className="w-4 h-4 text-red-500 flex-shrink-0" />
+              )}
               <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">{step.file_name}</span>
               <button
                 onClick={clearFile}
@@ -727,43 +743,6 @@ export default function FlowEditorPage({ params }: { params: Promise<{ id: strin
       <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg p-4 mb-6 transition-colors">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Settings</h2>
         <div className="space-y-4">
-          {/* Logo upload */}
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Portal logo (optional)</label>
-            {flow.logo_url ? (
-              <div className="flex items-center gap-3">
-                <img src={flow.logo_url} alt="Logo" className="h-12 w-auto max-w-[120px] object-contain rounded border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 p-1" />
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => logoInputRef.current?.click()}
-                    disabled={uploadingLogo}
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50"
-                  >
-                    {uploadingLogo ? 'Uploading...' : 'Change photo'}
-                  </button>
-                  <button onClick={removeLogo} className="text-xs text-red-500 hover:underline">Remove</button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => logoInputRef.current?.click()}
-                disabled={uploadingLogo}
-                className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-gray-300 dark:border-neutral-600 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
-              >
-                <Camera className="w-4 h-4" />
-                {uploadingLogo ? 'Uploading...' : 'Upload photo / logo'}
-              </button>
-            )}
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f) }}
-            />
-            <p className="text-xs text-gray-400 mt-1">Shown at the top of your client portal</p>
-          </div>
-
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Portal accent color</label>
             <div className="flex items-center gap-3">
