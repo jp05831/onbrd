@@ -162,44 +162,16 @@ function BuilderStep({
 
         {/* Step type */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-2">Step type</label>
-          <div className="grid grid-cols-4 gap-2">
-            {([
-              { type: 'link' as StepType, label: 'URL', icon: ExternalLink, pro: false },
-              { type: 'link' as StepType, label: 'PDF', icon: Upload, pro: false },
-              { type: 'request_pdf' as StepType, label: 'Request PDF', icon: FileUp, pro: true },
-              { type: 'request_photo' as StepType, label: 'Request Photo', icon: Camera, pro: true },
-            ] as { type: StepType; label: string; icon: any; pro: boolean }[]).map((opt, i) => {
-              const active = i === 0
-                ? step.step_type === 'link'
-                : i === 1
-                ? false // PDF upload (non-functional in demo, acts as link)
-                : step.step_type === opt.type
-
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => onUpdate(step.id, { step_type: opt.type })}
-                  className={`relative flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
-                    active
-                      ? opt.pro
-                        ? 'border-purple-600 bg-purple-900/30 text-purple-400'
-                        : 'border-blue-600 bg-blue-900/30 text-blue-400'
-                      : 'border-neutral-700 text-gray-400 hover:bg-neutral-800'
-                  }`}
-                >
-                  <opt.icon className="w-4 h-4" />
-                  <span className="leading-tight text-center">{opt.label}</span>
-                  {opt.pro && (
-                    <span className="absolute -top-1.5 -right-1.5 text-[8px] font-bold bg-purple-600 text-white px-1 py-0.5 rounded leading-none">
-                      PRO
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Step type</label>
+          <select
+            value={step.step_type}
+            onChange={e => onUpdate(step.id, { step_type: e.target.value as StepType, url: '' })}
+            className="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="link">Link / URL</option>
+            <option value="request_pdf">Request PDF</option>
+            <option value="request_photo">Request Photo</option>
+          </select>
 
           {step.step_type === 'link' && (
             <input
@@ -403,27 +375,21 @@ function PreviewPanel({
                         )}
                         {isUpload ? (
                           <>
-                            {/* Real file picker — file is not stored, just marks step complete */}
                             <input
                               type="file"
                               accept={step.step_type === 'request_photo' ? 'image/*' : '.pdf,application/pdf'}
                               className="hidden"
                               id={`upload-${step.id}`}
-                              onChange={(e) => {
-                                if (e.target.files?.[0]) {
-                                  onComplete(step.id)
-                                }
-                              }}
+                              onChange={(e) => { if (e.target.files?.[0]) onComplete(step.id) }}
                             />
                             <label
                               htmlFor={`upload-${step.id}`}
                               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
                             >
-                              {step.step_type === 'request_photo' ? (
-                                <><Camera className="w-4 h-4" /> Upload Photo</>
-                              ) : (
-                                <><FileUp className="w-4 h-4" /> Upload PDF</>
-                              )}
+                              {step.step_type === 'request_photo'
+                                ? <><Camera className="w-4 h-4" /> Upload Photo</>
+                                : <><FileUp className="w-4 h-4" /> Upload PDF</>
+                              }
                             </label>
                           </>
                         ) : (
