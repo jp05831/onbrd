@@ -6,65 +6,19 @@
  * Funnel: Ad → /lp → /demo → /signup
  *
  * 🎬 TO ADD YOUR VIDEO: replace YOUTUBE_VIDEO_ID below with your YouTube video ID
- *    e.g. if your URL is https://www.youtube.com/watch?v=abc123  →  set it to "abc123"
  */
 const YOUTUBE_VIDEO_ID = '' // ← paste your YouTube video ID here
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import {
-  ArrowRight, Check, ChevronDown, Sparkles, ShieldCheck,
-  Zap, Link2, BarChart3, Users, FileUp, Camera, Bell, Paintbrush,
-  Star, Play
-} from 'lucide-react'
-
-// ─── Pixel ────────────────────────────────────────────────────────────────────
+import { ArrowRight, Check, Sparkles, ShieldCheck, Star, Play } from 'lucide-react'
 
 function trackFbq(event: string, params?: object) {
   if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
     (window as any).fbq('track', event, params)
   }
 }
-
-// ─── FAQ data ─────────────────────────────────────────────────────────────────
-
-const faqs = [
-  {
-    q: 'Do my clients need to create an account?',
-    a: 'No. Your clients just click the link you share with them. No sign-up, no app download, no friction. Just a clean portal they can complete from any device.',
-  },
-  {
-    q: 'Can I use my existing tools — DocuSign, Stripe, Typeform, etc.?',
-    a: 'Absolutely. Onbrd works with any tool that has a link. Paste your contract URL, payment link, or intake form into a step and your client sees it in their portal.',
-  },
-  {
-    q: 'How do I get notified when a client completes their steps?',
-    a: "Pro plan includes email notifications whenever a client marks a step as complete. You'll get an email with the client name and step details — no more checking in manually.",
-  },
-  {
-    q: 'What is white-label branding?',
-    a: 'On Pro, you can remove all Onbrd branding and add your own logo. Your client sees your brand — not ours. Perfect for agencies and professional service businesses.',
-  },
-  {
-    q: 'How many clients can I onboard?',
-    a: 'On Pro, unlimited. No per-seat fees, no per-client charges. One flat price no matter how fast you grow.',
-  },
-  {
-    q: "What's your refund policy?",
-    a: 'We offer a 7-day money-back guarantee on all paid plans, no questions asked. Just email us at info@onbrd.net.',
-  },
-  {
-    q: 'What is the free plan?',
-    a: 'The free plan lets you create up to 2 flows with 2 steps each — great for trying it out. Upgrade to Pro any time for unlimited flows, steps, and clients.',
-  },
-  {
-    q: 'Can I cancel my Pro subscription?',
-    a: 'Yes, any time. Your Pro access continues until the end of your billing period, then you drop to the free plan. No penalty, no hassle.',
-  },
-]
-
-// ─── Testimonials ─────────────────────────────────────────────────────────────
 
 const testimonials = [
   {
@@ -87,28 +41,6 @@ const testimonials = [
   },
 ]
 
-// ─── Components ───────────────────────────────────────────────────────────────
-
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="border border-neutral-800 rounded-xl overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-neutral-900/60 transition-colors"
-      >
-        <span className="font-medium text-white pr-6 text-sm leading-relaxed">{q}</span>
-        <ChevronDown className={`w-4 h-4 text-gray-500 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && (
-        <div className="px-6 pb-5">
-          <p className="text-sm text-gray-400 leading-relaxed">{a}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
 function StarRow({ count }: { count: number }) {
   return (
     <div className="flex gap-0.5">
@@ -119,11 +51,8 @@ function StarRow({ count }: { count: number }) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
 export default function LandingPage() {
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('year')
-  const videoRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     trackFbq('ViewContent', { content_name: 'Landing Page' })
@@ -142,7 +71,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-white">
 
-      {/* ── Nav ── */}
+      {/* Nav */}
       <header className="border-b border-neutral-800 sticky top-0 z-40 bg-black/90 backdrop-blur">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/">
@@ -157,42 +86,33 @@ export default function LandingPage() {
               onClick={handleDemoCTA}
               className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
-              Try free demo
+              Create your first flow
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
       </header>
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <section className="relative pt-20 pb-16 px-6 overflow-hidden">
-        {/* Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-blue-600/8 rounded-full blur-3xl pointer-events-none" />
-
         <div className="max-w-3xl mx-auto text-center relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900 text-sm text-gray-400 mb-7">
-            <Zap className="w-3.5 h-3.5 text-blue-400" />
-            Client onboarding that actually gets completed
-          </div>
-
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.1] mb-6">
             <span className="bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent">
               Stop sending clients<br className="hidden sm:block" /> a pile of links.
             </span>
           </h1>
-
           <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-xl mx-auto leading-relaxed">
             Onbrd gives every client one clean portal to complete their onboarding —
             step by step, no confusion, no back-and-forth.
           </p>
-
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/demo"
               onClick={handleDemoCTA}
               className="inline-flex items-center gap-2 px-7 py-3.5 bg-blue-600 text-white text-base font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
             >
-              Try the live demo
+              Create your first flow
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
@@ -202,13 +122,12 @@ export default function LandingPage() {
               Get started free
             </Link>
           </div>
-
           <p className="mt-4 text-sm text-gray-600">No credit card required · Free plan available · 2 min setup</p>
         </div>
       </section>
 
-      {/* ── Video ── */}
-      <section className="pb-24 px-6" ref={videoRef}>
+      {/* Video */}
+      <section className="pb-24 px-6">
         <div className="max-w-3xl mx-auto">
           {YOUTUBE_VIDEO_ID ? (
             <div
@@ -224,8 +143,10 @@ export default function LandingPage() {
               />
             </div>
           ) : (
-            /* Video placeholder — remove once you add YOUTUBE_VIDEO_ID */
-            <div className="relative w-full rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900 shadow-2xl shadow-blue-500/5" style={{ paddingBottom: '56.25%' }}>
+            <div
+              className="relative w-full rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900 shadow-2xl shadow-blue-500/5"
+              style={{ paddingBottom: '56.25%' }}
+            >
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-blue-600/20 border border-blue-600/40 flex items-center justify-center">
                   <Play className="w-7 h-7 text-blue-400 ml-1" />
@@ -235,42 +156,27 @@ export default function LandingPage() {
                   <p className="text-sm text-gray-500 mt-1">Video coming soon</p>
                 </div>
               </div>
-              {/* Decorative fake portal preview behind the play button */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
-                <div className="w-80 space-y-2 scale-90">
-                  {['Sign the contract', 'Complete payment', 'Fill intake form', 'Schedule kickoff'].map((s, i) => (
-                    <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border ${i === 0 ? 'border-blue-500 bg-blue-500/10' : 'border-neutral-700'}`}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${i === 0 ? 'bg-blue-600' : 'border border-neutral-600'}`}>
-                        {i === 0 && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                      </div>
-                      <span className={`text-sm ${i > 1 ? 'text-neutral-600' : 'text-white'}`}>{s}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 
-          {/* CTA under video */}
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/demo"
               onClick={handleDemoCTA}
               className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
             >
-              Build your first flow — it's free
+              Create your first flow — it's free
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <p className="text-sm text-gray-500">No account needed to try the demo</p>
+            <p className="text-sm text-gray-500">No account needed to try</p>
           </div>
         </div>
       </section>
 
-      {/* ── Problem → Solution ── */}
+      {/* Problem → Solution */}
       <section className="py-20 px-6 border-t border-neutral-800">
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Problem */}
             <div>
               <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-4">The old way</p>
               <h2 className="text-2xl font-semibold text-white mb-6 leading-snug">
@@ -285,16 +191,13 @@ export default function LandingPage() {
                   'Email 5: "Sorry to bug you again..."',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-gray-400">
-                    <span className="mt-0.5 w-4 h-4 rounded-full border border-red-800 flex items-center justify-center flex-shrink-0">
-                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                    </span>
+                    <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Solution */}
             <div>
               <p className="text-xs font-semibold text-green-400 uppercase tracking-wider mb-4">The Onbrd way</p>
               <h2 className="text-2xl font-semibold text-white mb-6 leading-snug">
@@ -314,13 +217,12 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-
               <Link
                 href="/demo"
                 onClick={handleDemoCTA}
                 className="inline-flex items-center gap-2 mt-8 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                See it yourself
+                Create your first flow
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -328,39 +230,32 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How it works ── */}
+      {/* How it works */}
       <section className="py-24 px-6 border-t border-neutral-800">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-4">How it works</p>
           <h2 className="text-3xl font-semibold text-white mb-4">Up and running in minutes</h2>
           <p className="text-gray-400 mb-16 max-w-md mx-auto">No setup calls, no tech knowledge required. Build your first flow faster than you can write an email.</p>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-10">
             {[
               {
-                icon: Zap,
                 step: '01',
                 title: 'Build your flow',
                 desc: 'Add steps with links to your contracts, forms, and payments. Name your client, add a welcome message, publish.',
               },
               {
-                icon: Link2,
                 step: '02',
                 title: 'Send one link',
-                desc: "Your client gets a unique URL. No account needed. They open it, see exactly what to do, and work through it.",
+                desc: "Your client gets a unique URL. No account needed on their end. They open it, see exactly what to do, and work through it.",
               },
               {
-                icon: BarChart3,
                 step: '03',
                 title: 'Track progress',
                 desc: "Watch steps complete in real-time from your dashboard. Get notified the moment everything's done.",
               },
             ].map((item, i) => (
-              <div key={i} className="relative text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-neutral-900 border border-neutral-800 mb-5">
-                  <item.icon className="w-6 h-6 text-blue-400" />
-                </div>
-                <div className="absolute top-0 right-0 text-[10px] font-bold text-neutral-700 mr-2">{item.step}</div>
+              <div key={i} className="text-center">
+                <div className="text-5xl font-bold text-neutral-800 mb-4">{item.step}</div>
                 <h3 className="font-semibold text-white mb-2">{item.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
@@ -369,48 +264,42 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features ── */}
+      {/* Features */}
       <section className="py-24 px-6 border-t border-neutral-800">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-4">Features</p>
             <h2 className="text-3xl font-semibold text-white mb-4">Everything you need. Nothing you don't.</h2>
             <p className="text-gray-400 max-w-md mx-auto">Built for freelancers, agencies, and service businesses that onboard clients regularly.</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               {
-                icon: Link2,
                 title: 'Works with any tool',
                 desc: 'DocuSign, Stripe, Typeform, Calendly — if it has a URL, it works as a step.',
+                pro: false,
               },
               {
-                icon: FileUp,
                 title: 'Collect documents',
                 desc: 'Request PDFs and photos directly in the portal. Files land in your dashboard.',
                 pro: true,
               },
               {
-                icon: Camera,
                 title: 'Request photos',
                 desc: 'Need a headshot, ID, or proof photo? Clients upload directly from their phone.',
                 pro: true,
               },
               {
-                icon: Bell,
                 title: 'Email notifications',
                 desc: 'Get notified when steps are completed. No more manually chasing clients.',
                 pro: true,
               },
               {
-                icon: Paintbrush,
                 title: 'White-label branding',
                 desc: 'Add your logo and remove Onbrd branding. Your client sees only your brand.',
                 pro: true,
               },
               {
-                icon: Users,
                 title: 'Unlimited clients',
                 desc: 'No per-seat fees. Onboard as many clients as you want on one flat Pro plan.',
                 pro: true,
@@ -418,14 +307,11 @@ export default function LandingPage() {
             ].map((f, i) => (
               <div key={i} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 hover:border-neutral-700 transition-colors">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-9 h-9 rounded-lg bg-blue-600/10 flex items-center justify-center">
-                    <f.icon className="w-4.5 h-4.5 text-blue-400 w-5 h-5" />
-                  </div>
+                  <h3 className="font-medium text-white text-sm">{f.title}</h3>
                   {f.pro && (
-                    <span className="text-[10px] font-bold text-purple-400 bg-purple-900/40 border border-purple-800 px-1.5 py-0.5 rounded">PRO</span>
+                    <span className="text-[10px] font-bold text-purple-400 bg-purple-900/40 border border-purple-800 px-1.5 py-0.5 rounded flex-shrink-0 ml-2">PRO</span>
                   )}
                 </div>
-                <h3 className="font-medium text-white text-sm mb-1.5">{f.title}</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">{f.desc}</p>
               </div>
             ))}
@@ -433,11 +319,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Testimonials ── */}
+      {/* Testimonials */}
       <section className="py-24 px-6 border-t border-neutral-800">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-4">What people say</p>
             <h2 className="text-3xl font-semibold text-white">Clients actually complete onboarding now.</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-5">
@@ -455,11 +340,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Pricing ── */}
+      {/* Pricing */}
       <section className="py-24 px-6 border-t border-neutral-800" id="pricing">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-4">Pricing</p>
             <h2 className="text-3xl font-semibold text-white mb-3">Start free. Upgrade when you're ready.</h2>
             <p className="text-gray-400">No contracts, no per-client fees, no surprises.</p>
           </div>
@@ -470,9 +354,7 @@ export default function LandingPage() {
               <button
                 onClick={() => setBillingInterval('month')}
                 className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  billingInterval === 'month'
-                    ? 'bg-neutral-700 text-white'
-                    : 'text-gray-400 hover:text-white'
+                  billingInterval === 'month' ? 'bg-neutral-700 text-white' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 Monthly
@@ -480,9 +362,7 @@ export default function LandingPage() {
               <button
                 onClick={() => setBillingInterval('year')}
                 className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
-                  billingInterval === 'year'
-                    ? 'bg-neutral-700 text-white'
-                    : 'text-gray-400 hover:text-white'
+                  billingInterval === 'year' ? 'bg-neutral-700 text-white' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 Annual
@@ -530,9 +410,7 @@ export default function LandingPage() {
               <div className="mb-1 flex items-end gap-2">
                 <span className="text-4xl font-bold text-white">{p.price}</span>
                 <span className="text-gray-500 mb-1">{p.sub}</span>
-                {p.savings && (
-                  <span className="text-sm text-green-400 font-semibold mb-1">{p.savings}</span>
-                )}
+                {p.savings && <span className="text-sm text-green-400 font-semibold mb-1">{p.savings}</span>}
               </div>
               <p className="text-xs text-gray-600 mb-6">{p.note}</p>
               <ul className="space-y-3 mb-8">
@@ -564,48 +442,22 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Try demo nudge */}
           <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 mb-3">Not sure yet? Try the interactive demo — no account needed.</p>
+            <p className="text-sm text-gray-500 mb-3">Want to try it first? No account needed.</p>
             <Link
               href="/demo"
               onClick={handleDemoCTA}
               className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
             >
-              Try the live demo →
+              Create your first flow →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── FAQ ── */}
-      <section className="py-24 px-6 border-t border-neutral-800">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-4">FAQ</p>
-            <h2 className="text-3xl font-semibold text-white">Common questions</h2>
-          </div>
-          <div className="space-y-2">
-            {faqs.map((faq, i) => (
-              <FaqItem key={i} q={faq.q} a={faq.a} />
-            ))}
-          </div>
-          <p className="text-center text-sm text-gray-500 mt-8">
-            Still have questions?{' '}
-            <a href="mailto:info@onbrd.net" className="text-blue-400 hover:text-blue-300 transition-colors">
-              Email us at info@onbrd.net
-            </a>
-          </p>
-        </div>
-      </section>
-
-      {/* ── Final CTA ── */}
+      {/* Final CTA */}
       <section className="py-24 px-6 border-t border-neutral-800">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-800 bg-blue-900/20 text-sm text-blue-400 mb-7">
-            <Sparkles className="w-3.5 h-3.5" />
-            Takes 2 minutes to set up
-          </div>
           <h2 className="text-3xl md:text-4xl font-semibold text-white mb-5 leading-tight">
             Your next client deserves<br className="hidden sm:block" /> a better onboarding experience.
           </h2>
@@ -618,7 +470,7 @@ export default function LandingPage() {
               onClick={handleDemoCTA}
               className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white text-base font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-xl shadow-blue-600/20"
             >
-              Try the live demo — free
+              Create your first flow — free
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
@@ -635,14 +487,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer className="border-t border-neutral-800 py-10 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-8">
             <Image src="/logo-dark.png" alt="Onbrd" width={100} height={50} className="h-8 w-auto opacity-70" />
             <div className="flex flex-wrap items-center gap-6">
               <Link href="/" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Home</Link>
-              <Link href="/demo" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Live demo</Link>
+              <Link href="/demo" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Create a flow</Link>
               <Link href="/signup" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Sign up</Link>
               <Link href="/login" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Log in</Link>
               <Link href="/support" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Support</Link>

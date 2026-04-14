@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import {
-  ArrowRight, Sparkles, Check, Lock, Plus, Trash2, GripVertical,
-  ExternalLink, FileUp, Camera, X, Globe, FileText, Upload, Link2,
-  ShieldCheck, Zap
+  ArrowRight, Check, Lock, Plus, Trash2, GripVertical,
+  ExternalLink, FileUp, Camera, X, Globe, FileText, Upload,
+  ShieldCheck, Sparkles
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,8 +26,6 @@ interface FlowState {
   steps: Step[]
 }
 
-type GateReason = 'steps' | 'logo' | 'publish' | null
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function uid() {
@@ -40,55 +38,32 @@ function trackFbq(event: string, params?: object) {
   }
 }
 
-function trackCTA() {
-  trackFbq('InitiateCheckout')
-}
+// ─── Publish Modal ────────────────────────────────────────────────────────────
 
-// ─── Pro Gate Modal ───────────────────────────────────────────────────────────
-
-function ProGateModal({ reason, onClose }: { reason: GateReason; onClose: () => void }) {
-  if (!reason) return null
-
-  const subtitles: Record<NonNullable<GateReason>, string> = {
-    steps: 'Free plan includes 2 steps per flow. Pro gives you unlimited steps, unlimited flows, and unlimited clients.',
-    logo: 'White-label branding is a Pro feature. Remove Onbrd branding and add your own logo to the client portal.',
-    publish: 'Ready to share this with your client? Create an account to publish your flow and get a shareable link.',
-  }
-
+function PublishModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-md shadow-2xl"
+        className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="p-6 border-b border-neutral-800">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-white">You've discovered a Pro feature</h2>
-                <p className="text-sm text-gray-400 mt-0.5 max-w-xs">{subtitles[reason]}</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-300 transition-colors ml-4">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <div className="p-7">
+          <button onClick={onClose} className="absolute top-5 right-5 p-1 text-gray-600 hover:text-gray-300 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
 
-        {/* Features */}
-        <div className="p-6">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Everything in Pro</p>
-          <ul className="space-y-2.5 mb-6">
+          <h2 className="text-xl font-semibold text-white mb-2">Ready to share this with your client?</h2>
+          <p className="text-sm text-gray-400 mb-7 leading-relaxed">
+            Create a free account to publish your flow and get a shareable link. You've built something great — now send it.
+          </p>
+
+          <ul className="space-y-2.5 mb-7">
             {[
               'Unlimited flows & steps',
               'Unlimited clients — no per-seat fees',
-              'White-label branding',
+              'Collect PDFs and photos from clients',
               'Email notifications on completion',
-              'Priority support',
+              'White-label — remove Onbrd branding',
             ].map((f, i) => (
               <li key={i} className="flex items-center gap-2.5 text-sm text-gray-300">
                 <Check className="w-4 h-4 text-blue-400 flex-shrink-0" />
@@ -97,95 +72,61 @@ function ProGateModal({ reason, onClose }: { reason: GateReason; onClose: () => 
             ))}
           </ul>
 
-          <div className="bg-neutral-800 rounded-lg p-3 mb-5 text-center">
-            <p className="text-white font-semibold">$15<span className="text-gray-400 font-normal text-sm">/mo</span>
-              <span className="text-gray-400 font-normal text-sm mx-2">or</span>
+          <div className="bg-neutral-800 rounded-xl p-4 mb-6 text-center">
+            <p className="text-white">
+              <span className="text-2xl font-bold">$15</span>
+              <span className="text-gray-400 text-sm">/mo</span>
+              <span className="text-gray-500 text-sm mx-2">or</span>
               <span className="text-blue-400 font-semibold">$12.50/mo</span>
-              <span className="text-gray-400 font-normal text-sm"> billed annually</span>
+              <span className="text-gray-500 text-sm"> billed annually</span>
             </p>
-            <p className="text-xs text-gray-500 mt-1">7-day money-back guarantee · Cancel anytime</p>
+            <p className="text-xs text-gray-600 mt-1">7-day money-back guarantee · Cancel anytime</p>
           </div>
 
           <a
             href="/signup"
-            onClick={trackCTA}
-            className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => trackFbq('InitiateCheckout')}
+            className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
           >
-            Get Onbrd Pro
+            Create your account — get started free
             <ArrowRight className="w-4 h-4" />
           </a>
-          <a
-            href="/signup"
-            onClick={trackCTA}
-            className="block text-center text-sm text-gray-500 hover:text-gray-300 mt-3 transition-colors"
-          >
-            Start free instead
-          </a>
+          <div className="flex items-center justify-center gap-1.5 mt-3">
+            <ShieldCheck className="w-3.5 h-3.5 text-gray-600" />
+            <p className="text-xs text-gray-600">Free plan available · No credit card required</p>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-// ─── Step Type Selector ───────────────────────────────────────────────────────
-
-function StepTypeButton({
-  type, label, icon: Icon, active, isProType, onClick,
-}: {
-  type: StepType; label: string; icon: any; active: boolean; isProType: boolean; onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`relative flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
-        active
-          ? isProType
-            ? 'border-purple-600 bg-purple-900/30 text-purple-400'
-            : 'border-blue-600 bg-blue-900/30 text-blue-400'
-          : 'border-neutral-700 text-gray-400 hover:bg-neutral-800'
-      }`}
-    >
-      <Icon className="w-4 h-4" />
-      {label}
-      {isProType && (
-        <span className="absolute -top-2 -right-2 text-[9px] font-bold bg-purple-600 text-white px-1 py-0.5 rounded leading-none">
-          PRO
-        </span>
-      )}
-    </button>
-  )
-}
-
 // ─── Builder Step Card ────────────────────────────────────────────────────────
 
 function BuilderStep({
-  step, index, onUpdate, onDelete, onProGate, showProBanner,
+  step,
+  index,
+  onUpdate,
+  onDelete,
 }: {
   step: Step
   index: number
   onUpdate: (id: string, data: Partial<Step>) => void
   onDelete: (id: string) => void
-  onProGate: (reason: GateReason) => void
-  showProBanner: boolean
 }) {
   const isProType = step.step_type === 'request_pdf' || step.step_type === 'request_photo'
 
-  const handleTypeChange = (type: StepType) => {
-    onUpdate(step.id, { step_type: type })
-  }
-
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg transition-colors">
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-neutral-800 bg-neutral-950/50 rounded-t-lg">
-        <button className="p-1 text-gray-600 cursor-grab">
+        <button className="p-1 text-gray-600 cursor-grab active:cursor-grabbing">
           <GripVertical className="w-4 h-4" />
         </button>
         <span className="text-sm font-medium text-gray-500">Step {index + 1}</span>
         {isProType && (
-          <span className="ml-1 text-[10px] font-semibold text-purple-400 bg-purple-900/40 border border-purple-800 px-1.5 py-0.5 rounded">
-            ⚡ PRO FEATURE
+          <span className="text-[10px] font-semibold text-purple-400 bg-purple-900/40 border border-purple-800/60 px-1.5 py-0.5 rounded">
+            PRO
           </span>
         )}
         <div className="flex-1" />
@@ -215,18 +156,49 @@ function BuilderStep({
             value={step.description}
             onChange={e => onUpdate(step.id, { description: e.target.value })}
             className="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Brief instructions"
+            placeholder="Brief instructions for your client"
           />
         </div>
 
-        {/* Type selector */}
+        {/* Step type */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-2">Step Type</label>
+          <label className="block text-xs font-medium text-gray-500 mb-2">Step type</label>
           <div className="grid grid-cols-4 gap-2">
-            <StepTypeButton type="link" label="URL" icon={ExternalLink} active={step.step_type === 'link'} isProType={false} onClick={() => handleTypeChange('link')} />
-            <StepTypeButton type="link" label="PDF" icon={Upload} active={false} isProType={false} onClick={() => handleTypeChange('link')} />
-            <StepTypeButton type="request_pdf" label="Request PDF" icon={FileUp} active={step.step_type === 'request_pdf'} isProType={true} onClick={() => handleTypeChange('request_pdf')} />
-            <StepTypeButton type="request_photo" label="Request Photo" icon={Camera} active={step.step_type === 'request_photo'} isProType={true} onClick={() => handleTypeChange('request_photo')} />
+            {([
+              { type: 'link' as StepType, label: 'URL', icon: ExternalLink, pro: false },
+              { type: 'link' as StepType, label: 'PDF', icon: Upload, pro: false },
+              { type: 'request_pdf' as StepType, label: 'Request PDF', icon: FileUp, pro: true },
+              { type: 'request_photo' as StepType, label: 'Request Photo', icon: Camera, pro: true },
+            ] as { type: StepType; label: string; icon: any; pro: boolean }[]).map((opt, i) => {
+              const active = i === 0
+                ? step.step_type === 'link'
+                : i === 1
+                ? false // PDF upload (non-functional in demo, acts as link)
+                : step.step_type === opt.type
+
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => onUpdate(step.id, { step_type: opt.type })}
+                  className={`relative flex flex-col items-center gap-1 px-2 py-2 text-xs font-medium rounded-md border transition-colors ${
+                    active
+                      ? opt.pro
+                        ? 'border-purple-600 bg-purple-900/30 text-purple-400'
+                        : 'border-blue-600 bg-blue-900/30 text-blue-400'
+                      : 'border-neutral-700 text-gray-400 hover:bg-neutral-800'
+                  }`}
+                >
+                  <opt.icon className="w-4 h-4" />
+                  <span className="leading-tight text-center">{opt.label}</span>
+                  {opt.pro && (
+                    <span className="absolute -top-1.5 -right-1.5 text-[8px] font-bold bg-purple-600 text-white px-1 py-0.5 rounded leading-none">
+                      PRO
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
           {step.step_type === 'link' && (
@@ -240,15 +212,15 @@ function BuilderStep({
           )}
 
           {step.step_type === 'request_pdf' && (
-            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-purple-900/20 border border-purple-800 rounded-md">
-              <FileUp className="w-4 h-4 text-purple-400" />
+            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-purple-900/20 border border-purple-800/50 rounded-md">
+              <FileUp className="w-4 h-4 text-purple-400 flex-shrink-0" />
               <span className="text-sm text-purple-300">Client will upload a PDF document</span>
             </div>
           )}
 
           {step.step_type === 'request_photo' && (
-            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-purple-900/20 border border-purple-800 rounded-md">
-              <Camera className="w-4 h-4 text-purple-400" />
+            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-purple-900/20 border border-purple-800/50 rounded-md">
+              <Camera className="w-4 h-4 text-purple-400 flex-shrink-0" />
               <span className="text-sm text-purple-300">Client will upload a photo</span>
             </div>
           )}
@@ -260,16 +232,22 @@ function BuilderStep({
 
 // ─── Client Preview Panel ─────────────────────────────────────────────────────
 
-function PreviewPanel({ flow, completedIds, onComplete }: {
+function PreviewPanel({
+  flow,
+  completedIds,
+  onComplete,
+  onShowPublish,
+}: {
   flow: FlowState
   completedIds: Set<string>
   onComplete: (id: string) => void
+  onShowPublish: () => void
 }) {
   const allDone = flow.steps.length > 0 && flow.steps.every(s => completedIds.has(s.id))
   const completedCount = flow.steps.filter(s => completedIds.has(s.id)).length
   const progress = flow.steps.length > 0 ? (completedCount / flow.steps.length) * 100 : 0
 
-  const getStatus = (step: Step, index: number) => {
+  const getStatus = (step: Step) => {
     if (completedIds.has(step.id)) return 'completed'
     const firstUncompleted = flow.steps.find(s => !completedIds.has(s.id))
     if (firstUncompleted?.id === step.id) return 'active'
@@ -278,29 +256,38 @@ function PreviewPanel({ flow, completedIds, onComplete }: {
 
   if (allDone) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-6 py-12">
+      <div className="flex flex-col items-center justify-center min-h-[500px] text-center px-6 py-16">
         <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
           <Check className="w-8 h-8 text-white" strokeWidth={3} />
         </div>
         <h2 className="text-2xl font-semibold text-white mb-2">All done!</h2>
-        <p className="text-gray-400 mb-8">
-          You've completed all steps. {flow.client_name || 'Your team'} will be in touch.
+        <p className="text-gray-400 mb-10 max-w-xs">
+          You've completed all steps. This is what your client would see after finishing.
         </p>
-        <p className="text-sm text-gray-600 mb-8">{flow.steps.length} steps completed</p>
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 max-w-sm w-full">
-          <p className="text-sm text-gray-400 mb-4">Want to create onboarding flows like this for your own clients?</p>
+
+        <div className="bg-neutral-900 border border-blue-600/40 rounded-2xl p-6 max-w-sm w-full mb-6">
+          <p className="text-sm font-medium text-white mb-1">Ready to do this for real?</p>
+          <p className="text-sm text-gray-400 mb-5">Create an account and send this flow to your actual clients.</p>
           <a
             href="/signup"
-            onClick={trackCTA}
-            className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => trackFbq('InitiateCheckout')}
+            className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
           >
-            Create your own flow
+            Create your account — free
             <ArrowRight className="w-4 h-4" />
           </a>
-          <p className="text-xs text-gray-600 mt-2 text-center">Free to start · No credit card required</p>
+          <p className="text-xs text-gray-600 mt-2 text-center">No credit card required</p>
         </div>
-        <div className="mt-8">
-          <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-500">
+
+        <button
+          onClick={() => onComplete('reset')}
+          className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+        >
+          Reset demo
+        </button>
+
+        <div className="mt-10">
+          <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-gray-500">
             <Sparkles className="w-3 h-3" />
             Powered by Onbrd
           </a>
@@ -350,14 +337,14 @@ function PreviewPanel({ flow, completedIds, onComplete }: {
 
       {/* Steps */}
       {flow.steps.length === 0 ? (
-        <div className="text-center py-12 text-gray-600">
-          <FileText className="w-8 h-8 mx-auto mb-3 opacity-40" />
-          <p className="text-sm">Add steps in the builder to see them here</p>
+        <div className="text-center py-16 text-gray-700">
+          <FileText className="w-8 h-8 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Add steps in the builder to see your client's view</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {flow.steps.map((step, index) => {
-            const status = getStatus(step, index)
+          {flow.steps.map((step) => {
+            const status = getStatus(step)
             const isUpload = step.step_type === 'request_pdf' || step.step_type === 'request_photo'
 
             return (
@@ -368,28 +355,26 @@ function PreviewPanel({ flow, completedIds, onComplete }: {
                     ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-600/5'
                     : status === 'completed'
                     ? 'border-neutral-800'
-                    : 'border-neutral-800 opacity-50'
+                    : 'border-neutral-800 opacity-40'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  {/* Status icon */}
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
                     status === 'completed'
                       ? 'bg-blue-600'
                       : status === 'active'
                       ? 'border-2 border-blue-500'
-                      : 'border-2 border-neutral-600'
+                      : 'border-2 border-neutral-700'
                   }`}>
                     {status === 'completed' ? (
                       <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                     ) : status === 'locked' ? (
-                      <Lock className="w-3 h-3 text-neutral-500" />
+                      <Lock className="w-3 h-3 text-neutral-600" />
                     ) : (
                       <span className="w-2 h-2 bg-blue-500 rounded-full" />
                     )}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <p className={`font-medium ${status === 'locked' ? 'text-neutral-600' : 'text-white'}`}>
                       {step.title || 'Untitled step'}
@@ -413,25 +398,19 @@ function PreviewPanel({ flow, completedIds, onComplete }: {
                           </a>
                         )}
                         {isUpload ? (
-                          <button
-                            onClick={() => alert('This is a live demo — uploads are disabled. Sign up to collect real files from clients!')}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-                          >
-                            {step.step_type === 'request_photo' ? (
-                              <><Camera className="w-4 h-4" /> Upload Photo</>
-                            ) : (
-                              <><FileUp className="w-4 h-4" /> Upload PDF</>
-                            )}
-                          </button>
+                          <>
+                            <button
+                              onClick={() => onComplete(step.id)}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                              {step.step_type === 'request_photo' ? (
+                                <><Camera className="w-4 h-4" /> Upload Photo</>
+                              ) : (
+                                <><FileUp className="w-4 h-4" /> Upload PDF</>
+                              )}
+                            </button>
+                          </>
                         ) : (
-                          <button
-                            onClick={() => onComplete(step.id)}
-                            className="px-3 py-1.5 border border-neutral-700 text-gray-300 text-sm font-medium rounded-md hover:bg-neutral-800 transition-colors"
-                          >
-                            Mark done
-                          </button>
-                        )}
-                        {isUpload && (
                           <button
                             onClick={() => onComplete(step.id)}
                             className="px-3 py-1.5 border border-neutral-700 text-gray-300 text-sm font-medium rounded-md hover:bg-neutral-800 transition-colors"
@@ -455,7 +434,7 @@ function PreviewPanel({ flow, completedIds, onComplete }: {
 
       {/* Powered by */}
       <div className="text-center mt-10">
-        <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-500">
+        <a href="/" className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-gray-500">
           <Sparkles className="w-3 h-3" />
           Powered by Onbrd
         </a>
@@ -464,36 +443,36 @@ function PreviewPanel({ flow, completedIds, onComplete }: {
   )
 }
 
-// ─── Main Demo Page ───────────────────────────────────────────────────────────
-
-const INITIAL_STEPS: Step[] = [
-  {
-    id: 'step-1',
-    title: 'Sign the contract',
-    description: 'Review and e-sign your service agreement',
-    url: 'https://example.com/contract',
-    step_type: 'link',
-  },
-  {
-    id: 'step-2',
-    title: 'Submit your brand assets',
-    description: 'Upload your logo and brand guidelines PDF',
-    url: '',
-    step_type: 'request_pdf',
-  },
-]
+// ─── Initial State ────────────────────────────────────────────────────────────
 
 const INITIAL_FLOW: FlowState = {
   client_name: 'Acme Design Co.',
   welcome_message: 'Welcome! Complete these steps to kick things off.',
-  steps: INITIAL_STEPS,
+  steps: [
+    {
+      id: 'step-1',
+      title: 'Sign the contract',
+      description: 'Review and e-sign your service agreement',
+      url: 'https://example.com/contract',
+      step_type: 'link',
+    },
+    {
+      id: 'step-2',
+      title: 'Submit your brand assets',
+      description: 'Upload your logo and brand guidelines PDF',
+      url: '',
+      step_type: 'request_pdf',
+    },
+  ],
 }
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DemoPage() {
   const [flow, setFlow] = useState<FlowState>(INITIAL_FLOW)
-  const [gateReason, setGateReason] = useState<GateReason>(null)
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
-  const [showProBanner, setShowProBanner] = useState(true) // visible since we have a pro step pre-loaded
+  const [showPublish, setShowPublish] = useState(false)
+  const [logoInput] = useState<null>(null)
 
   useEffect(() => {
     trackFbq('ViewContent', { content_name: 'Demo Page' })
@@ -501,24 +480,18 @@ export default function DemoPage() {
 
   const updateFlow = (data: Partial<FlowState>) => {
     setFlow(prev => ({ ...prev, ...data }))
-    // Reset completions if steps change
     if (data.steps) setCompletedIds(new Set())
   }
 
   const updateStep = (id: string, data: Partial<Step>) => {
-    const updated = flow.steps.map(s => s.id === id ? { ...s, ...data } : s)
-    setFlow(prev => ({ ...prev, steps: updated }))
+    setFlow(prev => ({
+      ...prev,
+      steps: prev.steps.map(s => s.id === id ? { ...s, ...data } : s),
+    }))
     setCompletedIds(new Set())
-    // Show pro banner if any pro type in use
-    const hasProStep = updated.some(s => s.step_type === 'request_pdf' || s.step_type === 'request_photo')
-    if (hasProStep) setShowProBanner(true)
   }
 
   const addStep = () => {
-    if (flow.steps.length >= 2) {
-      setGateReason('steps')
-      return
-    }
     const newStep: Step = {
       id: uid(),
       title: '',
@@ -526,49 +499,56 @@ export default function DemoPage() {
       url: '',
       step_type: 'link',
     }
-    updateFlow({ steps: [...flow.steps, newStep] })
+    setFlow(prev => ({ ...prev, steps: [...prev.steps, newStep] }))
   }
 
   const deleteStep = (id: string) => {
-    const updated = flow.steps.filter(s => s.id !== id)
-    setFlow(prev => ({ ...prev, steps: updated }))
+    setFlow(prev => ({ ...prev, steps: prev.steps.filter(s => s.id !== id) }))
     setCompletedIds(prev => { const n = new Set(prev); n.delete(id); return n })
   }
 
   const handleComplete = (stepId: string) => {
+    if (stepId === 'reset') {
+      setCompletedIds(new Set())
+      return
+    }
     setCompletedIds(prev => new Set([...prev, stepId]))
+  }
+
+  const handlePublish = () => {
+    trackFbq('AddToCart')
+    setShowPublish(true)
   }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Top Banner */}
-      <div className="bg-blue-600 py-2.5 px-4 text-center text-sm font-medium text-white flex items-center justify-center gap-2 flex-wrap">
-        <Sparkles className="w-4 h-4 flex-shrink-0" />
-        <span>You are previewing Onbrd Pro — the fastest way to onboard clients</span>
+
+      {/* Top banner */}
+      <div className="bg-blue-600 py-2.5 px-4 text-center text-sm font-medium text-white">
+        This is a live demo — build your flow below, then create a free account to share it with clients
         <a
           href="/signup"
-          onClick={trackCTA}
-          className="underline underline-offset-2 hover:no-underline font-semibold"
+          onClick={() => trackFbq('InitiateCheckout')}
+          className="ml-2 underline underline-offset-2 font-semibold hover:no-underline"
         >
           Get started free →
         </a>
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+      {/* Main split layout */}
+      <div className="flex flex-col lg:flex-row flex-1">
 
         {/* ── LEFT: Builder ── */}
-        <div className="lg:w-[42%] border-b lg:border-b-0 lg:border-r border-neutral-800 flex flex-col overflow-y-auto">
+        <div className="lg:w-[42%] border-b lg:border-b-0 lg:border-r border-neutral-800 flex flex-col">
+
           {/* Builder header */}
           <div className="px-6 py-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-950/60 sticky top-0 z-10 backdrop-blur">
-            <div>
-              <div className="flex items-center gap-2">
-                <Image src="/logo-dark.png" alt="Onbrd" width={80} height={40} className="h-7 w-auto opacity-80" />
-                <span className="text-xs text-neutral-500 border border-neutral-700 rounded px-1.5 py-0.5">Flow Builder</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <Image src="/logo-dark.png" alt="Onbrd" width={80} height={40} className="h-7 w-auto opacity-80" />
+              <span className="text-xs text-neutral-600 border border-neutral-800 rounded px-1.5 py-0.5">Builder</span>
             </div>
             <button
-              onClick={() => { setGateReason('publish'); trackFbq('AddToCart') }}
+              onClick={handlePublish}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               <Globe className="w-4 h-4" />
@@ -576,8 +556,9 @@ export default function DemoPage() {
             </button>
           </div>
 
-          <div className="p-6 space-y-5 flex-1">
-            {/* Flow meta */}
+          <div className="p-6 space-y-5 overflow-y-auto flex-1">
+
+            {/* Settings card */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 space-y-4">
               <h2 className="text-sm font-medium text-white">Settings</h2>
 
@@ -585,14 +566,13 @@ export default function DemoPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">Company logo (optional)</label>
                 <button
-                  onClick={() => setGateReason('logo')}
+                  onClick={handlePublish}
                   className="inline-flex items-center gap-2 px-3 py-2 border border-neutral-700 border-dashed rounded-md text-sm text-gray-500 hover:border-neutral-500 hover:text-gray-300 transition-colors"
                 >
                   <Upload className="w-4 h-4" />
                   Upload logo
-                  <span className="text-[10px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded">PRO</span>
                 </button>
-                <p className="text-xs text-gray-600 mt-1">White-label branding — Pro feature</p>
+                <p className="text-xs text-gray-600 mt-1">Displays at the top of the client portal</p>
               </div>
 
               {/* Client name */}
@@ -609,7 +589,7 @@ export default function DemoPage() {
 
               {/* Welcome message */}
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Welcome message (optional)</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Welcome message</label>
                 <textarea
                   value={flow.welcome_message}
                   onChange={e => updateFlow({ welcome_message: e.target.value })}
@@ -620,29 +600,24 @@ export default function DemoPage() {
               </div>
             </div>
 
-            {/* Steps section */}
+            {/* Steps */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="text-sm font-medium text-white">Steps</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">{flow.steps.length} of 2 steps used (free plan)</p>
-                </div>
+                <h2 className="text-sm font-medium text-white">
+                  Steps <span className="text-gray-600 font-normal">({flow.steps.length})</span>
+                </h2>
                 <button
                   onClick={addStep}
-                  className={`inline-flex items-center gap-1 text-sm font-medium transition-colors ${
-                    flow.steps.length < 2
-                      ? 'text-blue-400 hover:text-blue-300'
-                      : 'text-gray-500 hover:text-gray-400'
-                  }`}
+                  className="inline-flex items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  {flow.steps.length < 2 ? 'Add step' : 'Upgrade for more'}
+                  Add step
                 </button>
               </div>
 
               {flow.steps.length === 0 ? (
                 <div className="bg-neutral-900 border border-neutral-800 border-dashed rounded-lg p-8 text-center">
-                  <p className="text-gray-500 mb-4">No steps yet</p>
+                  <p className="text-gray-600 mb-4 text-sm">No steps yet</p>
                   <button
                     onClick={addStep}
                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
@@ -660,61 +635,44 @@ export default function DemoPage() {
                       index={i}
                       onUpdate={updateStep}
                       onDelete={deleteStep}
-                      onProGate={setGateReason}
-                      showProBanner={showProBanner}
                     />
                   ))}
-                </div>
-              )}
-
-              {/* Add step / upgrade nudge */}
-              {flow.steps.length > 0 && flow.steps.length < 2 && (
-                <button
-                  onClick={addStep}
-                  className="w-full mt-3 py-3 border border-neutral-700 border-dashed rounded-lg text-sm text-gray-500 hover:border-neutral-500 hover:text-gray-300 transition-colors"
-                >
-                  + Add another step
-                </button>
-              )}
-
-              {flow.steps.length >= 2 && (
-                <div className="w-full mt-3 py-4 px-4 border border-orange-800 bg-orange-900/20 rounded-lg text-center">
-                  <p className="text-sm text-orange-400 mb-2">Free plan limit: 2 steps per flow</p>
                   <button
-                    onClick={() => setGateReason('steps')}
-                    className="text-sm font-medium text-orange-400 hover:text-orange-300 underline"
+                    onClick={addStep}
+                    className="w-full py-3 border border-neutral-800 border-dashed rounded-lg text-sm text-gray-600 hover:border-neutral-600 hover:text-gray-400 transition-colors"
                   >
-                    Upgrade to Pro for unlimited steps →
+                    + Add another step
                   </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Pro feature sticky banner */}
-          {showProBanner && (
-            <div className="sticky bottom-0 bg-blue-600 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-2 text-sm text-white">
-                <Zap className="w-4 h-4 flex-shrink-0" />
-                <span>You're using Pro features in this demo</span>
+          {/* Sticky bottom — pro nudge */}
+          <div className="border-t border-neutral-800 px-6 py-4 bg-neutral-950">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs text-gray-400 font-medium">You're using Pro features</p>
+                <p className="text-xs text-gray-600 mt-0.5">Collect documents, request photos, unlimited steps</p>
               </div>
-              <a
-                href="/signup"
-                onClick={trackCTA}
-                className="text-sm font-semibold text-white underline underline-offset-2 hover:no-underline whitespace-nowrap"
+              <button
+                onClick={handlePublish}
+                className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Get Onbrd Pro →
-              </a>
+                Get Onbrd Pro
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
         {/* ── RIGHT: Live Preview ── */}
-        <div className="lg:w-[58%] flex flex-col overflow-y-auto bg-black">
+        <div className="lg:w-[58%] flex flex-col bg-black overflow-y-auto">
+
           {/* Preview label */}
           <div className="px-6 py-3 border-b border-neutral-800 bg-neutral-950/60 sticky top-0 z-10 backdrop-blur flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-xs text-gray-400 font-medium">Live Preview — this is what your client sees</span>
+            <span className="w-2 h-2 bg-green-400 rounded-full" />
+            <span className="text-xs text-gray-500 font-medium">Live preview — what your client sees</span>
           </div>
 
           <div className="flex-1">
@@ -722,35 +680,35 @@ export default function DemoPage() {
               flow={flow}
               completedIds={completedIds}
               onComplete={handleComplete}
+              onShowPublish={handlePublish}
             />
           </div>
 
           {/* Bottom CTA */}
-          <div className="border-t border-neutral-800 bg-neutral-950 px-6 py-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="border-t border-neutral-800 bg-neutral-950 px-6 py-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-white">Stop copy-pasting links to clients.</p>
-                <p className="text-xs text-gray-500 mt-0.5">Give them one place to complete everything — no app, no friction.</p>
+                <p className="text-sm font-semibold text-white">Ready to send this to a real client?</p>
+                <p className="text-xs text-gray-500 mt-0.5">Create your account and publish in 30 seconds.</p>
               </div>
-              <a
-                href="/signup"
-                onClick={trackCTA}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap flex-shrink-0"
+              <button
+                onClick={handlePublish}
+                className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
               >
                 Get started free
                 <ArrowRight className="w-4 h-4" />
-              </a>
+              </button>
             </div>
-            <div className="flex items-center gap-1.5 mt-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-gray-600" />
-              <p className="text-xs text-gray-600">No credit card required · 7-day money-back guarantee · Cancel anytime</p>
+            <div className="flex items-center gap-1.5 mt-3">
+              <ShieldCheck className="w-3.5 h-3.5 text-gray-700" />
+              <p className="text-xs text-gray-700">No credit card required · 7-day money-back guarantee · Cancel anytime</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Pro Gate Modal */}
-      <ProGateModal reason={gateReason} onClose={() => setGateReason(null)} />
+      {/* Publish / signup modal */}
+      {showPublish && <PublishModal onClose={() => setShowPublish(false)} />}
     </div>
   )
 }
