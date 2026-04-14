@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import {
   ArrowRight, Check, Lock, Plus, Trash2, GripVertical,
@@ -101,6 +101,71 @@ function PublishModal({ onClose }: { onClose: () => void }) {
   )
 }
 
+// ─── Step Type Dropdown ───────────────────────────────────────────────────────
+
+const STEP_OPTIONS: { type: StepType; label: string; pro: boolean }[] = [
+  { type: 'link',         label: 'Link / URL',    pro: false },
+  { type: 'request_pdf',  label: 'Request PDF',   pro: true  },
+  { type: 'request_photo',label: 'Request Photo', pro: true  },
+]
+
+function StepTypeDropdown({ value, onChange }: { value: StepType; onChange: (t: StepType) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const selected = STEP_OPTIONS.find(o => o.type === value) ?? STEP_OPTIONS[0]
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-xs font-medium text-gray-500 mb-1">Step type</label>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <span className="flex items-center gap-2">
+          {selected.label}
+          {selected.pro && (
+            <span className="text-[9px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded leading-none">PRO</span>
+          )}
+        </span>
+        <svg className={`w-4 h-4 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute z-20 mt-1 w-full bg-neutral-800 border border-neutral-700 rounded-md shadow-xl overflow-hidden">
+          {STEP_OPTIONS.map(opt => (
+            <button
+              key={opt.type}
+              type="button"
+              onClick={() => { onChange(opt.type); setOpen(false) }}
+              className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left transition-colors ${
+                value === opt.type
+                  ? 'bg-neutral-700 text-white'
+                  : 'text-gray-300 hover:bg-neutral-700'
+              }`}
+            >
+              {opt.label}
+              {opt.pro && (
+                <span className="text-[9px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded leading-none">PRO</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Builder Step Card ────────────────────────────────────────────────────────
 
 function BuilderStep({
@@ -162,16 +227,10 @@ function BuilderStep({
 
         {/* Step type */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Step type</label>
-          <select
+          <StepTypeDropdown
             value={step.step_type}
-            onChange={e => onUpdate(step.id, { step_type: e.target.value as StepType, url: '' })}
-            className="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="link">Link / URL</option>
-            <option value="request_pdf">Request PDF</option>
-            <option value="request_photo">Request Photo</option>
-          </select>
+            onChange={type => onUpdate(step.id, { step_type: type, url: '' })}
+          />
 
           {step.step_type === 'link' && (
             <input
