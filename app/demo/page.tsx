@@ -10,7 +10,7 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type StepType = 'link' | 'request_pdf' | 'request_photo'
+type StepType = 'link' | 'pdf' | 'photo' | 'request_pdf' | 'request_photo'
 
 interface Step {
   id: string
@@ -104,9 +104,11 @@ function PublishModal({ onClose }: { onClose: () => void }) {
 // ─── Step Type Dropdown ───────────────────────────────────────────────────────
 
 const STEP_OPTIONS: { type: StepType; label: string; pro: boolean }[] = [
-  { type: 'link',         label: 'Link / URL',    pro: false },
-  { type: 'request_pdf',  label: 'Request PDF',   pro: true  },
-  { type: 'request_photo',label: 'Request Photo', pro: true  },
+  { type: 'link',          label: 'Link / URL',    pro: false },
+  { type: 'pdf',           label: 'PDF',           pro: false },
+  { type: 'photo',         label: 'Photo',         pro: false },
+  { type: 'request_pdf',   label: 'Request PDF',   pro: true  },
+  { type: 'request_photo', label: 'Request Photo', pro: true  },
 ]
 
 function StepTypeDropdown({ value, onChange }: { value: StepType; onChange: (t: StepType) => void }) {
@@ -180,6 +182,7 @@ function BuilderStep({
   onDelete: (id: string) => void
 }) {
   const isProType = step.step_type === 'request_pdf' || step.step_type === 'request_photo'
+  const isUploadShare = step.step_type === 'pdf' || step.step_type === 'photo'
 
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg">
@@ -240,6 +243,20 @@ function BuilderStep({
               className="mt-2 w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="https://..."
             />
+          )}
+
+          {step.step_type === 'pdf' && (
+            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md">
+              <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className="text-sm text-gray-400">You'll share a PDF file for the client to view</span>
+            </div>
+          )}
+
+          {step.step_type === 'photo' && (
+            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md">
+              <Camera className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className="text-sm text-gray-400">You'll share a photo for the client to view</span>
+            </div>
           )}
 
           {step.step_type === 'request_pdf' && (
@@ -380,7 +397,8 @@ function PreviewPanel({
         <div className="space-y-3">
           {flow.steps.map((step) => {
             const status = getStatus(step)
-            const isUpload = step.step_type === 'request_pdf' || step.step_type === 'request_photo'
+            const isClientUpload = step.step_type === 'request_pdf' || step.step_type === 'request_photo'
+            const isShareFile = step.step_type === 'pdf' || step.step_type === 'photo'
 
             return (
               <div
@@ -422,7 +440,8 @@ function PreviewPanel({
 
                     {status === 'active' && (
                       <div className="mt-3 flex gap-2 flex-wrap items-center">
-                        {!isUpload && step.url && (
+                        {/* Link type */}
+                        {step.step_type === 'link' && step.url && (
                           <a
                             href="#"
                             onClick={e => e.preventDefault()}
@@ -432,7 +451,19 @@ function PreviewPanel({
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         )}
-                        {isUpload ? (
+
+                        {/* Shared file types — show View button */}
+                        {isShareFile && (
+                          <button
+                            onClick={() => onComplete(step.id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-sm font-medium rounded-md hover:bg-gray-100 transition-colors"
+                          >
+                            {step.step_type === 'photo' ? <><Camera className="w-3.5 h-3.5" /> View Photo</> : <><FileText className="w-3.5 h-3.5" /> View PDF</>}
+                          </button>
+                        )}
+
+                        {/* Client upload types */}
+                        {isClientUpload && (
                           <>
                             <input
                               type="file"
@@ -451,7 +482,10 @@ function PreviewPanel({
                               }
                             </label>
                           </>
-                        ) : (
+                        )}
+
+                        {/* Mark done for link/share types */}
+                        {!isClientUpload && (
                           <button
                             onClick={() => onComplete(step.id)}
                             className="px-3 py-1.5 border border-neutral-700 text-gray-300 text-sm font-medium rounded-md hover:bg-neutral-800 transition-colors"
