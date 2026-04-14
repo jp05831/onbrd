@@ -364,7 +364,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-5">
             {/* Free */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-7">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-7 flex flex-col">
               <h3 className="font-semibold text-white text-lg mb-1">Free</h3>
               <p className="text-sm text-gray-500 mb-5">Try it out — no card needed</p>
               <div className="mb-1">
@@ -372,7 +372,7 @@ export default function LandingPage() {
                 <span className="text-gray-500 ml-1">/forever</span>
               </div>
               <p className="text-xs text-gray-600 mb-6">Keep using it for free, forever</p>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {['2 flows', '2 steps per flow', 'Progress tracking', 'Shareable client links'].map((f, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-sm text-gray-400">
                     <Check className="w-4 h-4 text-gray-600 flex-shrink-0" />
@@ -382,14 +382,14 @@ export default function LandingPage() {
               </ul>
               <Link
                 href="/demo"
-                className="block text-center py-3 border border-neutral-700 text-gray-300 text-sm font-medium rounded-xl hover:bg-neutral-800 hover:border-neutral-600 transition-colors"
+                className="block text-center py-3 border border-neutral-700 text-gray-300 text-sm font-medium rounded-xl hover:bg-neutral-800 hover:border-neutral-600 transition-colors mt-auto"
               >
                 Create your first flow
               </Link>
             </div>
 
             {/* Pro */}
-            <div className="bg-neutral-900 border-2 border-blue-600 rounded-2xl p-7 relative shadow-xl shadow-blue-600/10">
+            <div className="bg-neutral-900 border-2 border-blue-600 rounded-2xl p-7 relative shadow-xl shadow-blue-600/10 flex flex-col">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-blue-600 px-3 py-1 rounded-full shadow-lg">
                   <Sparkles className="w-3 h-3" />
@@ -404,7 +404,7 @@ export default function LandingPage() {
                 {p.savings && <span className="text-sm text-green-400 font-semibold mb-1">{p.savings}</span>}
               </div>
               <p className="text-xs text-gray-600 mb-6">{p.note}</p>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {[
                   'Unlimited flows & steps',
                   'Unlimited clients — no per-seat fees',
@@ -419,16 +419,18 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/demo"
-                onClick={() => trackFbq('InitiateCheckout')}
-                className="block text-center py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
-              >
-                Create your first flow
-              </Link>
-              <div className="flex items-center justify-center gap-1.5 mt-3">
-                <ShieldCheck className="w-3.5 h-3.5 text-gray-600" />
-                <p className="text-xs text-gray-600">7-day money-back guarantee · Cancel anytime</p>
+              <div className="mt-auto">
+                <Link
+                  href="/signup"
+                  onClick={() => trackFbq('InitiateCheckout')}
+                  className="block text-center py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  Get Onbrd Pro
+                </Link>
+                <div className="flex items-center justify-center gap-1.5 mt-3">
+                  <ShieldCheck className="w-3.5 h-3.5 text-gray-600" />
+                  <p className="text-xs text-gray-600">7-day money-back guarantee · Cancel anytime</p>
+                </div>
               </div>
             </div>
           </div>

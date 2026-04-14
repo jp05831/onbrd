@@ -384,7 +384,7 @@ function PreviewPanel({
                     )}
 
                     {status === 'active' && (
-                      <div className="mt-3 flex gap-2 flex-wrap">
+                      <div className="mt-3 flex gap-2 flex-wrap items-center">
                         {!isUpload && step.url && (
                           <a
                             href="#"
@@ -397,16 +397,24 @@ function PreviewPanel({
                         )}
                         {isUpload ? (
                           <>
-                            <button
-                              onClick={() => onComplete(step.id)}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                            {/* Hidden real file input — opens picker, then gates on select */}
+                            <input
+                              type="file"
+                              accept={step.step_type === 'request_photo' ? 'image/*' : '.pdf,application/pdf'}
+                              className="hidden"
+                              id={`upload-${step.id}`}
+                              onChange={() => onShowPublish()}
+                            />
+                            <label
+                              htmlFor={`upload-${step.id}`}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
                             >
                               {step.step_type === 'request_photo' ? (
                                 <><Camera className="w-4 h-4" /> Upload Photo</>
                               ) : (
                                 <><FileUp className="w-4 h-4" /> Upload PDF</>
                               )}
-                            </button>
+                            </label>
                           </>
                         ) : (
                           <button
