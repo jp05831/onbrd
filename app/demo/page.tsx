@@ -88,12 +88,12 @@ function PublishModal({ onClose }: { onClose: () => void }) {
             onClick={() => trackFbq('InitiateCheckout')}
             className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
           >
-            Create your account — get started free
+            Get Onbrd Pro
             <ArrowRight className="w-4 h-4" />
           </a>
           <div className="flex items-center justify-center gap-1.5 mt-3">
             <ShieldCheck className="w-3.5 h-3.5 text-gray-600" />
-            <p className="text-xs text-gray-600">Free plan available · No credit card required</p>
+            <p className="text-xs text-gray-600">7-day money-back guarantee · Cancel anytime</p>
           </div>
         </div>
       </div>
@@ -267,16 +267,14 @@ function PreviewPanel({
 
         <div className="bg-neutral-900 border border-blue-600/40 rounded-2xl p-6 max-w-sm w-full mb-6">
           <p className="text-sm font-medium text-white mb-1">Ready to do this for real?</p>
-          <p className="text-sm text-gray-400 mb-5">Create an account and send this flow to your actual clients.</p>
-          <a
-            href="/signup"
-            onClick={() => trackFbq('InitiateCheckout')}
+          <p className="text-sm text-gray-400 mb-5">Publish your flow and send the link to your actual clients.</p>
+          <button
+            onClick={() => onShowPublish()}
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
           >
-            Create your account — free
+            Publish this flow
             <ArrowRight className="w-4 h-4" />
-          </a>
-          <p className="text-xs text-gray-600 mt-2 text-center">No credit card required</p>
+          </button>
         </div>
 
         <button
@@ -525,14 +523,7 @@ export default function DemoPage() {
 
       {/* Top banner */}
       <div className="bg-blue-600 py-2.5 px-4 text-center text-sm font-medium text-white">
-        This is a live demo — build your flow below, then create a free account to share it with clients
-        <a
-          href="/signup"
-          onClick={() => trackFbq('InitiateCheckout')}
-          className="ml-2 underline underline-offset-2 font-semibold hover:no-underline"
-        >
-          Get started free →
-        </a>
+        Build your flow below — hit Publish when you're ready to share it with clients
       </div>
 
       {/* Main split layout */}
@@ -689,19 +680,19 @@ export default function DemoPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-white">Ready to send this to a real client?</p>
-                <p className="text-xs text-gray-500 mt-0.5">Create your account and publish in 30 seconds.</p>
+                <p className="text-xs text-gray-500 mt-0.5">Hit publish and get a shareable link in seconds.</p>
               </div>
               <button
                 onClick={handlePublish}
                 className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
               >
-                Get started free
+                Publish & Share
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
             <div className="flex items-center gap-1.5 mt-3">
               <ShieldCheck className="w-3.5 h-3.5 text-gray-700" />
-              <p className="text-xs text-gray-700">No credit card required · 7-day money-back guarantee · Cancel anytime</p>
+              <p className="text-xs text-gray-700">7-day money-back guarantee · Cancel anytime</p>
             </div>
           </div>
         </div>

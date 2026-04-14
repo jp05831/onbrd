@@ -78,9 +78,6 @@ export default function LandingPage() {
             <Image src="/logo-dark.png" alt="Onbrd" width={120} height={60} className="h-9 w-auto" priority />
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">
-              Log in
-            </Link>
             <Link
               href="/demo"
               onClick={handleDemoCTA}
@@ -115,14 +112,8 @@ export default function LandingPage() {
               Create your first flow
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 px-7 py-3.5 border border-neutral-700 text-gray-300 text-base font-medium rounded-xl hover:bg-neutral-900 hover:border-neutral-600 transition-colors"
-            >
-              Get started free
-            </Link>
           </div>
-          <p className="mt-4 text-sm text-gray-600">No credit card required · Free plan available · 2 min setup</p>
+          <p className="mt-4 text-sm text-gray-600">No credit card required · 2 min setup</p>
         </div>
       </section>
 
@@ -344,7 +335,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 border-t border-neutral-800" id="pricing">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-semibold text-white mb-3">Start free. Upgrade when you're ready.</h2>
+            <h2 className="text-3xl font-semibold text-white mb-3">Simple, transparent pricing.</h2>
             <p className="text-gray-400">No contracts, no per-client fees, no surprises.</p>
           </div>
 
@@ -390,10 +381,10 @@ export default function LandingPage() {
                 ))}
               </ul>
               <Link
-                href="/signup"
+                href="/demo"
                 className="block text-center py-3 border border-neutral-700 text-gray-300 text-sm font-medium rounded-xl hover:bg-neutral-800 hover:border-neutral-600 transition-colors"
               >
-                Get started free
+                Create your first flow
               </Link>
             </div>
 
@@ -429,11 +420,11 @@ export default function LandingPage() {
                 ))}
               </ul>
               <Link
-                href="/signup"
+                href="/demo"
                 onClick={() => trackFbq('InitiateCheckout')}
                 className="block text-center py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
               >
-                Start free — upgrade anytime
+                Create your first flow
               </Link>
               <div className="flex items-center justify-center gap-1.5 mt-3">
                 <ShieldCheck className="w-3.5 h-3.5 text-gray-600" />
@@ -443,7 +434,7 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 mb-3">Want to try it first? No account needed.</p>
+            <p className="text-sm text-gray-500 mb-3">No account needed to try.</p>
             <Link
               href="/demo"
               onClick={handleDemoCTA}
@@ -473,16 +464,11 @@ export default function LandingPage() {
               Create your first flow — free
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 px-8 py-4 border border-neutral-700 text-gray-300 text-base font-medium rounded-xl hover:bg-neutral-900 hover:border-neutral-600 transition-colors"
-            >
-              Create account
-            </Link>
+
           </div>
           <div className="flex items-center justify-center gap-1.5 mt-4">
             <ShieldCheck className="w-4 h-4 text-gray-600" />
-            <p className="text-sm text-gray-600">Free plan available · No credit card required · Cancel anytime</p>
+            <p className="text-sm text-gray-600">No credit card required · Cancel anytime</p>
           </div>
         </div>
       </section>
@@ -495,8 +481,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center gap-6">
               <Link href="/" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Home</Link>
               <Link href="/demo" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Create a flow</Link>
-              <Link href="/signup" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Sign up</Link>
-              <Link href="/login" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Log in</Link>
+
               <Link href="/support" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">Support</Link>
               <a href="mailto:info@onbrd.net" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">info@onbrd.net</a>
             </div>
