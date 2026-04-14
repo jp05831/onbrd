@@ -107,8 +107,8 @@ function PublishModal({ onClose }: { onClose: () => void }) {
 
 const STEP_OPTIONS: { type: StepType; label: string; pro: boolean }[] = [
   { type: 'link',          label: 'Link / URL',    pro: false },
-  { type: 'pdf',           label: 'PDF',           pro: false },
-  { type: 'photo',         label: 'Photo',         pro: false },
+  { type: 'pdf',           label: 'PDF',           pro: true  },
+  { type: 'photo',         label: 'Photo',         pro: true  },
   { type: 'request_pdf',   label: 'Request PDF',   pro: true  },
   { type: 'request_photo', label: 'Request Photo', pro: true  },
 ]
@@ -184,7 +184,7 @@ function BuilderStep({
   onDelete: (id: string) => void
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const isProType = step.step_type === 'request_pdf' || step.step_type === 'request_photo'
+  const isProType = step.step_type !== 'link'
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
