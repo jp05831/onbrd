@@ -18,6 +18,8 @@ interface Step {
   description: string
   url: string
   step_type: StepType
+  fileUrl: string | null
+  fileName: string | null
 }
 
 interface FlowState {
@@ -181,8 +183,15 @@ function BuilderStep({
   onUpdate: (id: string, data: Partial<Step>) => void
   onDelete: (id: string) => void
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const isProType = step.step_type === 'request_pdf' || step.step_type === 'request_photo'
-  const isUploadShare = step.step_type === 'pdf' || step.step_type === 'photo'
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    onUpdate(step.id, { fileUrl: url, fileName: file.name })
+  }
 
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg">
@@ -232,7 +241,7 @@ function BuilderStep({
         <div>
           <StepTypeDropdown
             value={step.step_type}
-            onChange={type => onUpdate(step.id, { step_type: type, url: '' })}
+            onChange={type => onUpdate(step.id, { step_type: type, url: '', fileUrl: null, fileName: null })}
           />
 
           {step.step_type === 'link' && (
@@ -245,17 +254,38 @@ function BuilderStep({
             />
           )}
 
-          {step.step_type === 'pdf' && (
-            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md">
-              <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className="text-sm text-gray-400">You'll share a PDF file for the client to view</span>
-            </div>
-          )}
-
-          {step.step_type === 'photo' && (
-            <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md">
-              <Camera className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className="text-sm text-gray-400">You'll share a photo for the client to view</span>
+          {(step.step_type === 'pdf' || step.step_type === 'photo') && (
+            <div className="mt-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={step.step_type === 'photo' ? 'image/*' : '.pdf,application/pdf'}
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              {step.fileUrl && step.fileName ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md">
+                  {step.step_type === 'photo'
+                    ? <Camera className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    : <FileText className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  }
+                  <span className="flex-1 text-sm text-gray-300 truncate">{step.fileName}</span>
+                  <button
+                    onClick={() => { onUpdate(step.id, { fileUrl: null, fileName: null }); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                    className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 px-3 py-2 border border-neutral-700 border-dashed rounded-md text-sm text-gray-500 hover:border-neutral-500 hover:text-gray-300 transition-colors"
+                >
+                  <Upload className="w-4 h-4" />
+                  {step.step_type === 'photo' ? 'Upload photo' : 'Upload PDF'}
+                </button>
+              )}
             </div>
           )}
 
@@ -452,14 +482,20 @@ function PreviewPanel({
                           </a>
                         )}
 
-                        {/* Shared file types — show View button */}
+                        {/* Shared file types — open the actual file, then mark done */}
                         {isShareFile && (
-                          <button
+                          <a
+                            href={step.fileUrl ?? '#'}
+                            target={step.fileUrl ? '_blank' : undefined}
+                            rel="noopener noreferrer"
                             onClick={() => onComplete(step.id)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-sm font-medium rounded-md hover:bg-gray-100 transition-colors"
                           >
-                            {step.step_type === 'photo' ? <><Camera className="w-3.5 h-3.5" /> View Photo</> : <><FileText className="w-3.5 h-3.5" /> View PDF</>}
-                          </button>
+                            {step.step_type === 'photo'
+                              ? <><Camera className="w-3.5 h-3.5" /> View Photo</>
+                              : <><FileText className="w-3.5 h-3.5" /> View PDF</>
+                            }
+                          </a>
                         )}
 
                         {/* Client upload types */}
@@ -530,6 +566,8 @@ const INITIAL_FLOW: FlowState = {
       description: 'Review and e-sign your service agreement',
       url: 'https://example.com/contract',
       step_type: 'link',
+      fileUrl: null,
+      fileName: null,
     },
     {
       id: 'step-2',
@@ -537,6 +575,8 @@ const INITIAL_FLOW: FlowState = {
       description: 'Upload your logo and brand guidelines PDF',
       url: '',
       step_type: 'request_pdf',
+      fileUrl: null,
+      fileName: null,
     },
   ],
 }
@@ -573,6 +613,8 @@ export default function DemoPage() {
       description: '',
       url: '',
       step_type: 'link',
+      fileUrl: null,
+      fileName: null,
     }
     setFlow(prev => ({ ...prev, steps: [...prev.steps, newStep] }))
   }
