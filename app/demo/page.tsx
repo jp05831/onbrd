@@ -234,11 +234,13 @@ function BuilderStep({
 
 function PreviewPanel({
   flow,
+  logoUrl,
   completedIds,
   onComplete,
   onShowPublish,
 }: {
   flow: FlowState
+  logoUrl: string | null
   completedIds: Set<string>
   onComplete: (id: string) => void
   onShowPublish: () => void
@@ -298,11 +300,15 @@ function PreviewPanel({
     <div className="px-6 py-10 max-w-xl mx-auto w-full">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center">
-          <span className="text-white font-semibold text-sm">
-            {(flow.client_name || 'A').charAt(0).toUpperCase()}
-          </span>
-        </div>
+        {logoUrl ? (
+          <img src={logoUrl} alt="Logo" className="h-10 max-w-[120px] object-contain" />
+        ) : (
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center">
+            <span className="text-white font-semibold text-sm">
+              {(flow.client_name || 'A').charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
         <div>
           <p className="font-medium text-white">{flow.client_name || 'Your Client'}</p>
           <p className="text-sm text-gray-500">Client Onboarding</p>
@@ -397,13 +403,17 @@ function PreviewPanel({
                         )}
                         {isUpload ? (
                           <>
-                            {/* Hidden real file input — opens picker, then gates on select */}
+                            {/* Real file picker — file is not stored, just marks step complete */}
                             <input
                               type="file"
                               accept={step.step_type === 'request_photo' ? 'image/*' : '.pdf,application/pdf'}
                               className="hidden"
                               id={`upload-${step.id}`}
-                              onChange={() => onShowPublish()}
+                              onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                  onComplete(step.id)
+                                }
+                              }}
                             />
                             <label
                               htmlFor={`upload-${step.id}`}
@@ -478,7 +488,7 @@ export default function DemoPage() {
   const [flow, setFlow] = useState<FlowState>(INITIAL_FLOW)
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
   const [showPublish, setShowPublish] = useState(false)
-  const [logoInput] = useState<null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   useEffect(() => {
     trackFbq('ViewContent', { content_name: 'Demo Page' })
@@ -564,13 +574,37 @@ export default function DemoPage() {
               {/* Logo */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">Company logo (optional)</label>
-                <button
-                  onClick={handlePublish}
-                  className="inline-flex items-center gap-2 px-3 py-2 border border-neutral-700 border-dashed rounded-md text-sm text-gray-500 hover:border-neutral-500 hover:text-gray-300 transition-colors"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload logo
-                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id="logo-upload"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const url = URL.createObjectURL(file)
+                    setLogoUrl(url)
+                  }}
+                />
+                {logoUrl ? (
+                  <div className="flex items-center gap-3">
+                    <img src={logoUrl} alt="Logo" className="h-10 max-w-[160px] object-contain rounded border border-neutral-700 bg-neutral-800 p-1" />
+                    <button
+                      onClick={() => { setLogoUrl(null); (document.getElementById('logo-upload') as HTMLInputElement).value = '' }}
+                      className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label
+                    htmlFor="logo-upload"
+                    className="inline-flex items-center gap-2 px-3 py-2 border border-neutral-700 border-dashed rounded-md text-sm text-gray-500 hover:border-neutral-500 hover:text-gray-300 transition-colors cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload logo
+                  </label>
+                )}
                 <p className="text-xs text-gray-600 mt-1">Displays at the top of the client portal</p>
               </div>
 
@@ -677,6 +711,7 @@ export default function DemoPage() {
           <div className="flex-1">
             <PreviewPanel
               flow={flow}
+              logoUrl={logoUrl}
               completedIds={completedIds}
               onComplete={handleComplete}
               onShowPublish={handlePublish}
