@@ -136,7 +136,7 @@ export default function SupportPage() {
           <div className="relative w-full rounded-xl overflow-hidden border border-neutral-800 bg-neutral-900" style={{ paddingBottom: '56.25%' }}>
             <iframe
               className="absolute inset-0 w-full h-full"
-              src="https://www.youtube.com/embed/S3_LpgKwh4I"
+              src="https://www.youtube.com/embed/S3_LpgKwh4I?rel=0"
               title="Onbrd — Client onboarding simplified"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
