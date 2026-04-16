@@ -77,64 +77,14 @@ export default function LandingPage() {
       {/* Preview */}
       <section className="pb-28 px-6">
         <div className="max-w-3xl mx-auto">
-          <div className="border border-neutral-800 rounded-xl overflow-hidden bg-neutral-900 shadow-2xl shadow-blue-500/5">
-            {/* Browser chrome */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-neutral-950 border-b border-neutral-800">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-neutral-700" />
-                <div className="w-3 h-3 rounded-full bg-neutral-700" />
-                <div className="w-3 h-3 rounded-full bg-neutral-700" />
-              </div>
-              <div className="flex-1 text-center text-xs text-gray-500 font-mono">
-                onbrd.net/onboard/riverside-studio
-              </div>
-            </div>
-            
-            <div className="p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg" />
-                <div>
-                  <div className="font-medium text-white">Riverside Studio</div>
-                  <div className="text-sm text-gray-500">Client Onboarding</div>
-                </div>
-              </div>
-              
-              <div className="mb-6">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-500">Progress</span>
-                  <span className="text-white">2/4</span>
-                </div>
-                <div className="h-1.5 bg-neutral-800 rounded-full">
-                  <div className="h-full w-1/2 bg-blue-600 rounded-full" />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-neutral-700 bg-neutral-800/50">
-                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                    <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-                  </div>
-                  <span className="text-gray-300">Sign Contract</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-neutral-700 bg-neutral-800/50">
-                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                    <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-                  </div>
-                  <span className="text-gray-300">Complete Payment</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-blue-600 bg-blue-600/5">
-                  <div className="w-6 h-6 border-2 border-blue-500 rounded-full flex items-center justify-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full" />
-                  </div>
-                  <span className="flex-1 text-white">Fill Out Intake Form</span>
-                  <span className="px-3 py-1 bg-white text-black text-sm font-medium rounded-md">Open →</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-neutral-800 opacity-40">
-                  <div className="w-6 h-6 border-2 border-neutral-600 rounded-full" />
-                  <span className="text-gray-500">Schedule Kickoff Call</span>
-                </div>
-              </div>
-            </div>
+          <div className="relative w-full rounded-xl overflow-hidden border border-neutral-800 bg-neutral-900 shadow-2xl shadow-blue-500/5" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/S3_LpgKwh4I"
+              title="Onbrd — Client onboarding simplified"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           </div>
         </div>
       </section>
