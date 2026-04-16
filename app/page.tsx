@@ -254,7 +254,7 @@ export default function LandingPage() {
                 href="/signup"
                 className="block text-center py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Start free trial
+                Get started
               </Link>
               <div className="flex items-center justify-center gap-1.5 mt-2.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-gray-500" />
